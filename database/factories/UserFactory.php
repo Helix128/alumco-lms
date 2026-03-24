@@ -24,12 +24,18 @@ class UserFactory extends Factory
      */
     public function definition(): array
     {
+        $sexo = fake()->randomElement(['M', 'F']);
+
         return [
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
+            'sexo' => $sexo,
+            // Rango amplio para probar el filtro etario (18 a 70 años aprox.)
+            'fecha_nacimiento' => fake()->dateTimeBetween('-70 years', '-18 years')->format('Y-m-d'),
+            'activo' => fake()->boolean(85),
         ];
     }
 

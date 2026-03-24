@@ -34,6 +34,9 @@ class DatabaseSeeder extends Seeder
             'name' => 'Admin Alumco',
             'email' => 'admin@Alumco.cl',
             'password' => Hash::make('password'),
+            'sexo' => 'F',
+            'fecha_nacimiento' => now()->subYears(38)->toDateString(),
+            'activo' => true,
             'sede_id' => $sedes[0]->id,
             'estamento_id' => $estamentos[0]->id,
         ]);
@@ -52,8 +55,8 @@ class DatabaseSeeder extends Seeder
             ]));
         }
 
-        // 4. Crear 50 Trabajadores y darles Certificados (Cursos aprobados)
-        User::factory(50)->create()->each(function ($user) use ($sedes, $estamentos, $cursos) {
+        // 4. Crear 200 Trabajadores y darles Certificados (Cursos aprobados)
+        User::factory(200)->create()->each(function ($user) use ($sedes, $estamentos, $cursos) {
             // Asignar sede y estamento aleatorio
             $user->update([
                 'sede_id' => $sedes->random()->id,
