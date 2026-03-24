@@ -170,6 +170,7 @@
 
         <div class="mb-8">
             @php
+                $selectedSedes = array_map('intval', (array) request()->input('sede_id', []));
                 $selectedEstamentos = array_map('intval', (array) request()->input('estamento_id', []));
                 $selectedCursos = array_map('intval', (array) request()->input('curso_id', []));
                 $edadMinGlobal = $ageBounds['min'] ?? 0;
@@ -187,7 +188,7 @@
 
             <form action="{{ route('reportes.index') }}" method="GET" class="bg-white border border-Alumco-gray/15 rounded-Alumco p-4 md:p-5">
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
-                    <div class="lg:col-span-3 filter-card">
+                    <div class="lg:col-span-4 filter-card">
                         <label class="block text-xs uppercase tracking-wide font-bold text-Alumco-gray/75 mb-2">Estamento</label>
                         <select name="estamento_id[]" multiple class="w-full min-h-[140px] border-Alumco-gray/30 rounded-Alumco shadow-sm border p-2 bg-white text-Alumco-gray focus-ring">
                             @foreach($estamentos as $estamento)
@@ -199,7 +200,7 @@
                         <p class="text-xs text-Alumco-gray/70 mt-2">Puedes seleccionar uno o varios estamentos.</p>
                     </div>
 
-                    <div class="lg:col-span-3 filter-card relative" id="course-filter-root">
+                    <div class="lg:col-span-4 filter-card relative" id="course-filter-root">
                         <div class="flex items-center justify-between mb-2">
                             <label class="text-xs uppercase tracking-wide font-bold text-Alumco-gray/75">Cursos (debe cumplir todos)</label>
                             <button type="button" id="course-clear-btn" class="text-xs font-semibold text-Alumco-blue hover:underline">Limpiar</button>
@@ -248,7 +249,19 @@
                         </noscript>
                     </div>
 
-                    <div class="lg:col-span-3 filter-card" id="age-filter-root" data-age-enabled="{{ $edadActiva ? '1' : '0' }}">
+                    <div class="lg:col-span-4 filter-card">
+                        <label class="block text-xs uppercase tracking-wide font-bold text-Alumco-gray/75 mb-2">Sede</label>
+                        <select name="sede_id[]" multiple class="w-full min-h-[140px] border-Alumco-gray/30 rounded-Alumco shadow-sm border p-2 bg-white text-Alumco-gray focus-ring">
+                            @foreach($sedes as $sede)
+                            <option value="{{ $sede->id }}" {{ in_array((int) $sede->id, $selectedSedes, true) ? 'selected' : '' }}>
+                                {{ $sede->nombre }}
+                            </option>
+                            @endforeach
+                        </select>
+                        <p class="text-xs text-Alumco-gray/70 mt-2">Puedes seleccionar una o varias sedes.</p>
+                    </div>
+
+                    <div class="lg:col-span-6 filter-card" id="age-filter-root" data-age-enabled="{{ $edadActiva ? '1' : '0' }}">
                         <div class="flex items-center justify-between mb-2">
                             <label class="text-xs uppercase tracking-wide font-bold text-Alumco-gray/75">Rango etario</label>
                             <label class="inline-flex items-center gap-2 text-sm font-semibold text-Alumco-gray cursor-pointer">
@@ -284,7 +297,7 @@
                         </noscript>
                     </div>
 
-                    <div class="lg:col-span-3 filter-card">
+                    <div class="lg:col-span-6 filter-card">
                         <label class="block text-xs uppercase tracking-wide font-bold text-Alumco-gray/75 mb-2">Certificacion</label>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
@@ -303,6 +316,7 @@
                     <div class="lg:col-span-12 flex flex-wrap items-center gap-2">
                         @php
                             $activeFiltersCount = 0;
+                            if (count($selectedSedes) > 0) { $activeFiltersCount++; }
                             if (count($selectedEstamentos) > 0) { $activeFiltersCount++; }
                             if (count($selectedCursos) > 0) { $activeFiltersCount++; }
                             if ($edadActiva) { $activeFiltersCount++; }

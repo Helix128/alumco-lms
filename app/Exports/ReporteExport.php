@@ -14,6 +14,8 @@ class ReporteExport implements FromQuery, WithHeadings, WithMapping, ShouldAutoS
 {
     protected $request;
 
+    private array $selectedSedeIds;
+
     private array $selectedEstamentoIds;
 
     private array $selectedCourseIds;
@@ -26,9 +28,23 @@ class ReporteExport implements FromQuery, WithHeadings, WithMapping, ShouldAutoS
     public function __construct(Request $request)
     {
         $this->request = $request;
+        $this->selectedSedeIds = $this->sanitizeSedeIds($request);
         $this->selectedEstamentoIds = $this->sanitizeEstamentoIds($request);
         $this->selectedCourseIds = $this->sanitizeCourseIds($request);
         [$this->edadMin, $this->edadMax] = $this->sanitizeAgeRange($request);
+    }
+
+    private function sanitizeSedeIds(Request $request): array
+    {
+        $rawIds = $request->input('sede_id', []);
+        if (!is_array($rawIds)) {
+            $rawIds = [$rawIds];
+        }
+
+        $ids = array_map('intval', $rawIds);
+        $ids = array_values(array_unique(array_filter($ids, fn ($id) => $id > 0)));
+
+        return $ids;
     }
 
     private function sanitizeEstamentoIds(Request $request): array
@@ -92,6 +108,10 @@ class ReporteExport implements FromQuery, WithHeadings, WithMapping, ShouldAutoS
 
         if (!empty($this->selectedEstamentoIds)) {
             $query->whereIn('estamento_id', $this->selectedEstamentoIds);
+        }
+
+        if (!empty($this->selectedSedeIds)) {
+            $query->whereIn('sede_id', $this->selectedSedeIds);
         }
 
         if (!empty($this->selectedCourseIds) || ($this->request->filled('fecha_inicio') && $this->request->filled('fecha_fin'))) {
