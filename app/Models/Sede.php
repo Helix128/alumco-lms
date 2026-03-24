@@ -1,0 +1,17 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Sede extends Model
+{
+    // Permitir la asignación masiva del campo nombre
+    protected $fillable = ['nombre'];
+
+    // Relación: Una sede tiene muchos usuarios
+    public function users()
+    {
+        return $this->hasMany(User::class);
+    }
+}

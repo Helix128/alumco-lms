@@ -2,31 +2,55 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Database\Factories\UserFactory;
-use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'password'])]
-#[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
-    /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
+    protected $fillable = [
+        'name', 'email', 'password', 'fecha_nacimiento', 'sexo', 'activo', 'sede_id', 'estamento_id'
+    ];
+
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    // --- AQUÍ ESTÁN LAS RELACIONES QUE FALTABAN ---
+
+    public function sede()
+    {
+        return $this->belongsTo(Sede::class);
+    }
+
+    public function estamento()
+    {
+        return $this->belongsTo(Estamento::class);
+    }
+
+    public function cursosImpartidos()
+    {
+        return $this->hasMany(Curso::class , 'capacitador_id');
+    }
+
+    public function certificados()
+    {
+        return $this->hasMany(Certificado::class);
+    }
+
+    public function progresos()
+    {
+        return $this->hasMany(ProgresoModulo::class);
     }
 }
