@@ -361,9 +361,13 @@
                         <th
                             class="px-5 py-3 border-b border-Alumco-gray/20 bg-white text-left text-sm font-bold tracking-wider">
                             Estado</th>
-                        <th
-                            class="px-5 py-3 border-b border-Alumco-gray/20 bg-white text-left text-sm font-bold tracking-wider">
-                            Cursos Aprobados</th>
+                        <th class="px-5 py-3 border-b-2 bg-gray-50 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Cursos Aprobados</th>
+
+                        @if($cursoSeleccionado)
+                            <th class="px-5 py-3 border-b-2 bg-gray-50 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                Progreso: {{ $cursoSeleccionado->titulo }}
+                            </th>
+                        @endif
                     </tr>
                 </thead>
                 <tbody>
@@ -425,6 +429,24 @@
                             <span class="opacity-75 italic text-sm">Sin cursos aprobados</span>
                             @endforelse
                         </td>
+
+                        @if($cursoSeleccionado)
+                            <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm min-w-[200px]">
+                                @php
+                                    $totalModulos = $cursoSeleccionado->modulos_count;
+                                    $completados = $user->modulos_completados_count ?? 0;
+                                    $porcentaje = $totalModulos > 0 ? round(($completados / $totalModulos) * 100) : 0;
+                                @endphp
+
+                                <div class="flex items-center">
+                                    <span class="mr-2 text-gray-700 font-bold">{{ $porcentaje }}%</span>
+                                    <div class="w-full bg-gray-200 rounded-full h-2.5 flex-1">
+                                        <div class="bg-blue-600 h-2.5 rounded-full" style="width: {{ $porcentaje }}%"></div>
+                                    </div>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">{{ $completados }} de {{ $totalModulos }} módulos completados</p>
+                            </td>
+                        @endif
                     </tr>
                     @empty
                     <tr>

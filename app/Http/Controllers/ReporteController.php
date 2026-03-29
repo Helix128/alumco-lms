@@ -13,43 +13,38 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class ReporteController extends Controller
 {
+    // --- FUNCIONES DE TU AMIGO (Ligeramente mejoradas para soportar comas) ---
     private function sanitizeSedeIds(Request $request): array
     {
         $rawIds = $request->input('sede_id', []);
-        if (!is_array($rawIds)) {
+        if (is_string($rawIds) && str_contains($rawIds, ',')) {
+            $rawIds = explode(',', $rawIds);
+        } elseif (!is_array($rawIds)) {
             $rawIds = [$rawIds];
         }
-
-        $ids = array_map('intval', $rawIds);
-        $ids = array_values(array_unique(array_filter($ids, fn ($id) => $id > 0)));
-
-        return $ids;
+        return array_values(array_unique(array_filter(array_map('intval', $rawIds), fn($id) => $id > 0)));
     }
 
     private function sanitizeEstamentoIds(Request $request): array
     {
         $rawIds = $request->input('estamento_id', []);
-        if (!is_array($rawIds)) {
+        if (is_string($rawIds) && str_contains($rawIds, ',')) {
+            $rawIds = explode(',', $rawIds);
+        } elseif (!is_array($rawIds)) {
             $rawIds = [$rawIds];
         }
-
-        $ids = array_map('intval', $rawIds);
-        $ids = array_values(array_unique(array_filter($ids, fn ($id) => $id > 0)));
-
-        return $ids;
+        return array_values(array_unique(array_filter(array_map('intval', $rawIds), fn($id) => $id > 0)));
     }
 
     private function sanitizeCourseIds(Request $request): array
     {
         $rawIds = $request->input('curso_id', []);
-        if (!is_array($rawIds)) {
+        if (is_string($rawIds) && str_contains($rawIds, ',')) {
+            $rawIds = explode(',', $rawIds);
+        } elseif (!is_array($rawIds)) {
             $rawIds = [$rawIds];
         }
-
-        $ids = array_map('intval', $rawIds);
-        $ids = array_values(array_unique(array_filter($ids, fn ($id) => $id > 0)));
-
-        return $ids;
+        return array_values(array_unique(array_filter(array_map('intval', $rawIds), fn($id) => $id > 0)));
     }
 
     private function sanitizeAgeRange(Request $request): array
@@ -67,86 +62,64 @@ class ReporteController extends Controller
         return [$edadMin, $edadMax];
     }
 
-    // Metodo para mostrar la vista y filtrar
+    // --- MÉTODO PRINCIPAL ---
     public function index(Request $request)
     {
-        $sedes = Sede::all();
         $estamentos = Estamento::all();
         $cursos = Curso::all();
-        $selectedSedeIds = $this->sanitizeSedeIds($request);
-        $selectedEstamentoIds = $this->sanitizeEstamentoIds($request);
-        $selectedCourseIds = $this->sanitizeCourseIds($request);
-        [$edadMin, $edadMax] = $this->sanitizeAgeRange($request);
-
-        $ageBounds = ['min' => 0, 'max' => 120];
-        $ageStats = User::query()
-            ->whereNotNull('fecha_nacimiento')
-            ->selectRaw('MIN(fecha_nacimiento) as min_birth, MAX(fecha_nacimiento) as max_birth')
-            ->first();
-
-        if ($ageStats && $ageStats->min_birth && $ageStats->max_birth) {
-            $today = Carbon::today();
-            $youngestAge = Carbon::parse($ageStats->max_birth)->diffInYears($today);
-            $oldestAge = Carbon::parse($ageStats->min_birth)->diffInYears($today);
-
-            $ageBounds['min'] = min($youngestAge, $oldestAge);
-            $ageBounds['max'] = max($youngestAge, $oldestAge);
-        }
-
-        if ($edadMin !== null) {
-            $edadMin = max($ageBounds['min'], min($edadMin, $ageBounds['max']));
-        }
-
-        if ($edadMax !== null) {
-            $edadMax = max($ageBounds['min'], min($edadMax, $ageBounds['max']));
-        }
-
-        if ($edadMin !== null && $edadMax !== null && $edadMin > $edadMax) {
-            [$edadMin, $edadMax] = [$edadMax, $edadMin];
-        }
+        $sedes = Sede::all();
+        $cursoSeleccionado = null;
 
         $query = User::with(['estamento', 'sede', 'certificados.curso'])
             ->whereNotNull('estamento_id');
 
-        if ($edadMin !== null || $edadMax !== null) {
-            $query->whereNotNull('fecha_nacimiento');
+        // 1. Filtro por Estamento
+        $estamentoIds = $this->sanitizeEstamentoIds($request);
+        if (!empty($estamentoIds)) {
+            $query->whereIn('estamento_id', $estamentoIds);
+        }
 
-            if ($edadMin !== null) {
-                $query->where('fecha_nacimiento', '<=', now()->subYears($edadMin)->toDateString());
+        // 2. Filtro por Sede 
+        $sedeIds = $this->sanitizeSedeIds($request);
+        if (!empty($sedeIds)) {
+            $query->whereIn('sede_id', $sedeIds);
+        }
+
+        // 3. Filtro por Curso (AHORA SÍ USA LA FUNCIÓN DE TU AMIGO)
+        $cursoIds = $this->sanitizeCourseIds($request);
+        if (!empty($cursoIds)) {
+            $query->whereHas('progresos.modulo', function ($q) use ($cursoIds) {
+                $q->whereIn('curso_id', $cursoIds);
+            });
+
+            $cursoSeleccionado = Curso::withCount('modulos')->find($cursoIds[0]);
+
+            if ($cursoSeleccionado) {
+                $query->withCount([
+                    'progresos as modulos_completados_count' => function ($q) use ($cursoSeleccionado) {
+                        $q->whereHas('modulo', function ($q2) use ($cursoSeleccionado) {
+                            $q2->where('curso_id', $cursoSeleccionado->id);
+                        })->where('completado', true);
+                    }
+                ]);
             }
-
-            if ($edadMax !== null) {
-                $query->where('fecha_nacimiento', '>=', now()->subYears($edadMax + 1)->addDay()->toDateString());
-            }
         }
 
-        if (!empty($selectedEstamentoIds)) {
-            $query->whereIn('estamento_id', $selectedEstamentoIds);
-        }
+        // 4. Filtro por Fechas
+        if ($request->filled('fecha_inicio') && $request->filled('fecha_fin')) {
+            $query->whereHas('certificados', function ($q) use ($request) {
+                $q->whereBetween('fecha_emision', [$request->fecha_inicio, $request->fecha_fin]);
 
-        if (!empty($selectedSedeIds)) {
-            $query->whereIn('sede_id', $selectedSedeIds);
-        }
-
-        if (!empty($selectedCourseIds) || ($request->filled('fecha_inicio') && $request->filled('fecha_fin'))) {
-            $query->whereHas('certificados', function ($q) use ($request, $selectedCourseIds) {
-                if (!empty($selectedCourseIds)) {
-                    // AND logic: the user must have every selected course.
-                    $q->whereIn('curso_id', $selectedCourseIds)
-                        ->select('user_id')
-                        ->groupBy('user_id')
-                        ->havingRaw('COUNT(DISTINCT curso_id) = ?', [count($selectedCourseIds)]);
-                }
-
-                if ($request->filled('fecha_inicio') && $request->filled('fecha_fin')) {
-                    $q->whereBetween('fecha_emision', [$request->fecha_inicio, $request->fecha_fin]);
+                $cursoIds = $this->sanitizeCourseIds($request);
+                if (!empty($cursoIds)) {
+                    $q->whereIn('curso_id', $cursoIds);
                 }
             });
         }
 
         $usuarios = $query->paginate(15)->withQueryString();
 
-        return view('reportes.index', compact('usuarios', 'sedes', 'estamentos', 'cursos', 'ageBounds'));
+        return view('reportes.index', compact('usuarios', 'estamentos', 'cursos', 'sedes', 'cursoSeleccionado'));
     }
 
     // Metodo para descargar el excel
