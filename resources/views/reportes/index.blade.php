@@ -4,35 +4,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard ONG Alumco - Reportes</title>
+    <title>Alumco - Reportes</title>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        Alumco: {
-                            blue: '#205099',
-                            green: '#AFDD83',
-                            coral: '#FF6364',
-                            yellow: '#F8B606',
-                            cyan: '#A5B6F5',
-                            gray: '#5E5E5E',
-                            cream: '#FFF8EB'
-                        }
-                    },
-                    fontFamily: {
-                        sans: ['Roboto', 'sans-serif'],
-                        logo: ['Nexa Black', 'sans-serif']
-                    }
-                }
-            }
-        }
-    </script>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
         .rounded-Alumco { border-radius: 8px; } /* 8pt radius */
 
@@ -470,7 +448,7 @@
         <!-- Brand Watermark -->
         <div class="mt-8 flex justify-end items-center pointer-events-none w-full pb-8">
             <!-- Logo real referenciado -->
-            <img src="{{ asset('images/logo/alumco-full.svg') }}" alt="Ong Alumco" class="h-14 w-auto pointer-events-auto" dropzone="none">
+            <img src="{{ asset('images/logo/alumco-full.svg') }}" alt="Alumco" class="h-14 w-auto pointer-events-auto" dropzone="none">
         </div>
 
         </main>

@@ -3,84 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - ONG Alumco</title>
+    <title>Login - Alumco</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        Alumco: {
-                            blue: '#205099',
-                            green: '#AFDD83',
-                            coral: '#FF6364',
-                            yellow: '#F8B606',
-                            cyan: '#A5B6F5',
-                            gray: '#5E5E5E',
-                            cream: '#FFF8EB',
-                        }
-                    },
-                    fontFamily: {
-                        sans: ['Roboto', 'sans-serif'],
-                        display: ['Sora', 'sans-serif'],
-                    }
-                }
-            }
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
         }
-    </script>
+    </style>
 </head>
-<body class="min-h-screen bg-Alumco-cream font-sans text-Alumco-gray antialiased">
-    <div class="relative isolate min-h-screen overflow-hidden">
-        <img
-            src="{{ asset('images/undraw/clouds_top.svg') }}"
-            alt=""
-            aria-hidden="true"
-            class="pointer-events-none absolute -top-10 right-0 z-0 w-[28rem] max-w-none opacity-95 sm:-top-16 sm:w-[34rem] lg:w-[48rem]"
-        >
+<body class="bg-Alumco-cream font-sans text-Alumco-gray antialiased">
+    <div class="relative flex h-screen w-full flex-col overflow-hidden isolate">
+        <!-- Nubes Superiores -->
+        <div class="pointer-events-none absolute top-0 -right-10 z-0 select-none">
+            <img src="{{ asset('images/undraw/clouds_top.svg') }}" alt="" class="animate-cloud h-auto w-[35vw] opacity-90 lg:w-[45vw]">
+        </div>
+        
+        <!-- Nubes Inferiores -->
+        <div class="pointer-events-none absolute bottom-0 -left-10 z-0 select-none">
+            <img src="{{ asset('images/undraw/clouds_bottom.svg') }}" alt="" class="animate-cloud-slow h-auto w-[30vw] opacity-80 lg:w-[35vw]">
+        </div>
 
-        <img
-            src="{{ asset('images/undraw/clouds_bottom.svg') }}"
-            alt=""
-            aria-hidden="true"
-            class="pointer-events-none absolute -bottom-8 left-0 z-0 w-[22rem] max-w-none sm:w-[28rem] lg:w-[36rem]"
-        >
-
-        <main class="relative z-10 mx-auto flex min-h-screen w-full max-w-[1280px] items-center px-4 py-8 sm:px-8 lg:px-10">
-            <div class="grid w-full items-end gap-8 lg:grid-cols-[minmax(0,720px)_minmax(260px,1fr)] lg:gap-5">
-                <section>
-                    <div class="mx-auto mb-6 w-fit lg:mx-0 lg:mb-5">
+        <main class="relative z-10 mx-auto flex h-full w-full max-w-[1440px] flex-1 items-center px-8 lg:px-20">
+            <div class="grid w-full items-stretch gap-10 lg:grid-cols-[1.35fr_0.65fr]">
+                
+                <!-- Sección Login -->
+                <section class="flex flex-col justify-center w-full">
+                    <div class="mb-6 flex justify-start lg:mb-8">
                         <img
                             src="{{ asset('images/logo/alumco-full.svg') }}"
                             alt="Logo Alumco"
-                            class="h-auto w-[15.5rem] sm:w-[17.5rem] lg:w-[19.5rem]"
+                            class="h-auto w-[16rem] sm:w-[18rem] lg:w-[22rem]"
                         >
                     </div>
 
-                    <div class="overflow-hidden rounded-[10px] border border-slate-300 bg-Alumco-cream shadow-[0_16px_35px_-24px_rgba(32,80,153,0.8)]">
-                        <div class="bg-Alumco-blue px-4 py-4 sm:px-6">
-                            <h1 class="font-display text-3xl font-extrabold tracking-tight text-white sm:text-[2.2rem]">
-                                Bienvenid&#64; al portal de capacitaci&oacute;n!
+                    <div class="overflow-hidden rounded-xl border-2 border-slate-200 bg-white shadow-sm">
+                        <div class="bg-Alumco-blue px-8 py-4 lg:py-5">
+                            <h1 class="font-display text-2xl font-bold tracking-tight text-white sm:text-3xl lg:text-4xl">
+                                ¡Bienvenid@ al portal de capacitación!
                             </h1>
                         </div>
 
-                        <form method="POST" action="{{ route('login') }}" class="space-y-6 px-4 py-6 sm:px-8 sm:py-8 lg:px-8 lg:py-7" novalidate>
+                        <form method="POST" action="{{ route('login') }}" class="space-y-6 px-8 py-8 lg:px-12 lg:py-10" novalidate>
                             @csrf
 
+                            <!-- Correo -->
                             <div class="space-y-2">
-                                <div class="flex items-start justify-between gap-3">
-                                    <label for="email" class="text-2xl font-black leading-tight text-Alumco-gray sm:text-[2rem]">Correo electr&oacute;nico</label>
-                                    <a href="mailto:soporte@alumco.org" class="text-xl font-bold leading-tight text-Alumco-blue transition hover:text-Alumco-coral focus:outline-none focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-Alumco-blue focus-visible:ring-offset-2 focus-visible:ring-offset-Alumco-cream">
-                                        &iquest;Olvidaste tu correo electr&oacute;nico?
+                                <div class="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+                                    <label for="email" class="text-2xl font-bold text-Alumco-gray lg:text-3xl">Correo electrónico</label>
+                                    <a href="mailto:soporte@alumco.org" class="text-base font-bold text-Alumco-blue transition hover:text-Alumco-coral focus:outline-none">
+                                        ¿Olvidaste tu correo electrónico?
                                     </a>
                                 </div>
 
                                 <div class="relative">
-                                    <span class="pointer-events-none absolute inset-y-0 left-4 flex items-center text-Alumco-gray/90" aria-hidden="true">
+                                    <span class="pointer-events-none absolute inset-y-0 left-5 flex items-center text-Alumco-gray/40" aria-hidden="true">
                                         <svg viewBox="0 0 24 24" fill="currentColor" class="h-7 w-7">
-                                            <path d="M3.5 6.5A2.5 2.5 0 0 1 6 4h12a2.5 2.5 0 0 1 2.5 2.5v11A2.5 2.5 0 0 1 18 20H6a2.5 2.5 0 0 1-2.5-2.5v-11Zm2.36-.5 6.14 5.02L18.14 6H5.86Zm12.64 2.5-5.5 4.49a1.6 1.6 0 0 1-2 0L5.5 8.5v9a.5.5 0 0 0 .5.5h12a.5.5 0 0 0 .5-.5v-9Z" />
+                                            <path d="M1.5 8.67v8.58a3 3 0 003 3h15a3 3 0 003-3V8.67l-8.928 5.493a1.75 1.75 0 01-1.644 0L1.5 8.67z" />
+                                            <path d="M22.5 6.908V6.75a3 3 0 00-3-3h-15a3 3 0 00-3 3v.158l9.714 5.978a.25.25 0 00.286 0L22.5 6.908z" />
                                         </svg>
                                     </span>
                                     <input
@@ -91,32 +77,30 @@
                                         required
                                         autofocus
                                         autocomplete="username"
-                                        placeholder="Ingresa tu correo"
-                                        class="h-14 w-full rounded-[8px] border border-Alumco-blue/50 bg-white/85 pl-14 pr-4 text-lg font-medium text-Alumco-gray outline-none transition placeholder:text-slate-400 focus:border-Alumco-blue focus:ring-4 focus:ring-Alumco-blue/20 @error('email') border-red-500 focus:border-red-500 focus:ring-red-200 @enderror"
+                                        placeholder="ejemplo@correo.com"
+                                        class="h-14 w-full rounded-xl border-2 border-slate-200 bg-slate-50/30 pl-14 pr-4 text-xl font-medium text-Alumco-gray transition placeholder:text-slate-400 focus:border-Alumco-blue focus:bg-white focus:ring-0 @error('email') border-red-500 @enderror"
                                     >
                                 </div>
-
                                 @error('email')
-                                    <p class="text-sm font-semibold text-red-700">{{ $message }}</p>
+                                    <p class="text-sm font-bold text-red-600">{{ $message }}</p>
                                 @enderror
                             </div>
 
+                            <!-- Contraseña -->
                             <div class="space-y-2">
-                                <div class="flex items-start justify-between gap-3">
-                                    <label for="password" class="text-2xl font-black leading-tight text-Alumco-gray sm:text-[2rem]">Contrase&ntilde;a</label>
+                                <div class="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+                                    <label for="password" class="text-2xl font-bold text-Alumco-gray lg:text-3xl">Contraseña</label>
                                     @if (Route::has('password.request'))
-                                        <a href="{{ route('password.request') }}" class="text-xl font-bold leading-tight text-Alumco-blue transition hover:text-Alumco-coral focus:outline-none focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-Alumco-blue focus-visible:ring-offset-2 focus-visible:ring-offset-Alumco-cream">
-                                            &iquest;Olvidaste tu contrase&ntilde;a?
+                                        <a href="{{ route('password.request') }}" class="text-base font-bold text-Alumco-blue transition hover:text-Alumco-coral focus:outline-none">
+                                            ¿Olvidaste tu contraseña?
                                         </a>
-                                    @else
-                                        <span class="text-xl font-bold leading-tight text-Alumco-blue">&iquest;Olvidaste tu contrase&ntilde;a?</span>
                                     @endif
                                 </div>
 
                                 <div class="relative">
-                                    <span class="pointer-events-none absolute inset-y-0 left-4 flex items-center text-Alumco-gray/90" aria-hidden="true">
+                                    <span class="pointer-events-none absolute inset-y-0 left-5 flex items-center text-Alumco-gray/40" aria-hidden="true">
                                         <svg viewBox="0 0 24 24" fill="currentColor" class="h-7 w-7">
-                                            <path d="M14.5 2a5.5 5.5 0 0 1 4.96 7.87l2.9 2.9a1 1 0 0 1 0 1.42l-1.58 1.58a1 1 0 0 1-1.42 0l-.37-.37-.84.84a1 1 0 0 1-1.42 0l-.84-.84-.8.8a1 1 0 0 1-1.1.21l-1.35-.54-4.92 4.92a1 1 0 0 1-.7.3H3a1 1 0 0 1-1-1v-3.04a1 1 0 0 1 .3-.7l7.07-7.07A5.5 5.5 0 1 1 14.5 2Zm0 2a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z" />
+                                            <path fill-rule="evenodd" d="M12 1.5a5.25 5.25 0 00-5.25 5.25v3a3 3 0 00-3 3v6.75a3 3 0 003 3h10.5a3 3 0 003-3v-6.75a3 3 0 00-3-3v-3c0-2.9-2.35-5.25-5.25-5.25zm3.75 8.25v-3a3.75 3.75 0 10-7.5 0v3h7.5z" clip-rule="evenodd" />
                                         </svg>
                                     </span>
                                     <input
@@ -125,51 +109,47 @@
                                         name="password"
                                         required
                                         autocomplete="current-password"
-                                        placeholder="Ingresa tu contrase&ntilde;a"
-                                        class="h-14 w-full rounded-[8px] border border-Alumco-blue/50 bg-white/85 pl-14 pr-4 text-lg font-medium text-Alumco-gray outline-none transition placeholder:text-slate-400 focus:border-Alumco-blue focus:ring-4 focus:ring-Alumco-blue/20 @error('password') border-red-500 focus:border-red-500 focus:ring-red-200 @enderror"
+                                        placeholder="••••••••"
+                                        class="h-14 w-full rounded-xl border-2 border-slate-200 bg-slate-50/30 pl-14 pr-4 text-xl font-medium text-Alumco-gray transition placeholder:text-slate-400 focus:border-Alumco-blue focus:bg-white focus:ring-0 @error('password') border-red-500 @enderror"
                                     >
                                 </div>
-
                                 @error('password')
-                                    <p class="text-sm font-semibold text-red-700">{{ $message }}</p>
+                                    <p class="text-sm font-bold text-red-600">{{ $message }}</p>
                                 @enderror
                             </div>
 
-                            <div class="flex items-center justify-between pt-1">
-                                <label for="remember_me" class="inline-flex cursor-pointer items-center gap-2 text-base font-semibold text-Alumco-gray">
-                                    <input id="remember_me" type="checkbox" name="remember" class="h-4 w-4 rounded border-slate-300 text-Alumco-blue accent-Alumco-blue focus:ring-Alumco-blue">
-                                    Recu&eacute;rdame
-                                </label>
-                            </div>
-
-                            <button type="submit" class="mt-1 h-16 w-full rounded-[8px] bg-Alumco-blue px-6 text-[clamp(2.1rem,3.2vw,2.95rem)] font-black leading-none text-white shadow-[0_6px_0_0_rgba(13,52,110,1)] transition hover:bg-[#1B4687] focus:outline-none focus-visible:ring-4 focus-visible:ring-Alumco-blue/35">
-                                Acceder
-                            </button>
-
-                            <div class="space-y-1 pt-2 text-center">
-                                <p class="text-xl font-bold text-Alumco-gray">&iquest;No tienes una cuenta?</p>
-                                @if (Route::has('register'))
-                                    <a href="{{ route('register') }}" class="inline-block text-[2rem] font-black leading-tight text-Alumco-blue transition hover:text-Alumco-coral focus:outline-none focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-Alumco-blue focus-visible:ring-offset-2 focus-visible:ring-offset-Alumco-cream">&iexcl;Reg&iacute;strate aqu&iacute;!</a>
-                                @else
-                                    <a href="#" class="inline-block text-[2rem] font-black leading-tight text-Alumco-blue transition hover:text-Alumco-coral focus:outline-none focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-Alumco-blue focus-visible:ring-offset-2 focus-visible:ring-offset-Alumco-cream">&iexcl;Reg&iacute;strate aqu&iacute;!</a>
-                                @endif
+                            <!-- Botón Acceder -->
+                            <div class="flex flex-col items-center gap-4 pt-2">
+                                <button type="submit" class="flex h-16 w-full max-w-sm items-center justify-center rounded-xl bg-Alumco-blue px-8 text-3xl font-bold text-white shadow-[0_6px_0_0_#163a71] transition-all hover:translate-y-[2px] hover:shadow-[0_4px_0_0_#163a71] active:translate-y-[6px] active:shadow-none focus:outline-none">
+                                    Acceder
+                                </button>
+                                
+                                <div class="text-center">
+                                    <p class="text-lg font-bold text-Alumco-gray/60">¿No tienes una cuenta?</p>
+                                    <a href="{{ Route::has('register') ? route('register') : '#' }}" class="inline-block text-3xl font-bold text-Alumco-blue transition hover:text-Alumco-coral focus:outline-none">
+                                        ¡Regístrate aquí!
+                                    </a>
+                                </div>
                             </div>
                         </form>
                     </div>
                 </section>
 
-                <aside class="relative hidden h-full min-h-[560px] items-end justify-end lg:flex" aria-hidden="true">
-                    <img
-                        src="{{ asset('images/undraw/door_knock.svg') }}"
-                        alt=""
-                        class="h-auto w-full max-w-[25rem] object-contain"
-                    >
+                <!-- Ilustración -->
+                <aside class="relative hidden lg:flex items-center justify-end" aria-hidden="true">
+                    <div class="h-full flex items-end pb-32">
+                        <img
+                            src="{{ asset('images/undraw/door_knock.svg') }}"
+                            alt=""
+                            class="h-auto w-full max-w-[32rem] object-contain"
+                        >
+                    </div>
                 </aside>
             </div>
         </main>
 
-        <footer class="relative z-10 pb-4 text-center text-sm font-medium text-Alumco-gray/70 sm:pb-6 lg:pb-8">
-            &copy; {{ date('Y') }} ONG Alumco. Todos los derechos reservados.
+        <footer class="relative z-10 py-6 text-center text-xs font-bold uppercase tracking-widest text-Alumco-gray/40">
+            &copy; {{ date('Y') }} Alumco
         </footer>
     </div>
 </body>
