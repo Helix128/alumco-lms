@@ -32,8 +32,8 @@ class DatabaseSeeder extends Seeder
 
         // 2. Crear Usuarios Base
         $admin = User::create([
-            'name' => 'Admin Alunco',
-            'email' => 'admin@alunco.cl',
+            'name' => 'Admin Alumco',
+            'email' => 'admin@Alumco.cl',
             'password' => Hash::make('password'),
             'sede_id' => $sedes[0]->id,
             'estamento_id' => $estamentos[0]->id,

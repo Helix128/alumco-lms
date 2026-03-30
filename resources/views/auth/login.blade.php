@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - ONG Alunco</title>
+    <title>Login - ONG Alumco</title>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,7 +14,7 @@
             theme: {
                 extend: {
                     colors: {
-                        Alunco: {
+                        Alumco: {
                             blue: '#205099',
                             green: '#AFDD83',
                             gray: '#5E5E5E',
@@ -28,18 +28,18 @@
         }
     </script>
 </head>
-<body class="bg-gray-50 font-sans text-Alunco-gray h-screen flex flex-col justify-center items-center">
+<body class="bg-gray-50 font-sans text-Alumco-gray h-screen flex flex-col justify-center items-center">
 
     <div class="w-full max-w-md bg-white shadow-xl rounded-xl p-8 border border-gray-100">
         <!-- Logo u ONG Marca Placeholder -->
         <div class="flex justify-center mb-6">
             <!-- Si tienes el logo, puedes sustituir esto por img src asset('images/logo/alumco-full.svg') -->
-            <div class="h-16 w-16 bg-Alunco-blue rounded-full flex items-center justify-center text-white font-bold text-2xl">
+            <div class="h-16 w-16 bg-Alumco-blue rounded-full flex items-center justify-center text-white font-bold text-2xl">
                 OA
             </div>
         </div>
 
-        <h1 class="text-2xl font-bold text-center text-Alunco-blue mb-8">ONG Alunco - Portal de Capacitaciones</h1>
+        <h1 class="text-2xl font-bold text-center text-Alumco-blue mb-8">ONG Alumco - Portal de Capacitaciones</h1>
 
         <form method="POST" action="{{ route('login') }}" class="space-y-5">
             @csrf
@@ -48,7 +48,7 @@
             <div>
                 <label for="email" class="block text-sm font-semibold text-gray-700 mb-1">Correo Electrónico</label>
                 <input id="email" type="email" name="email" value="{{ old('email') }}" required autofocus autocomplete="username"
-                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-Alunco-blue focus:border-Alunco-blue outline-none transition-colors @error('email') border-red-500 @enderror">
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-Alumco-blue focus:border-Alumco-blue outline-none transition-colors @error('email') border-red-500 @enderror">
                 
                 @error('email')
                     <p class="text-sm text-red-600 mt-1 font-medium">{{ $message }}</p>
@@ -59,7 +59,7 @@
             <div>
                 <label for="password" class="block text-sm font-semibold text-gray-700 mb-1">Contraseña</label>
                 <input id="password" type="password" name="password" required autocomplete="current-password"
-                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-Alunco-blue focus:border-Alunco-blue outline-none transition-colors @error('password') border-red-500 @enderror">
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-Alumco-blue focus:border-Alumco-blue outline-none transition-colors @error('password') border-red-500 @enderror">
                 
                 @error('password')
                     <p class="text-sm text-red-600 mt-1 font-medium">{{ $message }}</p>
@@ -69,7 +69,7 @@
             <!-- Remember Me -->
             <div class="flex items-center justify-between">
                 <label for="remember_me" class="inline-flex items-center cursor-pointer">
-                    <input id="remember_me" type="checkbox" name="remember" class="w-4 h-4 text-Alunco-blue border-gray-300 rounded focus:ring-Alunco-blue accent-Alunco-blue">
+                    <input id="remember_me" type="checkbox" name="remember" class="w-4 h-4 text-Alumco-blue border-gray-300 rounded focus:ring-Alumco-blue accent-Alumco-blue">
                     <span class="ml-2 text-sm text-gray-600">Recuérdame</span>
                 </label>
             </div>
@@ -84,7 +84,7 @@
 
     <!-- Marca de agua en el fondo si se desea, alineado con el diseño LMS -->
     <div class="mt-8 text-center text-sm text-gray-400">
-        &copy; {{ date('Y') }} ONG Alunco. Todos los derechos reservados.
+        &copy; {{ date('Y') }} ONG Alumco. Todos los derechos reservados.
     </div>
 
 </body>
