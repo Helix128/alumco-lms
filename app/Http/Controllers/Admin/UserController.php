@@ -86,7 +86,7 @@ class UserController extends Controller
 
         $user->delete();
 
-        return redirect()->back()->with('success', 'Usuario eliminado (soft-delete).');
+        return redirect()->back()->with('success', 'Usuario eliminado.');
     }
 
     public function resetPassword(User $user)
