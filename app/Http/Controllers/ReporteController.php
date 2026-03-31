@@ -119,7 +119,22 @@ class ReporteController extends Controller
 
         $usuarios = $query->paginate(15)->withQueryString();
 
-        return view('admin.reportes.index', compact('usuarios', 'estamentos', 'cursos', 'sedes', 'cursoSeleccionado'));
+        $minDate = User::whereNotNull('fecha_nacimiento')->max('fecha_nacimiento');
+        $maxDate = User::whereNotNull('fecha_nacimiento')->min('fecha_nacimiento');
+
+        $ageBounds = [
+            'min' => $minDate ? Carbon::parse($minDate)->age : 0,
+            'max' => $maxDate ? Carbon::parse($maxDate)->age : 120,
+        ];
+
+        // Asegurarse de que min <= max en caso de que minDate de un salto raro
+        if ($ageBounds['min'] > $ageBounds['max']) {
+            $tmp = $ageBounds['min'];
+            $ageBounds['min'] = $ageBounds['max'];
+            $ageBounds['max'] = $tmp;
+        }
+
+        return view('admin.reportes.index', compact('usuarios', 'estamentos', 'cursos', 'sedes', 'cursoSeleccionado', 'ageBounds'));
     }
 
     // Metodo para descargar el excel

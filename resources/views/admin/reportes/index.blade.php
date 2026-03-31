@@ -2,6 +2,54 @@
 
 @section('title', 'Panel de administración')
 
+@push('styles')
+<style>
+    /* ── Dual-range slider (age filter) ── */
+    .slider-thumb::-webkit-slider-thumb {
+        pointer-events: auto;
+        -webkit-appearance: none;
+        appearance: none;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: var(--color-Alumco-blue);
+        border: 3px solid #fff;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        cursor: pointer;
+        margin-top: -11px;
+        transition: transform 0.1s;
+    }
+
+    .slider-thumb::-moz-range-thumb {
+        pointer-events: auto;
+        appearance: none;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: var(--color-Alumco-blue);
+        border: 3px solid #fff;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        cursor: pointer;
+        transition: transform 0.1s;
+    }
+
+    .slider-thumb:active::-webkit-slider-thumb {
+        transform: scale(1.15);
+    }
+
+    .slider-thumb:active::-moz-range-thumb {
+        transform: scale(1.15);
+    }
+
+    /* Disabled state when toggle is off */
+    .range-disabled {
+        opacity: 0.4;
+        pointer-events: none;
+        filter: grayscale(100%);
+    }
+</style>
+@endpush
+
 @section('content')
 <div class="flex justify-between items-end mb-8">
     <div>
@@ -52,7 +100,7 @@
                 <p class="text-xs text-Alumco-gray/70 mt-2">Puedes seleccionar uno o varios estamentos.</p>
             </div>
 
-            <div class="lg:col-span-4 filter-card relative" id="course-filter-root">
+            <div class="lg:col-span-4 filter-card relative overflow-visible" id="course-filter-root">
                 <div class="flex items-center justify-between mb-2">
                     <label class="text-xs uppercase tracking-wide font-bold text-Alumco-gray/75">Cursos (debe cumplir todos)</label>
                     <button type="button" id="course-clear-btn" class="text-xs font-semibold text-Alumco-blue hover:underline">Limpiar</button>
@@ -66,7 +114,7 @@
 
                 <div id="selected-course-chips" class="mt-2 flex flex-wrap gap-2"></div>
 
-                <div id="course-picker-panel" class="hidden absolute top-[calc(100%+10px)] left-0 right-0 z-30">
+                <div id="course-picker-panel" class="hidden absolute top-[calc(100%+10px)] left-0 right-0 z-50 max-h-[70vh] overflow-y-auto">
                     <div class="bg-white rounded-Alumco border border-Alumco-gray/20 shadow-xl p-4">
                         <div class="flex items-center justify-between mb-3">
                             <h3 class="text-base font-bold text-Alumco-gray">Seleccion de cursos</h3>
@@ -121,20 +169,27 @@
                     </label>
                 </div>
 
-                <div id="age-slider-wrapper">
-                    <div class="dual-range mb-2">
-                        <div class="dual-range__track"></div>
-                        <div class="dual-range__fill" id="age-range-fill"></div>
-                        <input type="range" id="age-min-slider" min="{{ $edadMinGlobal }}" max="{{ $edadMaxGlobal }}" value="{{ $edadMinInicial }}">
-                        <input type="range" id="age-max-slider" min="{{ $edadMinGlobal }}" max="{{ $edadMaxGlobal }}" value="{{ $edadMaxInicial }}">
+                <div id="age-slider-wrapper" class="pt-4 pb-2 px-3">
+                    <div class="relative w-full h-2 bg-Alumco-gray/20 rounded-full mb-8 mt-2">
+                        <div class="absolute h-full bg-Alumco-blue rounded-full" id="age-range-fill"></div>
+                        <input type="range" id="age-min-slider" min="{{ $edadMinGlobal }}" max="{{ $edadMaxGlobal }}" value="{{ $edadMinInicial }}" class="absolute w-full h-2 bg-transparent appearance-none pointer-events-none z-20 slider-thumb">
+                        <input type="range" id="age-max-slider" min="{{ $edadMinGlobal }}" max="{{ $edadMaxGlobal }}" value="{{ $edadMaxInicial }}" class="absolute w-full h-2 bg-transparent appearance-none pointer-events-none z-20 slider-thumb">
                     </div>
 
-                    <div class="flex items-center justify-between text-sm font-semibold text-Alumco-gray">
-                        <span>Min: <span id="age-min-value">{{ $edadMinInicial }}</span> años</span>
-                        <span>Max: <span id="age-max-value">{{ $edadMaxInicial }}</span> años</span>
+                    <div class="flex items-center justify-between">
+                        <div class="flex flex-col items-center">
+                            <span class="text-xs font-bold text-Alumco-gray/70 uppercase tracking-wider">Mínimo</span>
+                            <div class="bg-white border border-Alumco-gray/20 shadow-sm rounded-lg px-4 py-1.5 mt-1 text-sm font-bold text-Alumco-gray">
+                                <span id="age-min-value">{{ $edadMinInicial }}</span> años
+                            </div>
+                        </div>
+                        <div class="flex flex-col items-center">
+                            <span class="text-xs font-bold text-Alumco-gray/70 uppercase tracking-wider">Máximo</span>
+                            <div class="bg-white border border-Alumco-gray/20 shadow-sm rounded-lg px-4 py-1.5 mt-1 text-sm font-bold text-Alumco-gray">
+                                <span id="age-max-value">{{ $edadMaxInicial }}</span> años
+                            </div>
+                        </div>
                     </div>
-
-                    <p class="text-xs text-Alumco-gray/70 mt-1">Rango disponible: {{ round($edadMinGlobal) }} a {{ round($edadMaxGlobal) }} años.</p>
                 </div>
 
                 <input type="hidden" id="edad-min-input" name="edad_min" value="{{ request('edad_min') }}">
