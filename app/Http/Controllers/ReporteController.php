@@ -105,7 +105,18 @@ class ReporteController extends Controller
             }
         }
 
-        // 4. Filtro por Fechas
+        // 4. Filtro por Edad
+        [$edadMin, $edadMax] = $this->sanitizeAgeRange($request);
+        if ($edadMin !== null) {
+            // Edad >= edadMin: nacido en o antes de hoy - edadMin años
+            $query->where('fecha_nacimiento', '<=', Carbon::now()->subYears($edadMin)->format('Y-m-d'));
+        }
+        if ($edadMax !== null) {
+            // Edad <= edadMax: nacido en o después de hoy - (edadMax+1) años + 1 día
+            $query->where('fecha_nacimiento', '>=', Carbon::now()->subYears($edadMax + 1)->addDay()->format('Y-m-d'));
+        }
+
+        // 5. Filtro por Fechas
         if ($request->filled('fecha_inicio') && $request->filled('fecha_fin')) {
             $query->whereHas('certificados', function ($q) use ($request) {
                 $q->whereBetween('fecha_emision', [$request->fecha_inicio, $request->fecha_fin]);
