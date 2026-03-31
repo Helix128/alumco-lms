@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Notifications\ResetPasswordNotification;
 
 class User extends Authenticatable
 {
@@ -27,8 +28,6 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
-
-    // --- AQUÍ ESTÁN LAS RELACIONES QUE FALTABAN ---
 
     public function sede()
     {
@@ -55,8 +54,6 @@ class User extends Authenticatable
         return $this->hasMany(ProgresoModulo::class);
     }
 
-    // --- HELPER ROLES ---
-
     public function isDesarrollador(): bool
     {
         return $this->estamento && $this->estamento->nombre === 'Desarrollador';
@@ -70,5 +67,10 @@ class User extends Authenticatable
     public function hasAdminAccess(): bool
     {
         return $this->isDesarrollador() || $this->isAdmin();
+    }
+
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new ResetPasswordNotification($token));
     }
 }
