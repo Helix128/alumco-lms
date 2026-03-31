@@ -75,11 +75,11 @@ COPY --from=frontend-builder /var/www/html/public/build /var/www/html/public/bui
 
 RUN composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
 
-RUN php artisan config:cache \
-    && php artisan route:cache \
-    && php artisan view:cache
-
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
 EXPOSE 9000
+ENTRYPOINT ["entrypoint.sh"]
 CMD ["/usr/sbin/php-fpm8.5", "-F"]
