@@ -13,23 +13,31 @@ class AdminUserSeeder extends Seeder
     public function run(): void
     {
         $sede = Sede::query()->first();
-        $estamento = Estamento::where('nombre', 'Desarrollador')->first() ?? Estamento::query()->first();
+        $estamentoDev = Estamento::where('nombre', 'Desarrollador')->first();
+        $estamentoAdmin = Estamento::where('nombre', 'Administrador')->first();
 
-        if (! $sede || ! $estamento) {
+        if (! $sede || ! $estamentoDev || ! $estamentoAdmin) {
             return;
         }
 
-        $adminEmail = env('SEED_ADMIN_EMAIL', 'admin@Alumco.cl');
-        $adminName = env('SEED_ADMIN_NAME', 'Admin Alumco');
-        $adminPassword = env('SEED_ADMIN_PASSWORD', 'password');
+        User::query()->updateOrCreate(
+            ['email' => 'dev@alumco.cl'],
+            [
+                'name' => 'Dev Alumco',
+                'password' => Hash::make('password'),
+                'sede_id' => $sede->id,
+                'estamento_id' => $estamentoDev->id,
+                'activo' => true,
+            ]
+        );
 
         User::query()->updateOrCreate(
-            ['email' => $adminEmail],
+            ['email' => 'admin@alumco.cl'],
             [
-                'name' => $adminName,
-                'password' => Hash::make($adminPassword),
+                'name' => 'Admin Alumco',
+                'password' => Hash::make('password'),
                 'sede_id' => $sede->id,
-                'estamento_id' => $estamento->id,
+                'estamento_id' => $estamentoAdmin->id,
                 'activo' => true,
             ]
         );

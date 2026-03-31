@@ -119,7 +119,7 @@ class ReporteController extends Controller
 
         $usuarios = $query->paginate(15)->withQueryString();
 
-        return view('reportes.index', compact('usuarios', 'estamentos', 'cursos', 'sedes', 'cursoSeleccionado'));
+        return view('admin.reportes.index', compact('usuarios', 'estamentos', 'cursos', 'sedes', 'cursoSeleccionado'));
     }
 
     // Metodo para descargar el excel

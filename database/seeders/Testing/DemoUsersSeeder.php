@@ -12,7 +12,9 @@ class DemoUsersSeeder extends Seeder
     public function run(): void
     {
         $sedes = Sede::query()->get();
-        $estamentos = Estamento::query()->get();
+        $estamentos = Estamento::query()
+            ->whereNotIn('nombre', ['Desarrollador', 'Administrador'])
+            ->get();
 
         if ($sedes->isEmpty() || $estamentos->isEmpty()) {
             return;
