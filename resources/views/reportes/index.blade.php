@@ -127,7 +127,7 @@
         
         <!-- Header -->
         <header class="bg-Alumco-blue text-white py-4 px-8 shadow-sm">
-            <h1 class="text-2xl font-bold">Vista de administrador</h1>
+            <h1 class="text-2xl font-bold">Panel de administración</h1>
         </header>
 
         <!-- Main Content -->
