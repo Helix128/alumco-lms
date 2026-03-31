@@ -98,7 +98,7 @@
                                     Guardar contraseña
                                 </button>
 
-                                <a href="{{ route('login') }}" class="text-base font-bold text-Alumco-blue transition hover:text-Alumco-coral focus:outline-none">
+                                <a href="{{ route('login') }}" class="text-lg font-bold text-Alumco-blue transition hover:text-Alumco-coral focus:outline-none">
                                     &larr; Volver al inicio de sesión
                                 </a>
                             </div>

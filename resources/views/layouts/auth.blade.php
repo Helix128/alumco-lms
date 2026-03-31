@@ -47,7 +47,7 @@
 
                 <!-- Ilustración -->
                 <aside class="relative hidden lg:flex items-center justify-end" aria-hidden="true">
-                    <div class="h-full flex items-end pb-32">
+                    <div class="h-full flex items-end pb-64">
                         <img
                             src="{{ asset('images/undraw/door_knock.svg') }}"
                             alt=""

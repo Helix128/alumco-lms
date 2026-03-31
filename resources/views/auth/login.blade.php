@@ -51,7 +51,7 @@
                                 <div class="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
                                     <label for="password" class="text-2xl font-bold text-Alumco-gray lg:text-3xl">Contraseña</label>
                                     @if (Route::has('password.request'))
-                                        <a href="{{ route('password.request') }}" class="text-base font-bold text-Alumco-blue transition hover:text-Alumco-coral focus:outline-none">
+                                        <a href="{{ route('password.request') }}" class="text-lg font-bold text-Alumco-blue transition hover:text-Alumco-coral focus:outline-none">
                                             ¿Olvidaste tu contraseña?
                                         </a>
                                     @endif
