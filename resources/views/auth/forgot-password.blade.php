@@ -1,6 +1,6 @@
 @extends('layouts.auth')
 
-@section('title', 'Recuperar contrase&ntilde;a - Alumco')
+@section('title', 'Recuperar contraseña - Alumco')
 
 @section('content')
     <div class="overflow-hidden rounded-xl border-2 border-slate-200 bg-white shadow-sm">
@@ -53,9 +53,7 @@
 
                             <!-- Botones -->
                             <div class="flex flex-col items-center gap-4 pt-2">
-                                <button type="submit" class="flex h-16 w-full max-w-sm cursor-pointer items-center justify-center rounded-xl bg-Alumco-blue px-8 text-3xl font-bold text-white shadow-[0_6px_0_0_#163a71] transition-all hover:translate-y-[2px] hover:shadow-[0_4px_0_0_#163a71] active:translate-y-[6px] active:shadow-none focus:outline-none">
-                                    Enviar enlace
-                                </button>
+                                <x-auth.primary-button>Enviar enlace</x-auth.primary-button>
 
                                 <a href="{{ route('login') }}" class="text-lg font-bold text-Alumco-blue transition hover:text-Alumco-coral focus:outline-none">
                                     &larr; Volver al inicio de sesión
