@@ -2,16 +2,30 @@
 
 namespace Database\Seeders;
 
+use Database\Seeders\Common\AdminUserSeeder;
+use Database\Seeders\Common\EstamentoSeeder;
+use Database\Seeders\Common\SedeSeeder;
+use Database\Seeders\Testing\DemoCoursesSeeder;
+use Database\Seeders\Testing\DemoProgressSeeder;
+use Database\Seeders\Testing\DemoUsersSeeder;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        $this->call(AdminSeeder::class);
+        $this->call([
+            SedeSeeder::class,
+            EstamentoSeeder::class,
+            AdminUserSeeder::class,
+        ]);
 
         if (app()->environment(['local', 'testing'])) {
-            $this->call(DemoDataSeeder::class);
+            $this->call([
+                DemoCoursesSeeder::class,
+                DemoUsersSeeder::class,
+                DemoProgressSeeder::class,
+            ]);
         }
     }
 }
