@@ -1,0 +1,57 @@
+#!/bin/bash
+
+cmd=$1
+
+case $cmd in
+    dev-start)
+        echo "iniciando server dev..."
+        ./vendor/bin/sail up -d
+        ;;
+    dev-stop)
+        echo "apagando server dev..."
+        ./vendor/bin/sail stop
+        ;;
+    prod-build)
+        echo "compilando imagen prod..."
+        docker compose -f compose.prod.yaml build
+        ;;
+    prod-start)
+        echo "iniciando server prod..."
+        docker compose -f compose.prod.yaml up -d
+        ;;
+    prod-stop)
+        echo "apagando server prod..."
+        docker compose -f compose.prod.yaml down
+        ;;
+    prod-clean)
+        echo "limpiando imagenes huerfanas de docker..."
+        docker image prune -f
+        ;;
+    prod-artisan)
+        shift 
+        echo "ejecutando artisan en prod..."
+        docker compose -f compose.prod.yaml exec app php artisan "$@"
+        ;;
+    prod-exec)
+        shift
+        servicio=$1
+        shift
+        echo "ejecutando comando en $servicio..."
+        docker compose -f compose.prod.yaml exec "$servicio" "$@"
+        ;;
+    *)
+        echo "uso: ./lms [comando] [argumentos]"
+        echo ""
+        echo "dev:"
+        echo "  dev-start     - inicia sail"
+        echo "  dev-stop      - apaga sail"
+        echo ""
+        echo "prod:"
+        echo "  prod-build    - compila imagen"
+        echo "  prod-start    - levanta contenedores"
+        echo "  prod-stop     - baja contenedores"
+        echo "  prod-clean    - elimina imagenes viejas sin uso para liberar espacio"
+        echo "  prod-artisan  - atajo para php artisan (ej: ./lms prod-artisan migrate)"
+        echo "  prod-exec     - comando libre (ej: ./lms prod-exec mysql bash)"
+        ;;
+esac
