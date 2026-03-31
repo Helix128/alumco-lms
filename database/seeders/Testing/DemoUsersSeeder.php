@@ -18,7 +18,7 @@ class DemoUsersSeeder extends Seeder
             return;
         }
 
-        User::factory(50)->create()->each(function (User $user) use ($sedes, $estamentos): void {
+        User::factory(250)->create()->each(function (User $user) use ($sedes, $estamentos): void {
             $user->update([
                 'sede_id' => $sedes->random()->id,
                 'estamento_id' => $estamentos->random()->id,
