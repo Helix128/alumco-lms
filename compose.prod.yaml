@@ -22,6 +22,8 @@ services:
         volumes:
             # Compartimos los archivos estáticos con el contenedor Nginx
             - app-files:/var/www/html
+            # Cargamos el .env de producción para que Laravel tenga la configuración correcta
+            - ./.env:/var/www/html/.env
         networks:
             - alumco-prod
         depends_on:

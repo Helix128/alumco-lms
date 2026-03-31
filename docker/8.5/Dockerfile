@@ -1,4 +1,3 @@
-# Sistema y PHP base para todas las etapas
 FROM ubuntu:24.04 AS base
 
 LABEL maintainer="Taylor Otwell"
@@ -14,7 +13,6 @@ RUN echo "Acquire::http::Pipeline-Depth 0;" > /etc/apt/apt.conf.d/99custom && \
     echo "Acquire::http::No-Cache true;" >> /etc/apt/apt.conf.d/99custom && \
     echo "Acquire::BrokenProxy    true;" >> /etc/apt/apt.conf.d/99custom
 
-# Instalamos utilidades base y PHP 8.5 
 RUN apt-get update && apt-get upgrade -y \
     && mkdir -p /etc/apt/keyrings \
     && apt-get install -y gnupg gosu curl ca-certificates zip unzip git sqlite3 libcap2-bin libpng-dev python3 dnsutils librsvg2-bin fswatch ffmpeg nano \
@@ -25,8 +23,6 @@ RUN apt-get update && apt-get upgrade -y \
     && curl -sLS https://getcomposer.org/installer | php -- --install-dir=/usr/bin/ --filename=composer \
     && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-# Compilación del frontend
-# Instala Node solo un momento para compilar Vite, luego se desecha
 FROM base AS frontend-builder
 ARG NODE_VERSION=24
 COPY . /var/www/html
@@ -35,7 +31,6 @@ RUN curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg -
     && apt-get update && apt-get install -y nodejs \
     && npm install && npm run build
 
-# Desarrollo 
 FROM base AS development
 ARG NODE_VERSION=24
 ARG MYSQL_CLIENT="mysql-client"
@@ -45,7 +40,6 @@ ENV SUPERVISOR_PHP_COMMAND="/usr/bin/php -d variables_order=EGPCS /var/www/html/
 ENV SUPERVISOR_PHP_USER="sail"
 ENV PLAYWRIGHT_BROWSERS_PATH=0
 
-# Instalamos las herramientas pesadas de DEV (Node, Xdebug, clientes de BD, Playwright)
 RUN apt-get update \
     && apt-get install -y php8.5-xdebug supervisor supervisor $MYSQL_CLIENT postgresql-client-$POSTGRES_VERSION \
     && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
@@ -66,32 +60,26 @@ RUN chmod +x /usr/local/bin/start-container
 EXPOSE 80/tcp
 ENTRYPOINT ["start-container"]
 
-# Producción (PHP-FPM)
 FROM base AS production
 ENV APP_ENV=production
 ENV APP_DEBUG=false
 
-# Instalamos PHP-FPM (El procesador robusto para Producción)
 RUN apt-get update && apt-get install -y php8.5-fpm \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Copiamos el código fuente del PC
-COPY . /var/www/html
+RUN mkdir -p /run/php && \
+    sed -i 's/listen = \/run\/php\/php8.5-fpm.sock/listen = 0.0.0.0:9000/' /etc/php/8.5/fpm/pool.d/www.conf
 
-# Copiamos los assets de Vite ya compilados desde la Etapa 2
+COPY . /var/www/html
 COPY --from=frontend-builder /var/www/html/public/build /var/www/html/public/build
 
-# Instalamos dependencias de PHP sin las herramientas de test
 RUN composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
 
-# Optimizamos la caché de Laravel
 RUN php artisan config:cache \
     && php artisan route:cache \
     && php artisan view:cache
 
-# Ajustamos permisos para que el servidor web pueda escribir en logs/cache
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
-# En producción, no usamos el 'start-container' de Sail, usamos FPM nativo
 EXPOSE 9000
-CMD ["php-fpm8.5", "-F"]
+CMD ["/usr/sbin/php-fpm8.5", "-F"]
