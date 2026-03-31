@@ -9,7 +9,7 @@ class EstamentoSeeder extends Seeder
 {
     public function run(): void
     {
-        foreach (['Profesionales', 'Auxiliares de servicio', 'Administracion'] as $nombre) {
+        foreach (['Desarrollador', 'Administrador', 'Profesionales', 'Auxiliares de servicio'] as $nombre) {
             Estamento::query()->firstOrCreate(['nombre' => $nombre]);
         }
     }

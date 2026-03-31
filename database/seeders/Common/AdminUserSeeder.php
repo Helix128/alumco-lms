@@ -13,7 +13,7 @@ class AdminUserSeeder extends Seeder
     public function run(): void
     {
         $sede = Sede::query()->first();
-        $estamento = Estamento::query()->first();
+        $estamento = Estamento::where('nombre', 'Desarrollador')->first() ?? Estamento::query()->first();
 
         if (! $sede || ! $estamento) {
             return;
