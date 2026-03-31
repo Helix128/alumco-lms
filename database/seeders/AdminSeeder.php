@@ -14,7 +14,7 @@ class AdminSeeder extends Seeder
     {
         $sedes = collect([
             Sede::firstOrCreate(['nombre' => 'Concepcion']),
-            Sede::firstOrCreate(['nombre' => 'Hualpen']),
+            Sede::firstOrCreate(['nombre' => 'Hualpén']),
             Sede::firstOrCreate(['nombre' => 'Coyhaique']),
         ]);
 
