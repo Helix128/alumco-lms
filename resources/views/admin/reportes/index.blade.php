@@ -4,7 +4,7 @@
 
 @push('styles')
 <style>
-    /* ── Dual-range slider (age filter) ── */
+    /* Slider con doble control (filtro de edad) */
     .slider-thumb::-webkit-slider-thumb {
         pointer-events: auto;
         -webkit-appearance: none;
@@ -41,7 +41,7 @@
         transform: scale(1.15);
     }
 
-    /* Disabled state when toggle is off */
+    /* Estado deshabilitado cuando el toggle está apagado */
     .range-disabled {
         opacity: 0.4;
         pointer-events: none;

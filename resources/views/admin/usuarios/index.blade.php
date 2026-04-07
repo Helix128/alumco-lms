@@ -4,7 +4,7 @@
 
 @push('styles')
 <style>
-    /* --- Drawer: estados y transiciones --- */
+    /* Drawer: estados y transiciones */
     #drawer-backdrop {
         position: fixed;
         top: 0;
@@ -42,7 +42,7 @@
         transform: translateX(0);
     }
 
-    /* --- Drawer: inputs --- */
+    /* Drawer: inputs */
     #drawer-usuario .drawer-input,
     #drawer-usuario .drawer-select {
         height: 40px;
@@ -443,7 +443,7 @@
 
         let isOpen = false;
 
-        /* -- Helpers -- */
+        /* Helpers */
         function updateAdminWarning() {
             if (!els.estamento || !els.warning) return;
             const text = (els.estamento.options[els.estamento.selectedIndex]?.text || '').trim().toLowerCase();
@@ -451,7 +451,7 @@
             els.warning.style.display = show ? '' : 'none';
         }
 
-        /* -- Abrir drawer -- */
+        /* Abrir drawer */
         function open(mode, userId) {
             form.reset();
 
@@ -497,7 +497,7 @@
             });
         }
 
-        /* -- Cerrar drawer -- */
+        /* Cerrar drawer */
         function close() {
             if (!isOpen) return;
             isOpen = false;
@@ -512,7 +512,7 @@
             });
         }
 
-        /* -- Bind events -- */
+        /* Bind events */
         backdrop.addEventListener('click', close);
 
         document.addEventListener('keydown', function (e) {
@@ -523,7 +523,7 @@
             els.estamento.addEventListener('change', updateAdminWarning);
         }
 
-        /* -- Exponer al scope global (las llaman el onclick del HTML y handleAction) -- */
+        /* Exponer al scope global (las llaman el onclick del HTML y handleAction) */
         window.openDrawer  = open;
         window.closeDrawer = close;
     })();

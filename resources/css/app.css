@@ -29,10 +29,6 @@
     }
 }
 
-/* ============================================================
-   COMPONENTES INTERACTIVOS — estados hover/active/transition
-   (no usar variantes Tailwind hover:/active: en plantillas Blade)
-   ============================================================ */
 
 /* Tarjeta navegable (cursos, módulos) */
 .card-link {
