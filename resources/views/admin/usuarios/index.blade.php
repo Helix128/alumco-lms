@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+@extends('layouts.panel')
 
 @section('title', 'Panel de administración')
 
@@ -149,7 +149,7 @@
                 </td>
                 
                 <td class="px-5 py-4 border-b border-Alumco-gray/10 bg-transparent text-sm text-right">
-                    <button class="info-btn p-2 rounded-full hover:bg-Alumco-gray/10 text-Alumco-gray transition-colors focus:outline-none" title="Opciones (o Click Derecho)">
+                    <button type="button" class="info-btn p-2 rounded-full hover:bg-Alumco-gray/10 text-Alumco-gray transition-colors focus:outline-none" title="Opciones (o Click Derecho)">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
@@ -364,8 +364,8 @@
                 x = btnRect.left - contextMenu.offsetWidth + btnRect.width;
                 y = btnRect.bottom + 5;
             } else {
-                x = e.pageX;
-                y = e.pageY;
+                x = e.clientX;
+                y = e.clientY;
             }
 
             if (x + contextMenu.offsetWidth > window.innerWidth)

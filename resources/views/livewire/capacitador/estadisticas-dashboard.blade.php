@@ -1,0 +1,42 @@
+<div>
+    @if (count($chartData) === 0)
+        <p class="text-Alumco-gray/50 text-sm text-center py-6">
+            No hay datos de progreso disponibles aún.
+        </p>
+    @else
+        <div class="relative" style="height: 260px;">
+            <canvas id="estadisticasChart"></canvas>
+        </div>
+        @push('scripts')
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+        <script>
+            (function() {
+                const data = @json($chartData);
+                const labels = data.map(d => d.label.length > 20 ? d.label.substring(0, 20) + '…' : d.label);
+                const values = data.map(d => d.value);
+
+                new Chart(document.getElementById('estadisticasChart'), {
+                    type: 'bar',
+                    data: {
+                        labels,
+                        datasets: [{
+                            label: '% Completado',
+                            data: values,
+                            backgroundColor: '#205099',
+                            borderRadius: 6,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: { beginAtZero: true, max: 100, ticks: { callback: v => v + '%' } }
+                        },
+                        plugins: { legend: { display: false } }
+                    }
+                });
+            })();
+        </script>
+        @endpush
+    @endif
+</div>

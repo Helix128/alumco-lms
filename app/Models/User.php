@@ -69,6 +69,21 @@ class User extends Authenticatable
         return $this->isDesarrollador() || $this->isAdmin();
     }
 
+    public function isCapacitadorInterno(): bool
+    {
+        return $this->estamento && $this->estamento->nombre === 'Capacitador Interno';
+    }
+
+    public function isCapacitadorExterno(): bool
+    {
+        return $this->estamento && $this->estamento->nombre === 'Capacitador Externo';
+    }
+
+    public function isCapacitador(): bool
+    {
+        return $this->isCapacitadorInterno() || $this->isCapacitadorExterno();
+    }
+
     public function sendPasswordResetNotification($token): void
     {
         $this->notify(new ResetPasswordNotification($token));

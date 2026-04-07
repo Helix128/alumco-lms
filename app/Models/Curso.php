@@ -15,22 +15,23 @@ class Curso extends Model
         'imagen_portada',
         'fecha_inicio',
         'fecha_fin',
-        'capacitador_id'
+        'capacitador_id',
+        'es_secuencial',
     ];
 
     protected $casts = [
-        'fecha_inicio' => 'date',
-        'fecha_fin' => 'date',
+        'fecha_inicio'  => 'date',
+        'fecha_fin'     => 'date',
+        'es_secuencial' => 'boolean',
     ];
 
     // --- RELACIONES ---
 
     public function capacitador()
     {
-        return $this->belongsTo(User::class , 'capacitador_id');
+        return $this->belongsTo(User::class, 'capacitador_id');
     }
 
-    // ¡ESTA ES LA FUNCIÓN QUE FALTABA Y CAUSABA EL ERROR!
     public function estamentos()
     {
         return $this->belongsToMany(Estamento::class);
@@ -41,10 +42,26 @@ class Curso extends Model
         return $this->hasMany(Modulo::class)->orderBy('orden');
     }
 
-    // Lógica de negocio encapsulada
-    public function estaDisponible()
+    // --- LÓGICA DE NEGOCIO ---
+
+    public function estaDisponible(): bool
     {
         $hoy = now();
         return $this->fecha_inicio <= $hoy && $this->fecha_fin >= $hoy;
+    }
+
+    public function progresoParaUsuario(User $user): int
+    {
+        $total = $this->modulos->count();
+
+        if ($total === 0) {
+            return 0;
+        }
+
+        $completados = $this->modulos
+            ->filter(fn(Modulo $m) => $m->estaCompletadoPor($user))
+            ->count();
+
+        return (int) round(($completados / $total) * 100);
     }
 }

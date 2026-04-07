@@ -12,9 +12,141 @@
     --color-Alumco-yellow: #F8B606;
     --color-Alumco-cyan: #A5B6F5;
     --color-Alumco-gray: #4A4A4A;
-    --color-Alumco-cream: #FDF9F3; 
+    --color-Alumco-cream: #FDF9F3;
+    --color-Alumco-green-vivid: #4CAF50;
 
     --font-sans: 'Fira Sans', sans-serif;
     --font-display: 'Sora', sans-serif;
     --font-logo: 'Nexa Black', sans-serif;
+
+    --animate-cloud: cloud 18s linear infinite;
+    --animate-cloud-slow: cloud 28s linear infinite;
+
+    @keyframes cloud {
+        0%   { transform: translateX(0); }
+        50%  { transform: translateX(12px); }
+        100% { transform: translateX(0); }
+    }
+}
+
+/* ============================================================
+   COMPONENTES INTERACTIVOS — estados hover/active/transition
+   (no usar variantes Tailwind hover:/active: en plantillas Blade)
+   ============================================================ */
+
+/* Tarjeta navegable (cursos, módulos) */
+.card-link {
+    display: block;
+    transition: transform 0.15s ease;
+}
+.card-link:active {
+    transform: scale(0.98);
+}
+
+/* Imagen de portada con zoom al hover del padre */
+.card-link:hover .card-img-zoom {
+    transform: scale(1.05);
+}
+.card-img-zoom {
+    transition: transform 0.3s ease;
+}
+
+/* Botón CTA principal (verde ¡Listo!, azul primario) */
+.btn-primary {
+    transition: filter 0.15s ease, transform 0.15s ease;
+}
+.btn-primary:hover {
+    filter: brightness(1.1);
+}
+.btn-primary:active {
+    transform: scale(0.98);
+}
+
+/* Botón secundario con borde (Volver al curso) */
+.btn-secondary {
+    transition: border-color 0.15s ease, background-color 0.15s ease, transform 0.15s ease;
+}
+.btn-secondary:hover {
+    border-color: var(--color-Alumco-blue);
+    background-color: color-mix(in srgb, var(--color-Alumco-blue) 5%, transparent);
+}
+.btn-secondary:active {
+    transform: scale(0.98);
+}
+
+/* Botón cerrar sesión (borde coral → fondo coral) */
+.btn-logout {
+    transition: background-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+.btn-logout:hover {
+    background-color: var(--color-Alumco-coral);
+    color: #fff;
+}
+.btn-logout:active {
+    transform: scale(0.98);
+}
+
+/* Botones circulares de evaluación (anterior / siguiente) */
+.btn-round {
+    transition: transform 0.15s ease;
+}
+.btn-round:hover:not(:disabled) {
+    transform: scale(1.05);
+}
+
+/* Botón / enlace de descarga de certificados */
+.btn-download {
+    transition: filter 0.15s ease, transform 0.15s ease;
+}
+.btn-download:hover {
+    filter: brightness(1.1);
+}
+.btn-download:active {
+    transform: scale(0.95);
+}
+
+/* Avatar de iniciales en el header */
+.avatar-btn {
+    transition: filter 0.15s ease, transform 0.15s ease;
+}
+.avatar-btn:hover {
+    filter: brightness(1.1);
+}
+.avatar-btn:active {
+    transform: scale(0.95);
+}
+
+/* Ítems del bottom-nav (Perfil, Mis logros) */
+.nav-item {
+    transition: color 0.15s ease;
+}
+.nav-item:hover {
+    color: #fff;
+}
+
+/* Botón central de Mis cursos en el bottom-nav */
+.nav-courses-btn {
+    transition: filter 0.15s ease, transform 0.15s ease;
+}
+.nav-courses-btn:hover {
+    filter: brightness(1.1);
+}
+.nav-courses-btn:active {
+    transform: scale(0.95);
+}
+
+/* Link "volver" en los banners de curso/módulo */
+.back-link {
+    transition: color 0.15s ease;
+}
+.back-link:hover {
+    color: #fff;
+}
+
+/* Opciones de evaluación */
+.eval-option {
+    transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+}
+.eval-option:not(.selected):hover {
+    border-color: color-mix(in srgb, var(--color-Alumco-blue) 40%, transparent);
 }

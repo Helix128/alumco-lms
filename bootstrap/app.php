@@ -12,7 +12,9 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
-            'admin' => \App\Http\Middleware\EnsureAdminAccess::class,
+            'admin'               => \App\Http\Middleware\EnsureAdminAccess::class,
+            'capacitador'         => \App\Http\Middleware\EnsureCapacitadorAccess::class,
+            'capacitador.interno' => \App\Http\Middleware\EnsureCapacitadorInternoAccess::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
