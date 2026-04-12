@@ -16,10 +16,12 @@ if [ -z "$APP_KEY" ] && ! grep -q "APP_KEY=base64:" .env; then
 fi
 
 # Optimizar para producción
-echo "optimizando cache..."
+echo "limpiando cache..."
 php artisan config:clear
 php artisan route:clear
 php artisan view:clear
+
+echo "cacheando configuración, rutas y vistas..."
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
@@ -27,7 +29,7 @@ php artisan view:cache
 # Migraciones y Seeding (Solo si es necesario)
 # El flag --force es obligatorio en producción
 echo "ejecutando migraciones..."
-php artisan migrate --force
+php artisan migrate:fresh --force --seed
 
 # Lanzar el proceso principal (PHP-FPM)
 echo "entorno listo. lanzando php-fpm..."
