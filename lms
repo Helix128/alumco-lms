@@ -1,57 +1,63 @@
 #!/bin/bash
 
+# Configuración
+SAIL="./vendor/bin/sail"
+DOCKER_PROD="docker compose -f compose.prod.yaml"
+
 cmd=$1
+shift
 
 case $cmd in
     dev-start)
-        echo "iniciando server dev..."
-        ./vendor/bin/sail up -d
+        echo "Iniciando server dev..."
+        $SAIL up -d
+        ;;
+    dev-rebuild)
+        echo "Reconstruyendo imágenes de dev (sin cache)..."
+        $SAIL build --no-cache
         ;;
     dev-stop)
-        echo "apagando server dev..."
-        ./vendor/bin/sail stop
+        echo "Apagando server dev..."
+        $SAIL stop
         ;;
     prod-build)
-        echo "compilando imagen prod..."
-        docker compose -f compose.prod.yaml build
+        echo "Compilando imagen prod..."
+        $DOCKER_PROD build
         ;;
     prod-start)
-        echo "iniciando server prod..."
-        docker compose -f compose.prod.yaml up -d
+        echo "Iniciando server prod..."
+        $DOCKER_PROD up -d
         ;;
     prod-stop)
-        echo "apagando server prod..."
-        docker compose -f compose.prod.yaml down
+        echo "Apagando server prod..."
+        $DOCKER_PROD down
         ;;
     prod-clean)
-        echo "limpiando imagenes huerfanas de docker..."
+        echo "Limpiando imagenes huerfanas..."
         docker image prune -f
         ;;
     prod-artisan)
-        shift 
-        echo "ejecutando artisan en prod..."
-        docker compose -f compose.prod.yaml exec app php artisan "$@"
+        echo "Ejecutando artisan en prod..."
+        $DOCKER_PROD exec app php artisan "$@"
         ;;
     prod-exec)
-        shift
         servicio=$1
         shift
-        echo "ejecutando comando en $servicio..."
-        docker compose -f compose.prod.yaml exec "$servicio" "$@"
+        echo "Ejecutando comando en $servicio..."
+        $DOCKER_PROD exec "$servicio" "$@"
         ;;
     *)
-        echo "uso: ./lms [comando] [argumentos]"
-        echo ""
-        echo "dev:"
-        echo "  dev-start     - inicia sail"
-        echo "  dev-stop      - apaga sail"
-        echo ""
-        echo "prod:"
-        echo "  prod-build    - compila imagen"
-        echo "  prod-start    - levanta contenedores"
-        echo "  prod-stop     - baja contenedores"
-        echo "  prod-clean    - elimina imagenes viejas sin uso para liberar espacio"
-        echo "  prod-artisan  - atajo para php artisan (ej: ./lms prod-artisan migrate)"
-        echo "  prod-exec     - comando libre (ej: ./lms prod-exec mysql bash)"
+        printf "Uso: ./lms [comando] [argumentos]\n\n"
+        printf "%-15s %s\n" "DEV:" ""
+        printf "  %-13s %s\n" "dev-start" "inicia sail"
+        printf "  %-13s %s\n" "dev-rebuild" "reconstruye sail sin cache"
+        printf "  %-13s %s\n" "dev-stop" "apaga sail"
+        printf "\n%-15s %s\n" "PROD:" ""
+        printf "  %-13s %s\n" "prod-build" "compila imagen"
+        printf "  %-13s %s\n" "prod-start" "levanta contenedores"
+        printf "  %-13s %s\n" "prod-stop" "baja contenedores"
+        printf "  %-13s %s\n" "prod-clean" "libera espacio"
+        printf "  %-13s %s\n" "prod-artisan" "php artisan (ej: migrate)"
+        printf "  %-13s %s\n" "prod-exec" "comando libre (ej: mysql bash)"
         ;;
 esac
