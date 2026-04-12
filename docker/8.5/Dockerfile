@@ -11,7 +11,7 @@ ENV LANG=C.UTF-8
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 RUN echo "Acquire::http::Pipeline-Depth 0;" > /etc/apt/apt.conf.d/99custom && \
     echo "Acquire::http::No-Cache true;" >> /etc/apt/apt.conf.d/99custom && \
-    echo "Acquire::BrokenProxy    true;" >> /etc/apt/apt.conf.d/99custom
+    echo "Acquire::BrokenProxy     true;" >> /etc/apt/apt.conf.d/99custom
 
 RUN apt-get update && apt-get upgrade -y \
     && mkdir -p /etc/apt/keyrings \
@@ -34,7 +34,9 @@ RUN curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg -
 FROM base AS development
 ARG NODE_VERSION=24
 ARG MYSQL_CLIENT="mysql-client"
-ARG POSTGRES_VERSION=18
+ARG POSTGRES_VERSION=16
+ARG WWWUSER
+ARG WWWGROUP
 
 ENV SUPERVISOR_PHP_COMMAND="/usr/bin/php -d variables_order=EGPCS /var/www/html/artisan serve --host=0.0.0.0 --port=80"
 ENV SUPERVISOR_PHP_USER="sail"
@@ -49,12 +51,18 @@ RUN apt-get update \
     && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 RUN setcap "cap_net_bind_service=+ep" /usr/bin/php8.5
-RUN groupadd --force -g $WWWGROUP sail && useradd -ms /bin/bash --no-user-group -g $WWWGROUP -u 1337 sail
+
+# --- SECCIÓN DE RESCATE DE USUARIO ---
+RUN touch /var/mail/ubuntu && chown ubuntu /var/mail/ubuntu && userdel -r ubuntu ; \
+    groupadd --force -g $WWWGROUP sail && \
+    useradd -ms /bin/bash --no-user-group -g $WWWGROUP -u $WWWUSER sail
+# -------------------------------------
+
 RUN git config --global --add safe.directory /var/www/html
 
-COPY ./docker/8.5/start-container /usr/local/bin/start-container
-COPY ./docker/8.5/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-COPY ./docker/8.5/php.ini /etc/php/8.5/cli/conf.d/99-sail.ini
+COPY start-container /usr/local/bin/start-container
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY php.ini /etc/php/8.5/cli/conf.d/99-sail.ini
 RUN chmod +x /usr/local/bin/start-container
 
 EXPOSE 80/tcp
