@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         if (app()->environment(['local', 'testing'])) {
+            \Log::info('Ejecutando seeders de prueba...');
             $this->call([
                 DemoCoursesSeeder::class,
                 DemoUsersSeeder::class,
