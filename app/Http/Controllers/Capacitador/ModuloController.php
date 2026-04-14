@@ -133,6 +133,21 @@ class ModuloController extends Controller
             ->with('success', 'Módulo eliminado correctamente.');
     }
 
+    public function evaluacion(Curso $curso, Modulo $modulo): View
+    {
+        $this->authorizeCurso($curso);
+        abort_unless($modulo->curso_id === $curso->id, 404);
+        abort_unless($modulo->tipo_contenido === 'evaluacion', 404);
+
+        $modulo->load('evaluacion');
+        abort_unless($modulo->evaluacion !== null, 404);
+
+        return view('capacitador.modulos.evaluacion', [
+            'curso'  => $curso,
+            'modulo' => $modulo,
+        ]);
+    }
+
     public function reordenar(Request $request, Curso $curso): JsonResponse
     {
         $this->authorizeCurso($curso);

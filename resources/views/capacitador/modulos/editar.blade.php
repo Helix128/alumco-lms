@@ -60,7 +60,9 @@
                 </div>
             @elseif ($modulo->tipo_contenido === 'evaluacion')
                 <div class="bg-Alumco-blue/5 border border-Alumco-blue/20 rounded-xl p-4 text-sm text-Alumco-gray">
-                    Para editar las preguntas de la evaluación, usa el editor en la vista del curso.
+                    Para editar las preguntas de la evaluación,
+                    <a href="{{ route('capacitador.cursos.modulos.evaluacion', [$curso, $modulo]) }}"
+                       class="text-Alumco-blue font-semibold hover:underline">ve al editor de evaluación</a>.
                 </div>
             @endif
 

@@ -3,224 +3,13 @@
     bg-blue-500 bg-purple-600 bg-green-600 bg-orange-500 bg-rose-500
     bg-teal-500 bg-indigo-500 bg-amber-500 bg-cyan-600 bg-pink-500
 --}}
-<div class="p-6 relative"
-     x-data="{
-        /* ── shared state ── */
-        planMode: @entangle('modoPlaneacion'),
+<div id="cal-root"
+     data-plan-mode="{{ $modoPlaneacion ? '1' : '0' }}"
+     data-days-in-month="{{ $diasEnMes }}"
+     @class(['p-6 relative', 'plan-mode-active' => $modoPlaneacion])>
 
-        /* ── create by drag (calendar view) ── */
-        dragging: false,
-        dragStartDay: null,
-        dragEndDay: null,
-
-        /* ── resize state ── */
-        resizing: false,
-        resizePlanId: null,
-        resizeEdge: null,
-        resizeDay: null,
-        resizeKind: null,
-        resizeSurface: null,
-
-        /* ── move (drag whole bar) state ── */
-        moving: false,
-        movePlanId: null,
-        movePlanSpan: 0,
-        moveGrabDayOffset: 0,
-        moveCurrentStartDay: null,
-        moveKind: null,
-        moveSurface: null,
-
-        /* ── drag tracking (prevents click-after-drag from opening modal) ── */
-        wasDragging: false,
-        originalMoveDay: null,
-        originalResizeDay: null,
-
-        /* ── tooltip ── */
-        tooltipVisible: false,
-        tooltipText: '',
-        tooltipX: 0,
-        tooltipY: 0,
-
-        daysInMonth: {{ $diasEnMes }},
-
-        /* ─────────────── helpers ─────────────── */
-
-        inRange(day) {
-            if (!this.dragging || !this.dragStartDay || !this.dragEndDay) return false;
-            const lo = Math.min(this.dragStartDay, this.dragEndDay);
-            const hi = Math.max(this.dragStartDay, this.dragEndDay);
-            return day >= lo && day <= hi;
-        },
-
-        showTooltip(text, event) {
-            this.tooltipText = text;
-            this.tooltipX = event.clientX;
-            this.tooltipY = event.clientY;
-            this.tooltipVisible = true;
-        },
-        hideTooltip() {
-            this.tooltipVisible = false;
-        },
-
-        /* ─────────────── create-drag ─────────────── */
-
-        beginDrag(day) {
-            if (!this.planMode || this.resizing || this.moving) return;
-            this.dragging = true;
-            this.dragStartDay = day;
-            this.dragEndDay   = day;
-        },
-        trackDragDay(day) {
-            if (!this.dragging || this.resizing || this.moving) return;
-            this.dragEndDay = day;
-        },
-
-        /* ─────────────── resize ─────────────── */
-
-        beginResize(planId, edge, day, kind, event) {
-            if (!this.planMode) return;
-            event.stopPropagation();
-            this.resizing         = true;
-            this.resizePlanId     = planId;
-            this.resizeEdge       = edge;
-            this.resizeDay        = day;
-            this.originalResizeDay = day;
-            this.resizeKind       = kind;
-            this.resizeSurface    = event.currentTarget.closest(kind === 'gantt' ? '.gantt-container' : '.cal-week');
-        },
-
-        resolveDay(event) {
-            if (!this.resizeSurface && !this.moveSurface) return null;
-            const surface = this.resizeSurface || this.moveSurface;
-            const kind = this.resizeKind || this.moveKind;
-
-            if (kind === 'gantt') {
-                const rect = surface.getBoundingClientRect();
-                const labelWidth = 200;
-                const usable = Math.max(rect.width - labelWidth, 1);
-                const rx = Math.max(0, Math.min(event.clientX - rect.left - labelWidth, usable - 1));
-                return Math.max(1, Math.min(this.daysInMonth, Math.floor(rx / (usable / this.daysInMonth)) + 1));
-            }
-
-            /* calendar week */
-            const rect = surface.getBoundingClientRect();
-            const col = Math.max(1, Math.min(7, Math.floor((event.clientX - rect.left) / (rect.width / 7)) + 1));
-            const cell = surface.querySelector('[data-col=' + col + '][data-day]');
-            if (cell) return Number.parseInt(cell.dataset.day, 10) || null;
-            if (col === 1) return 1;
-            if (col === 7) return this.daysInMonth;
-            return this.resizeDay || this.moveCurrentStartDay;
-        },
-
-        /* ─────────────── move ─────────────── */
-
-        beginMove(planId, planSpan, grabDay, kind, event) {
-            if (!this.planMode) return;
-            this.moving              = true;
-            this.movePlanId          = planId;
-            this.movePlanSpan        = planSpan;
-            this.moveGrabDayOffset   = 0;
-            this.moveCurrentStartDay = grabDay;
-            this.originalMoveDay     = grabDay;
-            this.moveKind            = kind;
-            this.moveSurface         = event.currentTarget.closest(kind === 'gantt' ? '.gantt-container' : '.cal-week');
-        },
-
-        /* ─────────────── global pointer tracking ─────────────── */
-
-        trackPointer(event) {
-            if (!this.dragging && !this.resizing && !this.moving) return;
-
-            if (this.resizing) {
-                const day = this.resolveDay(event);
-                if (day) {
-                    this.resizeDay = day;
-                    const label = this.resizeEdge === 'inicio' ? 'Inicio: ' : 'Fin: ';
-                    this.showTooltip(label + this.dayLabel(day), event);
-                }
-                return;
-            }
-
-            if (this.moving) {
-                const day = this.resolveDay(event);
-                if (day) {
-                    this.moveCurrentStartDay = day;
-                    const endDay = Math.min(day + this.movePlanSpan, this.daysInMonth);
-                    this.showTooltip('Mover: d\u00eda ' + day + ' \u2192 ' + endDay, event);
-                }
-                return;
-            }
-
-            /* dragging: try to find day from element or global mouse pos */
-            const cell = event.target.closest('[data-day]');
-            if (cell) {
-                const day = Number.parseInt(cell.dataset.day, 10);
-                if (!Number.isNaN(day) && day >= 1) this.dragEndDay = day;
-            }
-        },
-
-        dayLabel(day) {
-            return String(day).padStart(2, '0');
-        },
-
-        /* ─────────────── finish ─────────────── */
-
-        finishInteraction() {
-            this.hideTooltip();
-
-            if (this.resizing) {
-                if (this.resizePlanId && this.resizeEdge && this.resizeDay !== null
-                        && this.resizeDay !== this.originalResizeDay) {
-                    this.wasDragging = true;
-                    setTimeout(() => { this.wasDragging = false; }, 0);
-                    $wire.ajustarBordePlanificacion(this.resizePlanId, this.resizeEdge, this.resizeDay);
-                }
-                this.resizing = false; this.resizePlanId = null; this.resizeEdge = null;
-                this.resizeDay = null; this.resizeKind = null; this.resizeSurface = null;
-                this.originalResizeDay = null;
-                return;
-            }
-
-            if (this.moving) {
-                if (this.movePlanId && this.moveCurrentStartDay !== null
-                        && this.moveCurrentStartDay !== this.originalMoveDay) {
-                    this.wasDragging = true;
-                    setTimeout(() => { this.wasDragging = false; }, 0);
-                    $wire.moverPlanificacion(this.movePlanId, this.moveCurrentStartDay);
-                }
-                this.moving = false; this.movePlanId = null; this.movePlanSpan = 0;
-                this.moveGrabDayOffset = 0; this.moveCurrentStartDay = null;
-                this.moveKind = null; this.moveSurface = null;
-                this.originalMoveDay = null;
-                return;
-            }
-
-            if (this.dragging) {
-                this.dragging = false;
-                const lo = Math.min(this.dragStartDay, this.dragEndDay);
-                const hi = Math.max(this.dragStartDay, this.dragEndDay);
-                if (lo === hi) {
-                    $wire.abrirModalPlanificacion(lo);
-                } else {
-                    $wire.abrirModalPlanificacionRango(lo, hi);
-                }
-                this.dragStartDay = null; this.dragEndDay = null;
-            }
-        }
-     }"
-     :class="{ 'plan-mode-active': planMode }"
-     @mousemove.window="trackPointer($event)"
-     @mouseup.window="finishInteraction()"
-     @keydown.escape.window="if (planMode) $wire.toggleModoPlaneacion()"
-     @keydown.arrow-left.window="if (!$event.target.matches('input,textarea,select')) $wire.mesAnterior()"
-     @keydown.arrow-right.window="if (!$event.target.matches('input,textarea,select')) $wire.mesSiguiente()">
-
-    {{-- Floating tooltip during drag / resize / move --}}
-    <div x-show="tooltipVisible"
-         x-cloak
-         class="cal-drag-tooltip"
-         :style="'left:' + tooltipX + 'px; top:' + tooltipY + 'px'"
-         x-text="tooltipText"></div>
+    {{-- Floating tooltip during drag / resize / move (shown/hidden by JS) --}}
+    <div id="cal-tooltip" class="cal-drag-tooltip" aria-hidden="true"></div>
 
     {{-- ── Header ─────────────────────────────────────────────────────── --}}
     <div class="flex justify-between items-center mb-5 bg-white p-4 rounded-xl shadow-sm border border-gray-200 gap-4 flex-wrap">
@@ -230,7 +19,7 @@
             <button wire:click="mesAnterior"
                     wire:loading.attr="disabled"
                     wire:target="mesAnterior,mesSiguiente,irAHoy"
-                    title="Mes anterior (&#x2190;)"
+                    title="Mes anterior (←)"
                     class="w-9 h-9 flex items-center justify-center bg-gray-100 text-gray-600 rounded-lg font-bold nav-btn">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/>
@@ -250,7 +39,7 @@
             <button wire:click="mesSiguiente"
                     wire:loading.attr="disabled"
                     wire:target="mesAnterior,mesSiguiente,irAHoy"
-                    title="Mes siguiente (&#x2192;)"
+                    title="Mes siguiente (→)"
                     class="w-9 h-9 flex items-center justify-center bg-gray-100 text-gray-600 rounded-lg font-bold nav-btn">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
@@ -266,7 +55,6 @@
         </div>
 
         <div class="flex items-center gap-2 flex-wrap">
-            {{-- Planning mode toggle (admin only) --}}
             @if($esAdmin)
                 <button wire:click="toggleModoPlaneacion"
                         class="flex items-center gap-2 px-4 py-2 rounded-lg border font-semibold text-sm plan-toggle-btn
@@ -326,20 +114,19 @@
 
                     {{-- Day number cells --}}
                     @foreach($semana['dias'] as $dIdx => $diaInfo)
-                        <div class="cal-day-cell {{ $diaInfo['esHoy'] ? 'cal-day-today' : '' }}
-                                    {{ !$diaInfo['esMesActual'] ? 'cal-day-outside' : '' }}
-                                    {{ $diaInfo['esWeekend'] && $diaInfo['esMesActual'] ? 'cal-day-weekend' : '' }}"
+                        <div @class([
+                                 'cal-day-cell',
+                                 'cal-day-today'   => $diaInfo['esHoy'],
+                                 'cal-day-outside' => ! $diaInfo['esMesActual'],
+                                 'cal-day-weekend' => $diaInfo['esWeekend'] && $diaInfo['esMesActual'],
+                             ])
                              style="grid-column:{{ $dIdx + 1 }};grid-row:1"
                              data-col="{{ $dIdx + 1 }}"
-                             @if($diaInfo['esMesActual']) data-day="{{ $diaInfo['num'] }}" @endif
-                             :class="{ 'cal-day-drag-highlight': planMode && inRange({{ $diaInfo['esMesActual'] ? $diaInfo['num'] : 0 }}) }"
-                             @if($diaInfo['esMesActual'])
-                                @mousedown.prevent="beginDrag({{ $diaInfo['num'] }})"
-                                @mouseenter="trackDragDay({{ $diaInfo['num'] }})"
-                             @endif>
-                            <span class="{{ $diaInfo['esHoy']
-                                ? 'text-white bg-Alumco-blue rounded-full w-7 h-7 flex items-center justify-center text-sm font-bold'
-                                : 'text-sm font-bold text-gray-500' }}">
+                             @if($diaInfo['esMesActual']) data-day="{{ $diaInfo['num'] }}" @endif>
+                            <span @class([
+                                'text-white bg-Alumco-blue rounded-full w-7 h-7 flex items-center justify-center text-sm font-bold' => $diaInfo['esHoy'],
+                                'text-sm font-bold text-gray-500' => ! $diaInfo['esHoy'],
+                            ])>
                                 {{ $diaInfo['num'] }}
                             </span>
                         </div>
@@ -349,24 +136,24 @@
                     @foreach($semana['barras'] as $barra)
                         @php $esPrimerSegmento = $barra['roundLeft'] || $barra['extiendePorIzq']; @endphp
                         <div wire:key="bar-cal-{{ $semIdx }}-{{ $barra['id'] }}"
-                             class="cal-bar {{ $barra['bg'] }}
-                                    {{ $barra['roundLeft']  ? 'rounded-l-md' : '' }}
-                                    {{ $barra['roundRight'] ? 'rounded-r-md' : '' }}
-                                    {{ !$esPrimerSegmento ? 'cal-bar-continuation' : '' }}"
+                             @class([
+                                 'cal-bar',
+                                 $barra['bg'],
+                                 'rounded-l-md'         => $barra['roundLeft'],
+                                 'rounded-r-md'         => $barra['roundRight'],
+                                 'cal-bar-continuation' => ! $esPrimerSegmento,
+                             ])
                              style="grid-column: {{ $barra['col'] }} / span {{ $barra['span'] }}; grid-row: {{ $barra['slot'] + 2 }}"
-                             title="{{ $barra['titulo'] }} ({{ $barra['fechaIni'] }} &rarr; {{ $barra['fechaFin'] }}){{ $barra['notas'] ? ' \u2014 '.$barra['notas'] : '' }}"
-                             :class="{ 'bar-dragging': (moving && movePlanId === {{ $barra['id'] }}) || (resizing && resizePlanId === {{ $barra['id'] }}) }"
-                             @if($esAdmin)
-                                @click.stop="if (!wasDragging) $wire.editarPlanificacion({{ $barra['id'] }})"
-                             @endif>
+                             title="{{ $barra['titulo'] }} ({{ $barra['fechaIni'] }} &rarr; {{ $barra['fechaFin'] }}){{ $barra['notas'] ? ' — '.$barra['notas'] : '' }}"
+                             data-bar-id="{{ $barra['id'] }}">
 
-                            {{-- Left resize handle (planning mode) --}}
+                            {{-- Left resize handle (planning mode only) --}}
                             @if($esAdmin && $modoPlaneacion)
                                 <button type="button"
                                         class="bar-resize-handle bar-resize-left"
                                         title="Mover inicio"
-                                        @click.stop
-                                        @mousedown.stop.prevent="beginResize({{ $barra['id'] }}, 'inicio', {{ $barra['edgeStartDay'] }}, 'calendar', $event)"></button>
+                                        data-resize="left"
+                                        data-day="{{ $barra['edgeStartDay'] }}"></button>
                             @endif
 
                             {{-- Left cross-month arrow --}}
@@ -381,7 +168,9 @@
                             {{-- Draggable center / label zone --}}
                             @if($esAdmin && $modoPlaneacion)
                                 <div class="bar-move-handle"
-                                     @mousedown.prevent.stop="beginMove({{ $barra['id'] }}, {{ $barra['span'] }}, {{ $barra['segStartDay'] }}, 'calendar', $event)">
+                                     data-move="1"
+                                     data-span="{{ $barra['span'] }}"
+                                     data-start="{{ $barra['segStartDay'] }}">
                                     @if($esPrimerSegmento)
                                         <span class="cal-bar-label">{{ $barra['titulo'] }}</span>
                                     @endif
@@ -410,13 +199,13 @@
                                 </button>
                             @endif
 
-                            {{-- Right resize handle (planning mode) --}}
+                            {{-- Right resize handle (planning mode only) --}}
                             @if($esAdmin && $modoPlaneacion)
                                 <button type="button"
                                         class="bar-resize-handle bar-resize-right"
                                         title="Mover fin"
-                                        @click.stop
-                                        @mousedown.stop.prevent="beginResize({{ $barra['id'] }}, 'fin', {{ $barra['edgeEndDay'] }}, 'calendar', $event)"></button>
+                                        data-resize="right"
+                                        data-day="{{ $barra['edgeEndDay'] }}"></button>
                             @endif
                         </div>
                     @endforeach
@@ -435,10 +224,10 @@
         {{-- ── Sin Planificar Sidebar (admin + planning mode) ────────── --}}
         @if($esAdmin && $modoPlaneacion)
             @php
-                $sinPlan    = count($cursosSinPlanificar);
+                $sinPlan      = count($cursosSinPlanificar);
                 $planificados = count($cursosDisponibles) - $sinPlan;
             @endphp
-            <div class="plan-sidebar" x-data="{ search: '' }">
+            <div class="plan-sidebar">
 
                 {{-- Header --}}
                 <div class="plan-sidebar-header">
@@ -450,28 +239,29 @@
                     {{-- Search --}}
                     <div class="plan-sidebar-search">
                         <input type="text"
-                               x-model="search"
+                               wire:model.live.debounce.300ms="busquedaSidebar"
                                placeholder="Buscar curso..."
                                autocomplete="off">
                     </div>
 
                     {{-- List --}}
                     <div class="plan-sidebar-list">
-                        @foreach($cursosSinPlanificar as $curso)
+                        @foreach($sidebarList as $curso)
                             <div class="plan-sidebar-item"
-                                 x-show="search === '' || '{{ strtolower(addslashes($curso['titulo'])) }}'.includes(search.toLowerCase())"
                                  wire:click="abrirModalConCurso({{ $curso['id'] }})"
+                                 wire:key="sb-{{ $curso['id'] }}"
                                  title="Planificar: {{ $curso['titulo'] }}">
                                 <span class="plan-sidebar-item-dot {{ $curso['bg'] }}"></span>
                                 <span class="plan-sidebar-item-title">{{ $curso['titulo'] }}</span>
-                                <button type="button" class="plan-sidebar-item-btn" tabindex="-1"
-                                        title="Añadir al calendario">+</button>
+                                <button type="button" class="plan-sidebar-item-btn" tabindex="-1">+</button>
                             </div>
                         @endforeach
-                        <template x-if="false"><!-- alpine anchor --></template>
+                        @if(! count($sidebarList) && $busquedaSidebar)
+                            <p class="text-xs text-gray-400 text-center py-3">Sin resultados</p>
+                        @endif
                     </div>
                 @else
-                    {{-- Empty state: everything is planned --}}
+                    {{-- Empty state --}}
                     <div class="plan-sidebar-empty">
                         <svg class="w-8 h-8 text-green-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -483,7 +273,7 @@
                     </div>
                 @endif
 
-                {{-- Footer: planned count --}}
+                {{-- Footer --}}
                 @if($planificados > 0)
                     <div class="plan-sidebar-footer">
                         <svg class="w-3 h-3 text-green-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -502,24 +292,11 @@
 
     {{-- ── Planning modal ─────────────────────────────────────────────── --}}
     @if($mostrarModalPlanificacion)
-        <div class="fixed inset-0 bg-black/50 z-50 flex justify-center items-center backdrop-blur-sm"
-             x-data="{
-                query: '',
-                selectedId: {{ $cursoId ?? 'null' }},
-                get filteredCursos() {
-                    if (!this.query) return @js($cursosDisponibles);
-                    return (@js($cursosDisponibles)).filter(c =>
-                        c.titulo.toLowerCase().includes(this.query.toLowerCase())
-                    );
-                },
-                select(id) {
-                    this.selectedId = id;
-                    $wire.set('cursoId', id);
-                }
-             }"
-             @keydown.escape.stop="$wire.cerrarModal()">
+        <div id="planning-modal"
+             class="fixed inset-0 bg-black/50 z-50 flex justify-center items-center backdrop-blur-sm"
+             wire:click="cerrarModal">
             <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden mx-4"
-                 @click.stop>
+                 onclick="event.stopPropagation()">
 
                 {{-- Modal header --}}
                 <div class="bg-Alumco-blue px-5 py-4 flex justify-between items-center text-white">
@@ -537,35 +314,33 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Curso</label>
 
-                        {{-- Hidden wire binding --}}
-                        <input type="hidden" wire:model="cursoId">
-
                         <div class="modal-course-search">
                             <svg class="modal-course-search-icon w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                       d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"/>
                             </svg>
                             <input type="text"
-                                   x-model="query"
+                                   wire:model.live.debounce.200ms="queryModal"
                                    placeholder="Buscar curso..."
                                    autocomplete="off">
                         </div>
 
                         <div class="modal-course-list">
-                            <template x-for="curso in filteredCursos" :key="curso.id">
-                                <div class="modal-course-option"
-                                     :class="{ 'selected': selectedId === curso.id }"
-                                     @click="select(curso.id)">
-                                    <span class="w-2.5 h-2.5 rounded-full shrink-0 bg-blue-500"></span>
-                                    <span x-text="curso.titulo"></span>
-                                    <svg x-show="selectedId === curso.id" class="w-4 h-4 ml-auto text-Alumco-blue shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
-                                    </svg>
+                            @forelse($modalList as $curso)
+                                <div @class(['modal-course-option', 'selected' => $cursoId == $curso['id']])
+                                     wire:click="seleccionarCurso({{ $curso['id'] }})"
+                                     wire:key="modal-opt-{{ $curso['id'] }}">
+                                    <span class="w-2.5 h-2.5 rounded-full shrink-0 {{ $curso['bg'] }}"></span>
+                                    <span>{{ $curso['titulo'] }}</span>
+                                    @if($cursoId == $curso['id'])
+                                        <svg class="w-4 h-4 ml-auto text-Alumco-blue shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                                        </svg>
+                                    @endif
                                 </div>
-                            </template>
-                            <template x-if="filteredCursos.length === 0">
+                            @empty
                                 <p class="text-xs text-gray-400 text-center py-3">Sin resultados</p>
-                            </template>
+                            @endforelse
                         </div>
 
                         @error('cursoId') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
@@ -620,3 +395,226 @@
     @endif
 
 </div>
+
+@push('scripts')
+<script>
+(function () {
+    'use strict';
+
+    function initCal() {
+        const root = document.getElementById('cal-root');
+        if (!root) return;
+
+        const isPlanMode   = () => root.dataset.planMode === '1';
+        const daysInMonth  = () => parseInt(root.dataset.daysInMonth, 10);
+        const getWire      = () => window.Livewire.find(root.getAttribute('wire:id'));
+
+        /* ── State ─────────────────────────────────────────────────────── */
+        let dragging = false, dragStart = null, dragEnd = null;
+        let wasDragging = false;
+        let resizing = false, resizePlanId = null, resizeEdge = null,
+            resizeDay = null, resizeSurface = null, origResizeDay = null;
+        let moving = false, movePlanId = null, movePlanSpan = 0,
+            moveCurrentDay = null, moveSurface = null, origMoveDay = null;
+
+        /* ── Tooltip ────────────────────────────────────────────────────── */
+        const tip = document.getElementById('cal-tooltip');
+        function showTip(text, x, y) {
+            if (!tip) return;
+            tip.textContent = text;
+            tip.style.cssText = `left:${x + 14}px;top:${y - 32}px;display:block`;
+        }
+        function hideTip() { if (tip) tip.style.display = 'none'; }
+
+        /* ── Drag highlight on day cells ────────────────────────────────── */
+        function updateHighlight() {
+            const lo = Math.min(dragStart, dragEnd), hi = Math.max(dragStart, dragEnd);
+            root.querySelectorAll('[data-day]').forEach(el => {
+                const d = parseInt(el.dataset.day, 10);
+                el.classList.toggle('cal-day-drag-highlight', d >= lo && d <= hi);
+            });
+        }
+        function clearHighlight() {
+            root.querySelectorAll('[data-day]').forEach(el =>
+                el.classList.remove('cal-day-drag-highlight'));
+        }
+
+        /* ── Resolve day from mouse position (for resize / move) ────────── */
+        function resolveDay(e) {
+            const surface = resizeSurface || moveSurface;
+            if (!surface) return null;
+            const rect = surface.getBoundingClientRect();
+            const col  = Math.max(1, Math.min(7,
+                Math.floor((e.clientX - rect.left) / (rect.width / 7)) + 1));
+            const cell = surface.querySelector(`[data-col="${col}"][data-day]`);
+            if (cell) return parseInt(cell.dataset.day, 10) || null;
+            if (col === 1) return 1;
+            if (col === 7) return daysInMonth();
+            return resizeDay ?? moveCurrentDay;
+        }
+
+        /* ── Create-by-drag on day cells ────────────────────────────────── */
+        root.addEventListener('mousedown', e => {
+            if (!isPlanMode() || resizing || moving) return;
+            if (e.target.closest('[data-bar-id]')) return;
+            const cell = e.target.closest('[data-day]');
+            if (!cell) return;
+            e.preventDefault();
+            dragging = true;
+            dragStart = dragEnd = parseInt(cell.dataset.day, 10);
+            updateHighlight();
+        });
+
+        root.addEventListener('mouseover', e => {
+            if (!dragging) return;
+            const cell = e.target.closest('[data-day]');
+            if (cell && cell.dataset.day) {
+                dragEnd = parseInt(cell.dataset.day, 10);
+                updateHighlight();
+            }
+        });
+
+        /* ── Global mousemove ───────────────────────────────────────────── */
+        document.addEventListener('mousemove', e => {
+            if (dragging) {
+                const cell = e.target.closest('[data-day]');
+                if (cell && cell.dataset.day) {
+                    dragEnd = parseInt(cell.dataset.day, 10);
+                    updateHighlight();
+                }
+                return;
+            }
+            if (resizing) {
+                const d = resolveDay(e);
+                if (d !== null) {
+                    resizeDay = d;
+                    showTip((resizeEdge === 'inicio' ? 'Inicio: ' : 'Fin: ') +
+                            String(d).padStart(2, '0'), e.clientX, e.clientY);
+                }
+                return;
+            }
+            if (moving) {
+                const d = resolveDay(e);
+                if (d !== null) {
+                    moveCurrentDay = d;
+                    const end = Math.min(d + movePlanSpan, daysInMonth());
+                    showTip(`Mover: día ${d} → ${end}`, e.clientX, e.clientY);
+                }
+            }
+        });
+
+        /* ── Global mouseup ─────────────────────────────────────────────── */
+        document.addEventListener('mouseup', () => {
+            hideTip();
+
+            if (resizing) {
+                if (resizePlanId !== null && resizeDay !== origResizeDay) {
+                    wasDragging = true;
+                    setTimeout(() => { wasDragging = false; }, 0);
+                    getWire().$call('ajustarBordePlanificacion', resizePlanId, resizeEdge, resizeDay);
+                }
+                root.querySelector(`[data-bar-id="${resizePlanId}"]`)?.classList.remove('bar-dragging');
+                resizing = false; resizePlanId = null; resizeEdge = null;
+                resizeDay = null; resizeSurface = null; origResizeDay = null;
+                return;
+            }
+
+            if (moving) {
+                if (movePlanId !== null && moveCurrentDay !== origMoveDay) {
+                    wasDragging = true;
+                    setTimeout(() => { wasDragging = false; }, 0);
+                    getWire().$call('moverPlanificacion', movePlanId, moveCurrentDay);
+                }
+                root.querySelector(`[data-bar-id="${movePlanId}"]`)?.classList.remove('bar-dragging');
+                moving = false; movePlanId = null; movePlanSpan = 0;
+                moveCurrentDay = null; moveSurface = null; origMoveDay = null;
+                return;
+            }
+
+            if (dragging) {
+                dragging = false;
+                clearHighlight();
+                const lo = Math.min(dragStart, dragEnd), hi = Math.max(dragStart, dragEnd);
+                if (lo === hi) getWire().$call('abrirModalPlanificacion', lo);
+                else           getWire().$call('abrirModalPlanificacionRango', lo, hi);
+                dragStart = null; dragEnd = null;
+            }
+        });
+
+        /* ── Keyboard shortcuts ─────────────────────────────────────────── */
+        document.addEventListener('keydown', e => {
+            if (e.target.matches('input, textarea, select')) return;
+            if (e.key === 'Escape') {
+                if (document.getElementById('planning-modal')) {
+                    getWire().$call('cerrarModal');
+                } else if (isPlanMode()) {
+                    getWire().$call('toggleModoPlaneacion');
+                }
+                return;
+            }
+            if (e.key === 'ArrowLeft')  getWire().$call('mesAnterior');
+            if (e.key === 'ArrowRight') getWire().$call('mesSiguiente');
+        });
+
+        /* ── Attach listeners to bar elements ───────────────────────────── */
+        function attachBars() {
+            root.querySelectorAll('[data-bar-id]').forEach(bar => {
+                if (bar._calInit) return;
+                bar._calInit = true;
+
+                const id = parseInt(bar.dataset.barId, 10);
+
+                bar.addEventListener('click', e => {
+                    e.stopPropagation();
+                    if (!wasDragging) getWire().$call('editarPlanificacion', id);
+                });
+
+                const hl = bar.querySelector('[data-resize="left"]');
+                if (hl) {
+                    hl.addEventListener('click', e => e.stopPropagation());
+                    hl.addEventListener('mousedown', e => {
+                        if (!isPlanMode()) return;
+                        e.stopPropagation(); e.preventDefault();
+                        resizing = true; resizePlanId = id; resizeEdge = 'inicio';
+                        resizeDay = origResizeDay = parseInt(hl.dataset.day, 10);
+                        resizeSurface = hl.closest('.cal-week');
+                        bar.classList.add('bar-dragging');
+                    });
+                }
+
+                const hr = bar.querySelector('[data-resize="right"]');
+                if (hr) {
+                    hr.addEventListener('click', e => e.stopPropagation());
+                    hr.addEventListener('mousedown', e => {
+                        if (!isPlanMode()) return;
+                        e.stopPropagation(); e.preventDefault();
+                        resizing = true; resizePlanId = id; resizeEdge = 'fin';
+                        resizeDay = origResizeDay = parseInt(hr.dataset.day, 10);
+                        resizeSurface = hr.closest('.cal-week');
+                        bar.classList.add('bar-dragging');
+                    });
+                }
+
+                const mh = bar.querySelector('[data-move]');
+                if (mh) {
+                    mh.addEventListener('mousedown', e => {
+                        if (!isPlanMode()) return;
+                        e.stopPropagation(); e.preventDefault();
+                        moving = true; movePlanId = id;
+                        movePlanSpan = parseInt(mh.dataset.span, 10);
+                        moveCurrentDay = origMoveDay = parseInt(mh.dataset.start, 10);
+                        moveSurface = mh.closest('.cal-week');
+                        bar.classList.add('bar-dragging');
+                    });
+                }
+            });
+        }
+
+        attachBars();
+        document.addEventListener('livewire:updated', attachBars);
+    }
+
+    document.addEventListener('livewire:initialized', initCal);
+})();
+</script>
+@endpush

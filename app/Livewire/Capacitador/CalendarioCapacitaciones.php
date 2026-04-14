@@ -30,6 +30,8 @@ class CalendarioCapacitaciones extends Component
 
     public array $cursosDisponibles    = [];
     public array $cursosSinPlanificar  = [];
+    public string $busquedaSidebar     = '';
+    public string $queryModal          = '';
 
     /*
      * Tailwind safelist — keep full class names so they survive purge:
@@ -91,6 +93,9 @@ class CalendarioCapacitaciones extends Component
     {
         abort_unless(Auth::user()->hasAdminAccess(), 403);
         $this->modoPlaneacion = ! $this->modoPlaneacion;
+        if (! $this->modoPlaneacion) {
+            $this->busquedaSidebar = '';
+        }
     }
 
     /* ────────────────────────────────────────────────────────────────────── */
@@ -135,6 +140,12 @@ class CalendarioCapacitaciones extends Component
             $this->fechaFinPlan    = $primerDia->toDateString();
         }
         $this->mostrarModalPlanificacion = true;
+    }
+
+    public function seleccionarCurso(int $id): void
+    {
+        abort_unless(Auth::user()->hasAdminAccess(), 403);
+        $this->cursoId = $id;
     }
 
     public function editarPlanificacion(int $id): void
@@ -263,6 +274,7 @@ class CalendarioCapacitaciones extends Component
         $this->fechaInicioPlan = '';
         $this->fechaFinPlan    = '';
         $this->notas           = '';
+        $this->queryModal      = '';
     }
 
     private function cargarCursosDisponibles(): void
@@ -435,11 +447,26 @@ class CalendarioCapacitaciones extends Component
         $hoy         = Carbon::now();
         $esMesActual = $this->mesActual === $hoy->month && $this->anioActual === $hoy->year;
 
+        $busqueda    = mb_strtolower(trim($this->busquedaSidebar));
+        $queryMod    = mb_strtolower(trim($this->queryModal));
+
+        $sidebarList = $busqueda
+            ? array_values(array_filter($this->cursosSinPlanificar,
+                fn ($c) => str_contains(mb_strtolower($c['titulo']), $busqueda)))
+            : $this->cursosSinPlanificar;
+
+        $modalList   = $queryMod
+            ? array_values(array_filter($this->cursosDisponibles,
+                fn ($c) => str_contains(mb_strtolower($c['titulo']), $queryMod)))
+            : $this->cursosDisponibles;
+
         return view('livewire.capacitador.calendario-capacitaciones', [
             'esAdmin'             => Auth::user()->hasAdminAccess(),
             'esMesActual'         => $esMesActual,
             'cursosDisponibles'   => $this->cursosDisponibles,
             'cursosSinPlanificar' => $this->cursosSinPlanificar,
+            'sidebarList'         => $sidebarList,
+            'modalList'           => $modalList,
         ])
             ->extends('layouts.panel')
             ->section('content');

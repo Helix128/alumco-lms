@@ -367,6 +367,7 @@
 /* ─── Floating tooltip during drag/resize ───────────────────────────── */
 
 .cal-drag-tooltip {
+    display: none;
     position: fixed;
     top: 0;
     left: 0;
@@ -425,43 +426,6 @@
     font-weight: 700;
     letter-spacing: 0.03em;
     flex-shrink: 0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-.plan-sidebar-badge {
-    min-width: 20px;
-    height: 20px;
-    padding: 0 5px;
-    border-radius: 9999px;
-    background: rgba(255,255,255,0.22);
-    color: #fff;
-    font-size: 0.72rem;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    letter-spacing: 0;
-}
-.plan-sidebar-empty {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 24px 14px;
-    gap: 4px;
-    flex: 1 1 0;
-}
-.plan-sidebar-footer {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    padding: 7px 12px;
-    border-top: 1px solid #e5e7eb;
-    font-size: 0.72rem;
-    color: #6b7280;
-    flex-shrink: 0;
-    background: #f9fafb;
 }
 
 .plan-sidebar-search {

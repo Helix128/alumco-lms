@@ -81,7 +81,11 @@
                     {{-- Acciones --}}
                     <div class="flex items-center gap-2 shrink-0">
                         <a href="{{ route('capacitador.cursos.modulos.editar', [$curso, $modulo]) }}"
-                           class="text-xs text-Alumco-blue hover:underline font-semibold">Editar</a>
+                           class="text-xs text-Alumco-blue hover:underline font-semibold">Propiedades</a>
+                        @if ($modulo->tipo_contenido === 'evaluacion' && $modulo->evaluacion)
+                            <a href="{{ route('capacitador.cursos.modulos.evaluacion', [$curso, $modulo]) }}"
+                               class="text-xs text-Alumco-green-vivid hover:underline font-semibold">Evaluación</a>
+                        @endif
                         <form action="{{ route('capacitador.cursos.modulos.destroy', [$curso, $modulo]) }}" method="POST"
                               onsubmit="return confirm('¿Eliminar este módulo?')">
                             @csrf
@@ -92,15 +96,6 @@
                         </form>
                     </div>
                 </div>
-
-                {{-- Editor de evaluación inline --}}
-                @if ($modulo->tipo_contenido === 'evaluacion' && $modulo->evaluacion)
-                    <div class="ml-10 mb-4">
-                        @livewire('capacitador.editar-evaluacion',
-                            ['evaluacion' => $modulo->evaluacion, 'curso' => $curso],
-                            key('eval-' . $modulo->id))
-                    </div>
-                @endif
             @empty
                 <p class="text-center text-Alumco-gray/40 py-8">
                     No hay módulos. <a href="{{ route('capacitador.cursos.modulos.crear', $curso) }}"

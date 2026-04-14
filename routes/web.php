@@ -72,6 +72,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/cursos/{curso}/modulos/{modulo}/editar', [CapacitadorModulo::class, 'edit'])->name('cursos.modulos.editar');
         Route::put('/cursos/{curso}/modulos/{modulo}', [CapacitadorModulo::class, 'update'])->name('cursos.modulos.update');
         Route::delete('/cursos/{curso}/modulos/{modulo}', [CapacitadorModulo::class, 'destroy'])->name('cursos.modulos.destroy');
+        Route::get('/cursos/{curso}/modulos/{modulo}/evaluacion', [CapacitadorModulo::class, 'evaluacion'])->name('cursos.modulos.evaluacion');
         Route::post('/cursos/{curso}/modulos/reordenar', [CapacitadorModulo::class, 'reordenar'])->name('cursos.modulos.reordenar');
 
         // Participantes
