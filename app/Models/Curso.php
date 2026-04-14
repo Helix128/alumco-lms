@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Curso extends Model
 {
@@ -42,12 +43,20 @@ class Curso extends Model
         return $this->hasMany(Modulo::class)->orderBy('orden');
     }
 
+    public function planificaciones(): HasMany
+    {
+        return $this->hasMany(PlanificacionCurso::class);
+    }
+
     // --- LÓGICA DE NEGOCIO ---
 
     public function estaDisponible(): bool
     {
-        $hoy = now();
-        return $this->fecha_inicio <= $hoy && $this->fecha_fin >= $hoy;
+        $hoy = now()->startOfDay();
+        return $this->planificaciones()
+            ->where('fecha_inicio', '<=', $hoy)
+            ->where('fecha_fin', '>=', $hoy)
+            ->exists();
     }
 
     public function progresoParaUsuario(User $user): int
