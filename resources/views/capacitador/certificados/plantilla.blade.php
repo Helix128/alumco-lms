@@ -1,33 +1,32 @@
-@php
-    $fontDir          = storage_path('fonts');
-    $logoPath         = public_path('images/logo/alumco-full.svg');
-    $logoBase64       = base64_encode(file_get_contents($logoPath));
-    $labelCapacitador = ($capacitador->sexo ?? 'M') === 'F' ? 'Capacitadora' : 'Capacitador';
-@endphp
-<!DOCTYPE html>
+    <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <style>
         @font-face {
-            font-family: 'FiraSans';
+            font-family: 'Fira Sans';
             font-weight: 400;
-            src: url('file://{{ $fontDir }}/FiraSans-Regular.ttf') format('truetype');
+            src: url('{{ storage_path('fonts/FiraSans-Regular.ttf') }}') format('truetype');
         }
         @font-face {
-            font-family: 'FiraSans';
+            font-family: 'Fira Sans';
             font-weight: 700;
-            src: url('file://{{ $fontDir }}/FiraSans-Bold.ttf') format('truetype');
+            src: url('{{ storage_path('fonts/FiraSans-Bold.ttf') }}') format('truetype');
+        }
+        @font-face {
+            font-family: 'Fira Sans';
+            font-weight: 900;
+            src: url('{{ storage_path('fonts/FiraSans-Black.ttf') }}') format('truetype');
         }
         @font-face {
             font-family: 'Sora';
-            font-weight: 600;
-            src: url('file://{{ $fontDir }}/Sora-SemiBold.ttf') format('truetype');
+            font-weight: 700;
+            src: url('{{ storage_path('fonts/Sora-Bold.ttf') }}') format('truetype');
         }
         @font-face {
             font-family: 'Sora';
             font-weight: 800;
-            src: url('file://{{ $fontDir }}/Sora-ExtraBold.ttf') format('truetype');
+            src: url('{{ storage_path('fonts/Sora-ExtraBold.ttf') }}') format('truetype');
         }
 
         @page {
@@ -38,8 +37,7 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: 'FiraSans', Arial, sans-serif;
-            font-weight: 400;
+            font-family: 'Fira Sans', sans-serif;
             background: #ffffff;
             width: 297mm;
             height: 210mm;
@@ -59,7 +57,7 @@
 
         .contenido {
             flex: 1;
-            padding: 18mm 18mm;
+            padding: 14mm 18mm;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -74,14 +72,15 @@
         }
 
         .logo-img {
-            height: 36px;
-            width: auto;
+            width: 58mm;
+            height: auto;
+            display: block;
         }
 
         .titulo-cert {
-            font-family: 'Sora', Arial, sans-serif;
-            font-weight: 600;
-            font-size: 10pt;
+            font-family: 'Sora', sans-serif;
+            font-size: 11pt;
+            font-weight: 700;
             color: #4A4A4A;
             letter-spacing: 3px;
             text-transform: uppercase;
@@ -93,35 +92,32 @@
         }
 
         .prezenta {
-            font-family: 'FiraSans', Arial, sans-serif;
-            font-size: 9pt;
-            color: #6B7280;
+            font-size: 10pt;
+            color: #4A4A4A;
             text-transform: uppercase;
-            letter-spacing: 3px;
-            margin-bottom: 8px;
+            letter-spacing: 2px;
+            margin-bottom: 12px;
         }
 
         .nombre-alumno {
-            font-family: 'Sora', Arial, sans-serif;
-            font-weight: 800;
-            font-size: 34pt;
+            font-size: 38pt;
+            font-weight: 900;
             color: #205099;
-            margin-bottom: 10px;
+            margin-bottom: 16px;
             line-height: 1.1;
         }
 
         .texto-completado {
-            font-family: 'FiraSans', Arial, sans-serif;
-            font-size: 10pt;
+            font-size: 11pt;
             color: #4A4A4A;
-            margin-bottom: 6px;
+            margin-bottom: 12px;
         }
 
         .nombre-curso {
-            font-family: 'Sora', Arial, sans-serif;
-            font-weight: 600;
-            font-size: 16pt;
+            font-size: 22pt;
+            font-weight: 700;
             color: #205099;
+            font-style: italic;
         }
 
         .pie {
@@ -135,9 +131,10 @@
         }
 
         .firma-nombre {
-            font-family: 'Sora', Arial, sans-serif;
-            font-weight: 600;
-            font-size: 13pt;
+            font-family: 'Sora', sans-serif;
+            font-weight: 700;
+            font-style: italic;
+            font-size: 15pt;
             color: #205099;
             border-bottom: 1.5px solid #205099;
             padding-bottom: 4px;
@@ -145,11 +142,10 @@
         }
 
         .firma-label {
-            font-family: 'FiraSans', Arial, sans-serif;
-            font-size: 7.5pt;
-            color: #6B7280;
+            font-size: 8pt;
+            color: #4A4A4A;
             text-transform: uppercase;
-            letter-spacing: 1.5px;
+            letter-spacing: 1px;
         }
 
         .codigo-bloque {
@@ -157,44 +153,66 @@
         }
 
         .codigo-label {
-            font-family: 'FiraSans', Arial, sans-serif;
             font-size: 7pt;
-            color: #6B7280;
+            color: #4A4A4A;
             text-transform: uppercase;
             letter-spacing: 1px;
             margin-bottom: 3px;
         }
 
         .codigo-valor {
-            font-family: 'DejaVu Sans Mono', 'Courier New', monospace;
+            font-family: 'Courier New', monospace;
             font-size: 8pt;
             color: #4A4A4A;
-            letter-spacing: 1px;
         }
 
         .fecha-bloque {
-            font-family: 'FiraSans', Arial, sans-serif;
             font-size: 9pt;
-            color: #6B7280;
+            color: #4A4A4A;
         }
     </style>
 </head>
+@php
+    $sexoUsuario = strtolower(trim((string) ($user->sexo ?? '')));
+    if (in_array($sexoUsuario, ['m', 'masculino', 'hombre'], true)) {
+        $articulo    = 'el';
+        $colaborador = 'colaborador';
+    } elseif (in_array($sexoUsuario, ['f', 'femenino', 'mujer'], true)) {
+        $articulo    = 'la';
+        $colaborador = 'colaboradora';
+    } else {
+        $articulo    = '';
+        $colaborador = 'colaborador/a';
+    }
+    $presentacion = trim('Se certifica que ' . $articulo . ' ' . $colaborador);
+
+    $sexoCapacitador = strtolower(trim((string) ($capacitador->sexo ?? '')));
+    if (in_array($sexoCapacitador, ['m', 'masculino', 'hombre'], true)) {
+        $labelCapacitador = 'Capacitador';
+    } elseif (in_array($sexoCapacitador, ['f', 'femenino', 'mujer'], true)) {
+        $labelCapacitador = 'Capacitadora';
+    } else {
+        $labelCapacitador = 'Capacitador/a';
+    }
+@endphp
 <body>
     <div class="borde-izq"></div>
 
     <div class="contenido">
         <div class="encabezado">
-            <img class="logo-img" src="data:image/svg+xml;base64,{{ $logoBase64 }}" alt="Alumco">
+            <div>
+                <img src="{{ public_path('images/logo/alumco-full.svg') }}" class="logo-img" alt="Alumco">
+            </div>
             <div class="titulo-cert">
                 Certificado<br>de Completado
             </div>
         </div>
 
         <div class="cuerpo">
-            <p class="prezenta">Se certifica que</p>
+            <p class="prezenta">{{ $presentacion }}</p>
             <p class="nombre-alumno">{{ $user->name }}</p>
             <p class="texto-completado">ha completado satisfactoriamente el curso</p>
-            <p class="nombre-curso">&ldquo;{{ $curso->titulo }}&rdquo;</p>
+            <p class="nombre-curso">"{{ $curso->titulo }}"</p>
         </div>
 
         <div class="pie">
@@ -208,7 +226,7 @@
             </div>
 
             <div class="codigo-bloque">
-                <div class="codigo-label">C&oacute;digo de verificaci&oacute;n</div>
+                <div class="codigo-label">Código de verificación</div>
                 <div class="codigo-valor">{{ strtoupper(substr($codigo, 0, 8)) }}</div>
             </div>
         </div>
