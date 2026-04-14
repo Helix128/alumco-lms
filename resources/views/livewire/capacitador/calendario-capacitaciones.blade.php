@@ -7,13 +7,14 @@
      data-plan-mode="{{ $modoPlaneacion ? '1' : '0' }}"
      data-vista="{{ $modoVista }}"
      data-days-in-month="{{ $diasEnMes }}"
-     @class(['p-6 relative', 'plan-mode-active' => $modoPlaneacion])>
+     data-sexo="{{ $userSexo }}"
+     @class(['p-3 relative', 'plan-mode-active' => $modoPlaneacion, 'cal-mode-readonly' => $readonly])>
 
     {{-- Floating tooltip during drag / resize / move (shown/hidden by JS) --}}
     <div id="cal-tooltip" class="cal-drag-tooltip" aria-hidden="true"></div>
 
     {{-- ── Header ─────────────────────────────────────────────────────── --}}
-    <div class="flex justify-between items-center mb-5 bg-white p-4 rounded-xl shadow-sm border border-gray-200 gap-4 flex-wrap">
+    <div class="flex justify-between items-center mb-3 bg-white p-3 rounded-xl shadow-sm border border-gray-200 gap-4 flex-wrap">
 
         {{-- Navigation --}}
         <div class="flex items-center gap-2">
@@ -95,7 +96,7 @@
             @endif
         </div>
 
-        {{-- Right controls: view toggle + plan mode --}}
+        {{-- Right controls: view toggle + sede filter + plan mode --}}
         <div class="flex items-center gap-2 flex-wrap">
 
             {{-- Vista toggle --}}
@@ -116,7 +117,18 @@
                 </button>
             </div>
 
-            @if($esAdmin)
+            @if($esAdmin && $modoVista === 'anual')
+                <button wire:click="abrirModalCopiarAnio"
+                        class="px-3 h-9 flex items-center text-sm font-semibold text-Alumco-blue border border-Alumco-blue rounded-lg nav-btn gap-1.5"
+                        title="Copiar planificaciones a otro año">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2"/>
+                    </svg>
+                    Copiar año
+                </button>
+            @endif
+
+            @if($esAdmin && $modoVista === 'anual')
                 <button wire:click="toggleModoPlaneacion"
                         class="flex items-center gap-2 px-4 py-2 rounded-lg border font-semibold text-sm plan-toggle-btn
                                {{ $modoPlaneacion
@@ -140,19 +152,16 @@
 
     {{-- ── Planning hint banner ────────────────────────────────────────── --}}
     @if($modoPlaneacion)
-        <div class="mb-4 flex items-start gap-2 bg-blue-50 border border-blue-200 rounded-lg px-4 py-2 text-sm text-blue-700">
+        <div class="mb-2 flex items-start gap-2 bg-blue-50 border border-blue-200 rounded-lg px-4 py-2 text-sm text-blue-700">
             <svg class="w-4 h-4 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
             <span>
-                <strong>Modo planificación activo.</strong>
-                @if($modoVista === 'anual')
-                    Haz clic en una semana vac&iacute;a para asignar un curso; arrastra para seleccionar varias semanas.
-                    Haz clic en un bloque para editar o eliminarlo.
-                @else
-                    Arrastra un rango en el calendario para crear, haz clic en una barra para editar, arrastra su centro para mover el periodo, o usa los bordes para ajustar inicio y fin.
-                @endif
+                <strong>Modo planificaci&oacute;n activo.</strong>
+                Haz clic en un bloque para editarlo; arr&aacute;stralo para moverlo (incluso entre filas/sedes),
+                o arrastra sus bordes para ajustar inicio y fin.
+                Al pasar el cursor sobre un bloque aparece la <strong>&times;</strong> para eliminarlo.
                 Presiona <kbd class="px-1 py-0.5 bg-blue-100 rounded text-xs font-mono">Esc</kbd> para salir.
             </span>
         </div>
@@ -167,6 +176,58 @@
             {{--  VISTA ANUAL                                            --}}
             {{-- ════════════════════════════════════════════════════════ --}}
             @if($modoVista === 'anual')
+
+                {{-- ── Conflict warning panel ─────────────────────────────── --}}
+                @php
+                    $todosConflictos = [];
+                    foreach ($filasAnuales as $fila) {
+                        foreach ($semanasDelAnio as $sem) {
+                            $sd = $fila['semanas'][$sem['numero']] ?? null;
+                            if ($sd && $sd['conflicto']) {
+                                $todosConflictos[] = [
+                                    'sede_nombre' => $fila['nombre'],
+                                    'numero'      => $sem['numero'],
+                                    'inicio'      => $sem['inicio'],
+                                    'fin'         => $sem['fin'],
+                                    'cursos'      => collect($sd['cursos'])->unique('id')->values()->all(),
+                                ];
+                            }
+                        }
+                    }
+                @endphp
+                @if($esAdmin && count($todosConflictos) > 0)
+                    <details open class="mb-2 rounded-xl border border-amber-200 bg-amber-50 overflow-hidden">
+                        <summary class="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-amber-700 cursor-pointer list-none select-none">
+                            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                            </svg>
+                            {{ count($todosConflictos) }} semana{{ count($todosConflictos) > 1 ? 's' : '' }} con solapamiento
+                            <svg class="w-3.5 h-3.5 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </summary>
+                        <div class="px-4 pb-3 pt-1 space-y-1.5 border-t border-amber-200">
+                            @foreach($todosConflictos as $conf)
+                                <div class="flex items-start gap-2 text-xs">
+                                    <span class="font-bold text-amber-800 shrink-0 w-8">S{{ $conf['numero'] }}</span>
+                                    <span class="text-amber-600 shrink-0 font-semibold">{{ $conf['sede_nombre'] }}</span>
+                                    <span class="text-amber-500 shrink-0">
+                                        {{ \Carbon\Carbon::parse($conf['inicio'])->format('d/m') }}–{{ \Carbon\Carbon::parse($conf['fin'])->format('d/m') }}
+                                    </span>
+                                    <div class="flex flex-wrap gap-1">
+                                        @foreach($conf['cursos'] as $c)
+                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-white text-[10px] font-semibold {{ $c['bg'] }}">
+                                                {{ \Illuminate\Support\Str::limit($c['titulo'], 28) }}
+                                            </span>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </details>
+                @endif
+
                 <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-200">
                     <div class="cal-annual-scroll">
                         <div class="cal-annual-grid"
@@ -207,62 +268,111 @@
                                 </div>
                             @endforeach
 
-                            {{-- ── Fila 4: Cursos ────────────────────── --}}
-                            <div class="cal-annual-row-label">
-                                <svg class="w-4 h-4 text-gray-400 mr-1.5 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-                                </svg>
-                                Capacitaciones
-                            </div>
-                            @foreach($semanasDelAnio as $sem)
-                                @php
-                                    $tieneCursos = count($sem['cursos']) > 0;
-                                @endphp
-                                <div @class([
-                                        'cal-annual-cell',
-                                        'cal-annual-cell-empty'    => ! $tieneCursos,
-                                        'cal-annual-cell-conflict' => $sem['conflicto'],
-                                        'cal-annual-cell-past'     => $sem['esPasada'] && ! $sem['esHoy'],
-                                        'cal-annual-cell-today'    => $sem['esHoy'],
-                                     ])
-                                     data-semana="{{ $sem['numero'] }}"
-                                     data-fecha-inicio="{{ $sem['inicio'] }}"
-                                     data-fecha-fin="{{ $sem['fin'] }}">
+                            {{-- ── Filas: una por sede ─────────────────── --}}
+                            {{-- En vista de colaborador solo se muestran la fila global y la sede propia --}}
+                            @foreach($filasAnuales as $fila)
+                                @if($readonly && $fila['sede_id'] !== null && $fila['sede_id'] !== $userSedeId)
+                                    @continue
+                                @endif
 
-                                    @foreach($sem['cursos'] as $curso)
-                                        <div @class([
-                                                'cal-annual-chip',
-                                                $curso['bg'],
-                                                'rounded-l-md'   => $curso['esInicio'],
-                                                'rounded-r-md'   => $curso['esFin'],
-                                             ])
-                                             data-bar-anual="{{ $curso['id'] }}"
-                                             wire:key="chip-{{ $sem['numero'] }}-{{ $curso['id'] }}"
-                                             title="{{ $curso['titulo'] }}{{ $curso['notas'] ? ' — '.$curso['notas'] : '' }}">
-
-                                            @if($curso['esInicio'])
-                                                <span class="cal-annual-chip-label text-white text-[11px] font-semibold px-1.5 truncate leading-none">
-                                                    {{ $curso['titulo'] }}
-                                                </span>
-                                            @endif
-
-                                            @if($esAdmin && $modoPlaneacion && $curso['esFin'])
-                                                <button type="button"
-                                                        wire:click.stop="borrarPlanificacion({{ $curso['id'] }})"
-                                                        class="cal-annual-chip-delete text-white/80 hover:text-white ml-auto shrink-0 px-1 leading-none"
-                                                        title="Eliminar">
-                                                    &times;
-                                                </button>
-                                            @endif
-                                        </div>
-                                    @endforeach
-
-                                    @if($sem['conflicto'])
-                                        <div class="cal-annual-conflict-badge" title="{{ count($sem['cursos']) }} cursos en esta semana">
-                                            !
-                                        </div>
+                                {{-- Row label (sticky) --}}
+                                <div class="cal-annual-row-label">
+                                    @if($fila['sede_id'] === null)
+                                        <svg class="w-3.5 h-3.5 text-gray-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064"/>
+                                        </svg>
+                                    @else
+                                        <svg class="w-3.5 h-3.5 text-gray-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                        </svg>
                                     @endif
+                                    <span class="truncate">{{ $fila['nombre'] }}</span>
                                 </div>
+
+                                {{-- Week cells for this sede --}}
+                                @foreach($semanasDelAnio as $sem)
+                                    @php
+                                        $semData     = $fila['semanas'][$sem['numero']] ?? ['cursos' => [], 'conflicto' => false];
+                                        $tieneCursos = count($semData['cursos']) > 0;
+                                    @endphp
+                                    <div @class([
+                                             'cal-annual-cell',
+                                             'cal-annual-cell-empty'    => ! $tieneCursos,
+                                             'cal-annual-cell-conflict' => ! $readonly && $semData['conflicto'],
+                                             'cal-annual-cell-past'     => $sem['esPasada'] && ! $sem['esHoy'],
+                                             'cal-annual-cell-today'    => $sem['esHoy'],
+                                         ])
+                                         data-semana="{{ $sem['numero'] }}"
+                                         data-sede-id="{{ $fila['sede_id'] ?? 0 }}"
+                                         data-fecha-inicio="{{ $sem['inicio'] }}"
+                                         data-fecha-fin="{{ $sem['fin'] }}">
+
+                                        @foreach($semData['cursos'] as $curso)
+                                            <div @class([
+                                                    'cal-annual-chip',
+                                                    $curso['bg'],
+                                                    'rounded-l-md' => $curso['esInicio'],
+                                                    'rounded-r-md' => $curso['esFin'],
+                                                 ])
+                                                 data-bar-anual="{{ $curso['id'] }}"
+                                                 wire:key="chip-{{ $fila['sede_id'] ?? 0 }}-{{ $sem['numero'] }}-{{ $curso['id'] }}"
+                                                 title="{{ $curso['titulo'] }}{{ $curso['notas'] ? ' — '.$curso['notas'] : '' }}">
+
+                                                {{-- Left resize handle (plan mode, start cell only) --}}
+                                                @if($esAdmin && $modoPlaneacion && $curso['esInicio'])
+                                                    <button type="button"
+                                                            data-ann-resize="left"
+                                                            data-semana="{{ $curso['semaInicio'] }}"
+                                                            title="Mover inicio"></button>
+                                                @endif
+
+                                                {{-- Move zone + label --}}
+                                                @if($esAdmin && $modoPlaneacion)
+                                                    <div data-ann-move
+                                                         data-semana="{{ $curso['semaInicio'] }}"
+                                                         data-duration="{{ $curso['semaFin'] - $curso['semaInicio'] }}">
+                                                        @if($curso['esInicio'])
+                                                            <span class="cal-annual-chip-label text-white text-[11px] font-semibold px-1.5 truncate leading-none">
+                                                                {{ $curso['titulo'] }}
+                                                            </span>
+                                                        @endif
+                                                    </div>
+                                                @elseif($curso['esInicio'])
+                                                    <span class="cal-annual-chip-label text-white text-[11px] font-semibold px-1.5 truncate leading-none">
+                                                        {{ $curso['titulo'] }}
+                                                    </span>
+                                                @endif
+
+                                                {{-- Delete button: visible on chip hover; confirm required --}}
+                                                @if($esAdmin && $curso['esFin'])
+                                                    <button type="button"
+                                                            data-ann-delete="{{ $curso['id'] }}"
+                                                            class="cal-annual-chip-delete text-white/80 hover:text-white shrink-0 px-1 leading-none"
+                                                            title="Eliminar">
+                                                        &times;
+                                                    </button>
+                                                @endif
+
+                                                {{-- Right resize handle (plan mode, end cell only) --}}
+                                                @if($esAdmin && $modoPlaneacion && $curso['esFin'])
+                                                    <button type="button"
+                                                            data-ann-resize="right"
+                                                            data-semana="{{ $curso['semaFin'] }}"
+                                                            title="Mover fin"></button>
+                                                @endif
+                                            </div>
+                                        @endforeach
+
+                                        {{-- Spacer: siempre hay espacio clickeable al final --}}
+                                        <div style="flex:1;min-height:10px"></div>
+
+                                        @if(! $readonly && $semData['conflicto'])
+                                            <div class="cal-annual-conflict-badge" title="{{ count($semData['cursos']) }} cursos en esta semana">!</div>
+                                        @endif
+                                    </div>
+                                @endforeach
+
                             @endforeach
 
                         </div>{{-- /.cal-annual-grid --}}
@@ -287,7 +397,7 @@
 
                     {{-- Week rows --}}
                     @foreach($semanasDelMes as $semIdx => $semana)
-                        <div class="cal-week" style="grid-template-rows: auto repeat({{ max($semana['maxSlot'], 1) }}, 22px) 4px">
+                        <div class="cal-week" style="grid-template-rows: auto repeat({{ max($semana['maxSlot'], 1) }}, 26px) 4px">
 
                             {{-- Day number cells --}}
                             @foreach($semana['dias'] as $dIdx => $diaInfo)
@@ -349,11 +459,21 @@
                                              data-span="{{ $barra['span'] }}"
                                              data-start="{{ $barra['segStartDay'] }}">
                                             @if($esPrimerSegmento)
-                                                <span class="cal-bar-label">{{ $barra['titulo'] }}</span>
+                                                <span class="cal-bar-label">
+                                                    {{ $barra['titulo'] }}
+                                                    @if($barra['sede_nombre'])
+                                                        <span class="cal-sede-badge">{{ $barra['sede_nombre'] }}</span>
+                                                    @endif
+                                                </span>
                                             @endif
                                         </div>
                                     @elseif($esPrimerSegmento)
-                                        <span class="cal-bar-label">{{ $barra['titulo'] }}</span>
+                                        <span class="cal-bar-label">
+                                            {{ $barra['titulo'] }}
+                                            @if($barra['sede_nombre'])
+                                                <span class="cal-sede-badge">{{ $barra['sede_nombre'] }}</span>
+                                            @endif
+                                        </span>
                                     @endif
 
                                     {{-- Right cross-month arrow --}}
@@ -365,9 +485,10 @@
                                         </span>
                                     @endif
 
-                                    {{-- Delete button --}}
+                                    {{-- Delete button: confirm required --}}
                                     @if($esAdmin)
-                                        <button wire:click.stop="borrarPlanificacion({{ $barra['id'] }})"
+                                        <button type="button"
+                                                data-bar-delete="{{ $barra['id'] }}"
                                                 class="cal-bar-delete"
                                                 title="Eliminar periodo">
                                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -387,86 +508,8 @@
                                 </div>
                             @endforeach
 
-                            {{-- Empty-state hint in planning mode --}}
-                            @if($modoPlaneacion && count($semana['barras']) === 0)
-                                <div class="pointer-events-none text-[10px] text-gray-300 italic px-2 py-1"
-                                     style="grid-column: 1 / -1; grid-row: 2">
-                                    Arrastra para planificar
-                                </div>
-                            @endif
-                        </div>
-                    @endforeach
-                </div>
-            @endif
 
         </div>{{-- /.flex-1 --}}
-
-        {{-- ── Sin Planificar Sidebar (admin + planning mode) ────────── --}}
-        @if($esAdmin && $modoPlaneacion)
-            @php
-                $sinPlan      = count($cursosSinPlanificar);
-                $planificados = count($cursosDisponibles) - $sinPlan;
-            @endphp
-            <div class="plan-sidebar">
-
-                {{-- Header --}}
-                <div class="plan-sidebar-header">
-                    <span>Sin planificar</span>
-                    <span class="plan-sidebar-badge">{{ $sinPlan }}</span>
-                </div>
-
-                @if($sinPlan > 0)
-                    {{-- Search --}}
-                    <div class="plan-sidebar-search">
-                        <input type="text"
-                               wire:model.live.debounce.300ms="busquedaSidebar"
-                               placeholder="Buscar curso..."
-                               autocomplete="off">
-                    </div>
-
-                    {{-- List --}}
-                    <div class="plan-sidebar-list">
-                        @foreach($sidebarList as $curso)
-                            <div class="plan-sidebar-item"
-                                 wire:click="abrirModalConCurso({{ $curso['id'] }})"
-                                 wire:key="sb-{{ $curso['id'] }}"
-                                 title="Planificar: {{ $curso['titulo'] }}">
-                                <span class="plan-sidebar-item-dot {{ $curso['bg'] }}"></span>
-                                <span class="plan-sidebar-item-title">{{ $curso['titulo'] }}</span>
-                                <button type="button" class="plan-sidebar-item-btn" tabindex="-1">+</button>
-                            </div>
-                        @endforeach
-                        @if(! count($sidebarList) && $busquedaSidebar)
-                            <p class="text-xs text-gray-400 text-center py-3">Sin resultados</p>
-                        @endif
-                    </div>
-                @else
-                    {{-- Empty state --}}
-                    <div class="plan-sidebar-empty">
-                        <svg class="w-8 h-8 text-green-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                        <p class="font-semibold text-gray-700 text-xs text-center leading-snug">
-                            &iexcl;Todos los cursos están planificados este {{ $modoVista === 'anual' ? 'año' : 'mes' }}!
-                        </p>
-                    </div>
-                @endif
-
-                {{-- Footer --}}
-                @if($planificados > 0)
-                    <div class="plan-sidebar-footer">
-                        <svg class="w-3 h-3 text-green-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd"
-                                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                  clip-rule="evenodd"/>
-                        </svg>
-                        {{ $planificados }} de {{ count($cursosDisponibles) }} planificado{{ $planificados !== 1 ? 's' : '' }}
-                    </div>
-                @endif
-
-            </div>
-        @endif
 
     </div>{{-- /main layout --}}
 
@@ -595,6 +638,21 @@
                                   placeholder="Ej: Grupo A &mdash; turno ma&ntilde;ana"
                                   class="w-full border border-gray-300 rounded-lg shadow-sm p-2 text-sm resize-none focus:outline-none focus:ring-1 focus:ring-Alumco-blue focus:border-Alumco-blue"></textarea>
                     </div>
+
+                    {{-- Sede --}}
+                    @if(count($sedes) > 0)
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Sede</label>
+                            <select wire:model="sedeIdPlan"
+                                    class="w-full border border-gray-300 rounded-lg shadow-sm p-2 text-sm focus:outline-none focus:ring-1 focus:ring-Alumco-blue focus:border-Alumco-blue">
+                                <option value="">Todas las sedes</option>
+                                @foreach($sedes as $sede)
+                                    <option value="{{ $sede['id'] }}">{{ $sede['nombre'] }}</option>
+                                @endforeach
+                            </select>
+                            @error('sedeIdPlan') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                        </div>
+                    @endif
                 </div>
 
                 {{-- Modal footer --}}
@@ -614,6 +672,77 @@
                     </button>
                 </div>
 
+            </div>
+        </div>
+    @endif
+
+    {{-- ── Modal copiar año ───────────────────────────────────────────── --}}
+    @if($mostrarModalCopiarAnio)
+        <div class="fixed inset-0 bg-black/50 z-50 flex justify-center items-center backdrop-blur-sm"
+             wire:click="cerrarModalCopiarAnio">
+            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden mx-4"
+                 onclick="event.stopPropagation()">
+
+                <div class="bg-Alumco-blue px-5 py-4 flex justify-between items-center text-white">
+                    <h3 class="font-bold text-lg">Copiar planificación</h3>
+                    <button wire:click="cerrarModalCopiarAnio"
+                            class="text-white/70 hover:text-white text-2xl leading-none">&times;</button>
+                </div>
+
+                <div class="p-5 space-y-4">
+                    <p class="text-sm text-gray-600">
+                        Se copiarán todas las planificaciones del año <strong>{{ $anioActual }}</strong>
+                        al año seleccionado, manteniendo las mismas fechas de mes y día.
+                    </p>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Año destino</label>
+                        <input type="number" wire:model="anioDestino" min="2020" max="2099"
+                               class="w-full border border-gray-300 rounded-lg shadow-sm p-2 text-sm focus:outline-none focus:ring-1 focus:ring-Alumco-blue focus:border-Alumco-blue">
+                        @error('anioDestino') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 px-5 py-3 flex justify-end gap-2 border-t">
+                    <button wire:click="cerrarModalCopiarAnio"
+                            class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-medium text-sm">
+                        Cancelar
+                    </button>
+                    <button wire:click="copiarAnio"
+                            wire:loading.attr="disabled"
+                            wire:loading.class="opacity-60"
+                            class="px-4 py-2 bg-Alumco-blue text-white rounded-lg font-medium text-sm">
+                        <span wire:loading.remove wire:target="copiarAnio">Copiar</span>
+                        <span wire:loading wire:target="copiarAnio">Copiando...</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    {{-- ── Confirm delete modal ──────────────────────────────────────────── --}}
+    @if($esAdmin)
+        <div id="confirm-delete-modal"
+             class="hidden fixed inset-0 bg-black/50 z-50 flex justify-center items-center backdrop-blur-sm">
+            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden mx-4">
+                <div class="bg-red-600 px-5 py-4 flex justify-between items-center text-white">
+                    <h3 class="font-bold text-base">Confirmar eliminaci&oacute;n</h3>
+                    <button id="confirm-delete-close"
+                            class="text-white/70 hover:text-white text-2xl leading-none">&times;</button>
+                </div>
+                <div class="p-5">
+                    <p id="confirm-delete-text" class="text-sm text-gray-700 mb-4">&iquest;Est&aacute;s seguro/a?</p>
+                    <div class="flex justify-end gap-2">
+                        <button id="confirm-delete-cancel"
+                                class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg font-medium text-sm">
+                            Cancelar
+                        </button>
+                        <button id="confirm-delete-ok"
+                                class="px-4 py-2 bg-red-600 text-white rounded-lg font-medium text-sm">
+                            S&iacute;, eliminar
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     @endif
@@ -646,13 +775,49 @@
     function hideTip() { if (tip) tip.style.display = 'none'; }
 
     /* ════════════════════════════════════════════════════════════════════ */
+    /*  CONFIRM DELETE                                                     */
+    /* ════════════════════════════════════════════════════════════════════ */
+
+    let deletePendingId = null;
+
+    function showConfirmDelete(id) {
+        deletePendingId = id;
+        const modal = document.getElementById('confirm-delete-modal');
+        if (!modal) return;
+        const r    = getRoot();
+        const sexo = r ? (r.dataset.sexo || 'M') : 'M';
+        const txt  = document.getElementById('confirm-delete-text');
+        if (txt) {
+            txt.innerHTML = sexo === 'F'
+                ? '&iquest;Est&aacute;s segura de que quieres eliminar esta planificaci&oacute;n?'
+                : '&iquest;Est&aacute;s seguro de que quieres eliminar esta planificaci&oacute;n?';
+        }
+        modal.classList.remove('hidden');
+    }
+
+    function initConfirmDelete() {
+        const modal = document.getElementById('confirm-delete-modal');
+        if (!modal) return;
+        const close = () => { modal.classList.add('hidden'); deletePendingId = null; };
+        document.getElementById('confirm-delete-close')?.addEventListener('click', close);
+        document.getElementById('confirm-delete-cancel')?.addEventListener('click', close);
+        modal.addEventListener('click', e => { if (e.target === modal) close(); });
+        document.getElementById('confirm-delete-ok')?.addEventListener('click', () => {
+            if (deletePendingId !== null) getWire()?.$call('borrarPlanificacion', deletePendingId);
+            close();
+        });
+    }
+
+    /* ════════════════════════════════════════════════════════════════════ */
     /*  VISTA ANUAL — interactions                                         */
     /* ════════════════════════════════════════════════════════════════════ */
 
     let annualDragStart = null, annualDragEnd = null, annualDragging = false;
+    let annDragSedeId = 0; /* sede_id (0 = Global/null) de la fila donde empezó el drag */
     /* resizing / moving in annual view */
     let annResizing = false, annResizeId = null, annResizeEdge = null, annResizeSemana = null, annResizeOrig = null;
     let annMoving = false, annMoveId = null, annMoveDuration = 0, annMoveSemana = null, annMoveOrig = null;
+    let annMoveTargetSedeId = 0, annMoveOrigSedeId = 0; /* sede destino/origen al mover entre filas */
     let annWasDragging = false;
 
     function annClearHighlight() {
@@ -660,14 +825,40 @@
             el.classList.remove('cal-annual-cell-drag-highlight'));
     }
 
+    /* Highlight cells for drag-to-create (range in same sede row) */
     function annUpdateHighlight() {
         if (annualDragStart === null || annualDragEnd === null) return;
         const lo = Math.min(annualDragStart, annualDragEnd);
         const hi = Math.max(annualDragStart, annualDragEnd);
-        document.querySelectorAll('[data-semana]').forEach(el => {
-            const s = parseInt(el.dataset.semana, 10);
-            el.classList.toggle('cal-annual-cell-drag-highlight', s >= lo && s <= hi);
+        document.querySelectorAll('.cal-annual-cell').forEach(el => {
+            const s        = parseInt(el.dataset.semana, 10);
+            const sameSede = parseInt(el.dataset.sedeId || '0', 10) === annDragSedeId;
+            el.classList.toggle('cal-annual-cell-drag-highlight', s >= lo && s <= hi && sameSede);
         });
+    }
+
+    /* Highlight cells for a move operation (shows where the chip will land) */
+    function annMoveHighlight(semIni, duracion, sedeId) {
+        annClearHighlight();
+        const lo = semIni, hi = semIni + duracion;
+        document.querySelectorAll('.cal-annual-cell').forEach(el => {
+            const s    = parseInt(el.dataset.semana, 10);
+            const sede = parseInt(el.dataset.sedeId || '0', 10);
+            el.classList.toggle('cal-annual-cell-drag-highlight', s >= lo && s <= hi && sede === sedeId);
+        });
+    }
+
+    /* Resolves the target .cal-annual-cell from a mouse event.
+       Must use .cal-annual-cell — NOT [data-semana] — because chip inner
+       elements (move handle, resize handles) also carry data-semana attributes
+       and would be matched first by closest(), returning wrong week numbers. */
+    function resolveAnnCell(e) {
+        const cell = e.target.closest('.cal-annual-cell');
+        if (!cell) return null;
+        return {
+            semana: parseInt(cell.dataset.semana, 10),
+            sedeId: parseInt(cell.dataset.sedeId || '0', 10),
+        };
     }
 
     function initAnnual() {
@@ -679,17 +870,18 @@
             if (getVista() !== 'anual') return;
             if (!isPlanMode() || annResizing || annMoving) return;
             if (e.target.closest('[data-bar-anual]')) return;
-            const cell = e.target.closest('[data-semana]');
+            const cell = e.target.closest('.cal-annual-cell');
             if (!cell) return;
             e.preventDefault();
             annualDragging  = true;
+            annDragSedeId   = parseInt(cell.dataset.sedeId || '0', 10);
             annualDragStart = annualDragEnd = parseInt(cell.dataset.semana, 10);
         });
 
         root.addEventListener('mouseover', e => {
             if (!annualDragging) return;
-            const cell = e.target.closest('[data-semana]');
-            if (cell) {
+            const cell = e.target.closest('.cal-annual-cell');
+            if (cell && parseInt(cell.dataset.sedeId || '0', 10) === annDragSedeId) {
                 annualDragEnd = parseInt(cell.dataset.semana, 10);
                 annUpdateHighlight();
             }
@@ -742,9 +934,22 @@
                         annMoving = true; annMoveId = id;
                         annMoveDuration = parseInt(mh.dataset.duration, 10);
                         annMoveSemana = annMoveOrig = parseInt(mh.dataset.semana, 10);
+                        /* Capture current sede from the parent cell */
+                        const parentCell = chip.closest('.cal-annual-cell');
+                        annMoveTargetSedeId = annMoveOrigSedeId = parentCell
+                            ? parseInt(parentCell.dataset.sedeId || '0', 10)
+                            : 0;
                         chip.classList.add('bar-dragging');
                     });
                 }
+
+                /* Delete button — show confirm dialog, stop propagation to chip click */
+                chip.querySelectorAll('[data-ann-delete]').forEach(del => {
+                    del.addEventListener('click', e => {
+                        e.stopPropagation();
+                        showConfirmDelete(parseInt(del.dataset.annDelete, 10));
+                    });
+                });
             });
         }
 
@@ -797,12 +1002,6 @@
         return resizeDay ?? moveCurrentDay;
     }
 
-    /* Semana cell hover for annual resize/move */
-    function resolveAnnSemana(e) {
-        const cell = e.target.closest('[data-semana]');
-        return cell ? parseInt(cell.dataset.semana, 10) : null;
-    }
-
     /* ════════════════════════════════════════════════════════════════════ */
     /*  GLOBAL mousedown — vista mensual (creates / drags)                 */
     /* ════════════════════════════════════════════════════════════════════ */
@@ -810,19 +1009,21 @@
     document.addEventListener('mousemove', e => {
         /* Annual resize/move */
         if (annResizing) {
-            const s = resolveAnnSemana(e);
-            if (s !== null) {
-                annResizeSemana = s;
-                showTip((annResizeEdge === 'inicio' ? 'Inicio: S' : 'Fin: S') + s, e.clientX, e.clientY);
+            const target = resolveAnnCell(e);
+            if (target !== null) {
+                annResizeSemana = target.semana;
+                showTip((annResizeEdge === 'inicio' ? 'Inicio: S' : 'Fin: S') + target.semana, e.clientX, e.clientY);
             }
             return;
         }
         if (annMoving) {
-            const s = resolveAnnSemana(e);
-            if (s !== null) {
-                annMoveSemana = s;
+            const target = resolveAnnCell(e);
+            if (target !== null) {
+                annMoveSemana      = target.semana;
+                annMoveTargetSedeId = target.sedeId;
                 const end = annMoveSemana + annMoveDuration;
-                showTip(`Mover: S${annMoveSemana} → S${end}`, e.clientX, e.clientY);
+                showTip(`Mover: S${annMoveSemana}→S${end}`, e.clientX, e.clientY);
+                annMoveHighlight(annMoveSemana, annMoveDuration, annMoveTargetSedeId);
             }
             return;
         }
@@ -876,14 +1077,27 @@
 
         /* Annual move */
         if (annMoving) {
-            if (annMoveId !== null && annMoveSemana !== annMoveOrig) {
-                annWasDragging = true;
-                setTimeout(() => { annWasDragging = false; }, 0);
-                getWire()?.$call('moverPlanificacionSemanas', annMoveId, annMoveSemana);
-            }
-            document.querySelector(`[data-bar-anual="${annMoveId}"]`)?.classList.remove('bar-dragging');
+            const id       = annMoveId;
+            const destSema = annMoveSemana;
+            const destSede = annMoveTargetSedeId;
+            const didMove  = id !== null &&
+                (annMoveSemana !== annMoveOrig || annMoveTargetSedeId !== annMoveOrigSedeId);
+
+            document.querySelector(`[data-bar-anual="${id}"]`)?.classList.remove('bar-dragging');
             annMoving = false; annMoveId = null; annMoveDuration = 0;
             annMoveSemana = null; annMoveOrig = null;
+            annMoveTargetSedeId = 0; annMoveOrigSedeId = 0;
+
+            /* Suppress the chip's click listener to avoid double-firing */
+            annWasDragging = true;
+            setTimeout(() => { annWasDragging = false; }, 0);
+
+            if (didMove) {
+                getWire()?.$call('moverPlanificacionSemanas', id, destSema, destSede);
+            } else {
+                /* Plain click on chip — open edit modal */
+                getWire()?.$call('editarPlanificacion', id);
+            }
             return;
         }
 
@@ -893,9 +1107,9 @@
             annClearHighlight();
             const lo = Math.min(annualDragStart, annualDragEnd);
             const hi = Math.max(annualDragStart, annualDragEnd);
-            if (lo === hi) getWire()?.$call('abrirModalAnualSemana', lo);
-            else           getWire()?.$call('abrirModalAnualRango', lo, hi);
-            annualDragStart = null; annualDragEnd = null;
+            if (lo === hi) getWire()?.$call('abrirModalAnualSemana', lo, annDragSedeId);
+            else           getWire()?.$call('abrirModalAnualRango', lo, hi, annDragSedeId);
+            annualDragStart = null; annualDragEnd = null; annDragSedeId = 0;
             return;
         }
 
@@ -1023,6 +1237,15 @@
                     bar.classList.add('bar-dragging');
                 });
             }
+
+            /* Delete button — confirm dialog */
+            const delBtn = bar.querySelector('[data-bar-delete]');
+            if (delBtn) {
+                delBtn.addEventListener('click', e => {
+                    e.stopPropagation();
+                    showConfirmDelete(parseInt(delBtn.dataset.barDelete, 10));
+                });
+            }
         });
     }
 
@@ -1057,6 +1280,7 @@
         initAnnual();
         initMonthly();
         attachMonthlyBars();
+        initConfirmDelete();
     }
 
     document.addEventListener('livewire:initialized', init);

@@ -42,6 +42,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/cursos/{curso}/modulos/{modulo}', [ModuloController::class, 'show'])->name('modulos.show');
     Route::post('/cursos/{curso}/modulos/{modulo}/completar', [ModuloController::class, 'completar'])->name('modulos.completar');
     Route::get('/calendario', \App\Livewire\Capacitador\CalendarioCapacitaciones::class)->name('calendario.index');
+    Route::get('/calendario-cursos', \App\Livewire\Capacitador\CalendarioCapacitaciones::class)->name('calendario-cursos.index');
 
     // Perfil del colaborador
     Route::get('/perfil', [PerfilController::class, 'show'])->name('perfil.index');

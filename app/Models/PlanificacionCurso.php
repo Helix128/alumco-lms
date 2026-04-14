@@ -11,6 +11,7 @@ class PlanificacionCurso extends Model
 
     protected $fillable = [
         'curso_id',
+        'sede_id',
         'fecha_inicio',
         'fecha_fin',
         'notas',
@@ -26,6 +27,11 @@ class PlanificacionCurso extends Model
     public function curso(): BelongsTo
     {
         return $this->belongsTo(Curso::class);
+    }
+
+    public function sede(): BelongsTo
+    {
+        return $this->belongsTo(Sede::class);
     }
 
     // --- LÓGICA ---

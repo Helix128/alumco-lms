@@ -153,9 +153,9 @@
                 @if(auth()->user()->hasAdminAccess())
                     <span class="ml-2 opacity-70 text-xs">&middot; Admin</span>
                 @elseif(auth()->user()->isCapacitadorInterno())
-                    <span class="ml-2 opacity-70 text-xs">&middot; Interno</span>
+                    <span class="ml-2 opacity-70 text-xs">&middot; {{ auth()->user()->sexo === 'F' ? 'Interna' : 'Interno' }}</span>
                 @elseif(auth()->user()->isCapacitadorExterno())
-                    <span class="ml-2 opacity-70 text-xs">&middot; Externo</span>
+                    <span class="ml-2 opacity-70 text-xs">&middot; {{ auth()->user()->sexo === 'F' ? 'Externa' : 'Externo' }}</span>
                 @endif
             </div>
         </header>

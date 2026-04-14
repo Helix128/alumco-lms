@@ -1,5 +1,6 @@
 @php
     $navPerfil       = request()->routeIs('perfil.index');
+    $navCalendario   = request()->routeIs('calendario-cursos.*');
     $navCursos       = request()->routeIs('cursos.*') || request()->routeIs('modulos.*');
     $navCertificados = request()->routeIs('mis-certificados.*');
 @endphp
@@ -9,14 +10,28 @@
 
     {{-- Perfil --}}
     <a href="{{ route('perfil.index') }}"
-       class="nav-item flex flex-col items-center gap-0.5 px-6
+       class="nav-item flex flex-col items-center gap-0.5 px-4
               {{ $navPerfil ? 'text-white lg:bg-Alumco-blue' : 'text-white/60 lg:text-Alumco-gray lg:hover:bg-gray-50' }}
               lg:flex-row lg:w-full lg:px-5 lg:py-3.5 lg:rounded-2xl lg:shadow-sm">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 lg:w-6 lg:h-6 lg:shrink-0" fill="currentColor" viewBox="0 0 24 24">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 lg:w-6 lg:h-6 lg:shrink-0" fill="currentColor" viewBox="0 0 24 24">
             <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>
         </svg>
         <span class="text-[10px] font-semibold hidden lg:inline lg:text-[15px] lg:font-bold lg:ml-3">Perfil</span>
         @if ($navPerfil)
+            <span class="block w-1.5 h-1.5 rounded-full bg-white mx-auto lg:hidden"></span>
+        @endif
+    </a>
+
+    {{-- Calendario --}}
+    <a href="{{ route('calendario-cursos.index') }}"
+       class="nav-item flex flex-col items-center gap-0.5 px-4
+              {{ $navCalendario ? 'text-white lg:bg-Alumco-blue' : 'text-white/60 lg:text-Alumco-gray lg:hover:bg-gray-50' }}
+              lg:flex-row lg:w-full lg:px-5 lg:py-3.5 lg:rounded-2xl lg:shadow-sm">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 lg:w-6 lg:h-6 lg:shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+        </svg>
+        <span class="text-[10px] font-semibold hidden lg:inline lg:text-[15px] lg:font-bold lg:ml-3">Calendario</span>
+        @if ($navCalendario)
             <span class="block w-1.5 h-1.5 rounded-full bg-white mx-auto lg:hidden"></span>
         @endif
     </a>
@@ -34,10 +49,10 @@
 
     {{-- Mis Logros --}}
     <a href="{{ route('mis-certificados.index') }}"
-       class="nav-item flex flex-col items-center gap-0.5 px-6
+       class="nav-item flex flex-col items-center gap-0.5 px-4
               {{ $navCertificados ? 'text-white lg:bg-Alumco-blue' : 'text-white/60 lg:text-Alumco-gray lg:hover:bg-gray-50' }}
               lg:flex-row lg:w-full lg:px-5 lg:py-3.5 lg:rounded-2xl lg:shadow-sm">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 lg:w-6 lg:h-6 lg:shrink-0" fill="currentColor" viewBox="0 0 24 24">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 lg:w-6 lg:h-6 lg:shrink-0" fill="currentColor" viewBox="0 0 24 24">
             <path d="M12 1L9.17 6.36 3 7.27l4.5 4.38L6.34 18 12 15l5.66 3-.84-6.35L21 7.27l-6.17-.91L12 1z"/>
         </svg>
         <span class="text-[10px] font-semibold hidden lg:inline lg:text-[15px] lg:font-bold lg:ml-3">Mis logros</span>

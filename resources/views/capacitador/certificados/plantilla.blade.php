@@ -1,8 +1,35 @@
+@php
+    $fontDir          = storage_path('fonts');
+    $logoPath         = public_path('images/logo/alumco-full.svg');
+    $logoBase64       = base64_encode(file_get_contents($logoPath));
+    $labelCapacitador = ($capacitador->sexo ?? 'M') === 'F' ? 'Capacitadora' : 'Capacitador';
+@endphp
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <style>
+        @font-face {
+            font-family: 'FiraSans';
+            font-weight: 400;
+            src: url('file://{{ $fontDir }}/FiraSans-Regular.ttf') format('truetype');
+        }
+        @font-face {
+            font-family: 'FiraSans';
+            font-weight: 700;
+            src: url('file://{{ $fontDir }}/FiraSans-Bold.ttf') format('truetype');
+        }
+        @font-face {
+            font-family: 'Sora';
+            font-weight: 600;
+            src: url('file://{{ $fontDir }}/Sora-SemiBold.ttf') format('truetype');
+        }
+        @font-face {
+            font-family: 'Sora';
+            font-weight: 800;
+            src: url('file://{{ $fontDir }}/Sora-ExtraBold.ttf') format('truetype');
+        }
+
         @page {
             size: A4 landscape;
             margin: 0;
@@ -11,7 +38,8 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-family: 'FiraSans', Arial, sans-serif;
+            font-weight: 400;
             background: #ffffff;
             width: 297mm;
             height: 210mm;
@@ -31,7 +59,7 @@
 
         .contenido {
             flex: 1;
-            padding: 20mm 18mm;
+            padding: 18mm 18mm;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -45,23 +73,15 @@
             align-items: flex-start;
         }
 
-        .logo-text {
-            font-size: 28pt;
-            font-weight: 900;
-            color: #205099;
-            letter-spacing: -1px;
-        }
-
-        .logo-sub {
-            font-size: 9pt;
-            color: #4A4A4A;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            margin-top: 2px;
+        .logo-img {
+            height: 36px;
+            width: auto;
         }
 
         .titulo-cert {
-            font-size: 11pt;
+            font-family: 'Sora', Arial, sans-serif;
+            font-weight: 600;
+            font-size: 10pt;
             color: #4A4A4A;
             letter-spacing: 3px;
             text-transform: uppercase;
@@ -73,32 +93,35 @@
         }
 
         .prezenta {
-            font-size: 10pt;
-            color: #4A4A4A;
+            font-family: 'FiraSans', Arial, sans-serif;
+            font-size: 9pt;
+            color: #6B7280;
             text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-bottom: 6px;
+            letter-spacing: 3px;
+            margin-bottom: 8px;
         }
 
         .nombre-alumno {
-            font-size: 32pt;
-            font-weight: 900;
+            font-family: 'Sora', Arial, sans-serif;
+            font-weight: 800;
+            font-size: 34pt;
             color: #205099;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             line-height: 1.1;
         }
 
         .texto-completado {
-            font-size: 11pt;
+            font-family: 'FiraSans', Arial, sans-serif;
+            font-size: 10pt;
             color: #4A4A4A;
             margin-bottom: 6px;
         }
 
         .nombre-curso {
-            font-size: 18pt;
-            font-weight: 700;
+            font-family: 'Sora', Arial, sans-serif;
+            font-weight: 600;
+            font-size: 16pt;
             color: #205099;
-            font-style: italic;
         }
 
         .pie {
@@ -112,9 +135,9 @@
         }
 
         .firma-nombre {
-            font-family: Georgia, 'Times New Roman', serif;
-            font-style: italic;
-            font-size: 15pt;
+            font-family: 'Sora', Arial, sans-serif;
+            font-weight: 600;
+            font-size: 13pt;
             color: #205099;
             border-bottom: 1.5px solid #205099;
             padding-bottom: 4px;
@@ -122,10 +145,11 @@
         }
 
         .firma-label {
-            font-size: 8pt;
-            color: #4A4A4A;
+            font-family: 'FiraSans', Arial, sans-serif;
+            font-size: 7.5pt;
+            color: #6B7280;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 1.5px;
         }
 
         .codigo-bloque {
@@ -133,22 +157,25 @@
         }
 
         .codigo-label {
+            font-family: 'FiraSans', Arial, sans-serif;
             font-size: 7pt;
-            color: #4A4A4A;
+            color: #6B7280;
             text-transform: uppercase;
             letter-spacing: 1px;
             margin-bottom: 3px;
         }
 
         .codigo-valor {
-            font-family: 'Courier New', monospace;
+            font-family: 'DejaVu Sans Mono', 'Courier New', monospace;
             font-size: 8pt;
             color: #4A4A4A;
+            letter-spacing: 1px;
         }
 
         .fecha-bloque {
+            font-family: 'FiraSans', Arial, sans-serif;
             font-size: 9pt;
-            color: #4A4A4A;
+            color: #6B7280;
         }
     </style>
 </head>
@@ -157,10 +184,7 @@
 
     <div class="contenido">
         <div class="encabezado">
-            <div>
-                <div class="logo-text">alumco</div>
-                <div class="logo-sub">Capacitación Corporativa</div>
-            </div>
+            <img class="logo-img" src="data:image/svg+xml;base64,{{ $logoBase64 }}" alt="Alumco">
             <div class="titulo-cert">
                 Certificado<br>de Completado
             </div>
@@ -170,7 +194,7 @@
             <p class="prezenta">Se certifica que</p>
             <p class="nombre-alumno">{{ $user->name }}</p>
             <p class="texto-completado">ha completado satisfactoriamente el curso</p>
-            <p class="nombre-curso">"{{ $curso->titulo }}"</p>
+            <p class="nombre-curso">&ldquo;{{ $curso->titulo }}&rdquo;</p>
         </div>
 
         <div class="pie">
@@ -180,11 +204,11 @@
 
             <div class="firma-bloque">
                 <div class="firma-nombre">{{ $capacitador->name }}</div>
-                <div class="firma-label">Capacitador</div>
+                <div class="firma-label">{{ $labelCapacitador }}</div>
             </div>
 
             <div class="codigo-bloque">
-                <div class="codigo-label">Código de verificación</div>
+                <div class="codigo-label">C&oacute;digo de verificaci&oacute;n</div>
                 <div class="codigo-valor">{{ strtoupper(substr($codigo, 0, 8)) }}</div>
             </div>
         </div>
