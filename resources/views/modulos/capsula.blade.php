@@ -86,34 +86,12 @@
                             allowfullscreen></iframe>
                 </div>
             @else
-                <video src="{{ asset('storage/' . $url) }}"
-                       controls
-                       class="w-full rounded-2xl shadow-md max-h-72 lg:max-h-[500px]"
-                       preload="metadata">
-                    Tu navegador no soporta la reproducción de video.
-                </video>
+                <x-file-viewer :rutaArchivo="$modulo->ruta_archivo" />
             @endif
 
-        {{-- PDF --}}
-        @elseif ($modulo->tipo_contenido === 'pdf')
-            <div class="rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
-                <iframe src="{{ asset('storage/' . $modulo->ruta_archivo) }}"
-                        class="w-full h-80 lg:h-[600px]"
-                        type="application/pdf">
-                    <p class="p-4 text-center text-sm text-Alumco-gray">
-                        Tu navegador no puede mostrar el PDF.
-                        <a href="{{ asset('storage/' . $modulo->ruta_archivo) }}"
-                           target="_blank"
-                           class="text-Alumco-blue font-semibold underline ml-1">Descargar PDF</a>
-                    </p>
-                </iframe>
-            </div>
-
-        {{-- IMAGEN --}}
-        @elseif ($modulo->tipo_contenido === 'imagen')
-            <img src="{{ asset('storage/' . $modulo->ruta_archivo) }}"
-                 alt="{{ $modulo->titulo }}"
-                 class="w-full rounded-2xl shadow-md object-contain max-h-96 lg:max-h-[600px]">
+        {{-- PDF O IMAGEN O OTROS --}}
+        @elseif (in_array($modulo->tipo_contenido, ['pdf', 'imagen', 'descargable']))
+            <x-file-viewer :rutaArchivo="$modulo->ruta_archivo" />
 
         {{-- TEXTO ENRIQUECIDO --}}
         @elseif ($modulo->tipo_contenido === 'texto')

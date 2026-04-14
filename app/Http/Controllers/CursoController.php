@@ -24,6 +24,11 @@ class CursoController extends Controller
     {
         $user = auth()->user();
 
+        // Verificar si el curso ya inició
+        if (now()->startOfDay() < $curso->fecha_inicio) {
+            abort(403, 'Este curso aún no ha iniciado. Estará disponible el ' . $curso->fecha_inicio->format('d/m/Y') . '.');
+        }
+
         // Verificar que el curso pertenece al estamento del usuario
         if ($user->estamento) {
             abort_unless(

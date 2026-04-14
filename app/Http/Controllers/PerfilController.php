@@ -16,7 +16,7 @@ class PerfilController extends Controller
         if ($user->estamento && $totalCursos > 0) {
             $ids = $user->certificados()->pluck('curso_id');
             $cursosEnProgreso = $user->estamento->cursos()
-                ->whereNotIn('id', $ids)
+                ->whereNotIn('cursos.id', $ids)
                 ->whereHas('modulos.progresos', fn ($q) => $q->where('user_id', $user->id)->where('completado', true))
                 ->count();
         }
