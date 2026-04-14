@@ -41,7 +41,7 @@ class ModuloController extends Controller
 
             if (! $moduloCargado->evaluacion) {
                 return redirect()->route('cursos.show', $curso)
-                    ->with('error', 'Esta evaluaci&oacute;n no est&aacute; disponible todav&iacute;a.');
+                    ->with('error', 'Esta evaluación no está disponible todav&iacute;a.');
             }
 
             return view('modulos.evaluacion', [

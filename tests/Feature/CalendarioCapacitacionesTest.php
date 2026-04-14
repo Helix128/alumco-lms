@@ -66,7 +66,7 @@ class CalendarioCapacitacionesTest extends TestCase
         ]);
 
         Livewire::test(CalendarioCapacitaciones::class)
-            ->set('vistaActual', 'calendario')
+            ->call('cambiarVista', 'mensual')
             ->assertSee('grid-column: 3 / span 3; grid-row: 2', false);
     }
 
@@ -86,10 +86,9 @@ class CalendarioCapacitacionesTest extends TestCase
         ]);
 
         Livewire::test(CalendarioCapacitaciones::class)
-            ->set('vistaActual', 'gantt')
-            ->assertSee('grid-column: 2; grid-row: 2', false)
-            ->assertSee('grid-column: 3; grid-row: 2', false)
-            ->assertSee('grid-column: 4; grid-row: 2', false);
+            ->call('cambiarVista', 'mensual')
+            ->assertSee('grid-column: 5 / span 3; grid-row: 2', false)
+            ->assertSee('grid-column: 1 / span 3; grid-row: 2', false);
     }
 
     public function test_mover_planificacion_preserves_duration(): void

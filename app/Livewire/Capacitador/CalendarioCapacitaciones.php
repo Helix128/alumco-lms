@@ -10,28 +10,43 @@ use Livewire\Component;
 
 class CalendarioCapacitaciones extends Component
 {
+    // ── Vista ──────────────────────────────────────────────────────────────
+    public string $modoVista = 'anual';      // 'anual' | 'mensual'
+
+    // ── Mes actual (vista mensual) ─────────────────────────────────────────
     public int $mesActual;
     public int $anioActual;
 
     public bool $modoPlaneacion = false;
     public bool $mostrarModalPlanificacion = false;
 
+    // ── Modal (campos comunes) ─────────────────────────────────────────────
     public ?int $editandoId = null;
     public ?int $cursoId = null;
     public string $fechaInicioPlan = '';
-    public string $fechaFinPlan = '';
-    public string $notas = '';
+    public string $fechaFinPlan    = '';
+    public string $notas           = '';
 
+    // ── Modal en vista anual ───────────────────────────────────────────────
+    public int $semanaInicioPlan = 1;
+    public int $semanaFinPlan    = 1;
+
+    // ── Datos vista mensual ────────────────────────────────────────────────
     /** @var array Weeks with day cells + positioned bars for calendar view */
     public array $semanasDelMes = [];
-
-    /** @var int Total days in the current month */
     public int $diasEnMes = 30;
 
-    public array $cursosDisponibles    = [];
-    public array $cursosSinPlanificar  = [];
-    public string $busquedaSidebar     = '';
-    public string $queryModal          = '';
+    // ── Datos vista anual ──────────────────────────────────────────────────
+    /** @var array Semanas con sus cursos planificados */
+    public array $semanasDelAnio = [];
+    /** @var array Meses con su span de semanas para el header */
+    public array $mesesDelAnio  = [];
+
+    // ── Búsqueda / sidebar ─────────────────────────────────────────────────
+    public array $cursosDisponibles   = [];
+    public array $cursosSinPlanificar = [];
+    public string $busquedaSidebar    = '';
+    public string $queryModal         = '';
 
     /*
      * Tailwind safelist — keep full class names so they survive purge:
@@ -56,7 +71,20 @@ class CalendarioCapacitaciones extends Component
     }
 
     /* ────────────────────────────────────────────────────────────────────── */
-    /*  Navigation                                                           */
+    /*  Navigation — vista                                                   */
+    /* ────────────────────────────────────────────────────────────────────── */
+
+    public function cambiarVista(string $modo): void
+    {
+        if (! in_array($modo, ['anual', 'mensual'], true)) {
+            return;
+        }
+        $this->modoVista = $modo;
+        $this->cargarDatos();
+    }
+
+    /* ────────────────────────────────────────────────────────────────────── */
+    /*  Navigation — mes (vista mensual)                                     */
     /* ────────────────────────────────────────────────────────────────────── */
 
     public function mesAnterior(): void
@@ -89,6 +117,26 @@ class CalendarioCapacitaciones extends Component
         $this->cargarDatos();
     }
 
+    /* ────────────────────────────────────────────────────────────────────── */
+    /*  Navigation — año (vista anual)                                       */
+    /* ────────────────────────────────────────────────────────────────────── */
+
+    public function irAnioAnterior(): void
+    {
+        $this->anioActual--;
+        $this->cargarDatos();
+    }
+
+    public function irAnioSiguiente(): void
+    {
+        $this->anioActual++;
+        $this->cargarDatos();
+    }
+
+    /* ────────────────────────────────────────────────────────────────────── */
+    /*  Modo planificación                                                   */
+    /* ────────────────────────────────────────────────────────────────────── */
+
     public function toggleModoPlaneacion(): void
     {
         abort_unless(Auth::user()->hasAdminAccess(), 403);
@@ -99,7 +147,7 @@ class CalendarioCapacitaciones extends Component
     }
 
     /* ────────────────────────────────────────────────────────────────────── */
-    /*  Modal CRUD                                                           */
+    /*  Modal CRUD — vista mensual                                           */
     /* ────────────────────────────────────────────────────────────────────── */
 
     public function abrirModalPlanificacion(int $dia): void
@@ -129,7 +177,6 @@ class CalendarioCapacitaciones extends Component
         abort_unless(Auth::user()->hasAdminAccess(), 403);
         $this->resetModal();
         $this->cursoId = $cursoId;
-        // Default to today if within the shown month, else first day of month
         $hoy       = Carbon::today();
         $primerDia = Carbon::createFromDate($this->anioActual, $this->mesActual, 1);
         if ($hoy->month === $this->mesActual && $hoy->year === $this->anioActual) {
@@ -141,6 +188,74 @@ class CalendarioCapacitaciones extends Component
         }
         $this->mostrarModalPlanificacion = true;
     }
+
+    /* ────────────────────────────────────────────────────────────────────── */
+    /*  Modal CRUD — vista anual                                             */
+    /* ────────────────────────────────────────────────────────────────────── */
+
+    public function abrirModalAnualSemana(int $semana): void
+    {
+        abort_unless(Auth::user()->hasAdminAccess(), 403);
+        $this->resetModal();
+        $semana = max(1, min($semana, count($this->semanasDelAnio)));
+        $this->semanaInicioPlan = $semana;
+        $this->semanaFinPlan    = $semana;
+        // Pre-fill fechas para validación
+        $this->sincronizarFechasDesdeSemanas();
+        $this->mostrarModalPlanificacion = true;
+    }
+
+    public function abrirModalAnualRango(int $semanaInicio, int $semanaFin): void
+    {
+        abort_unless(Auth::user()->hasAdminAccess(), 403);
+        $this->resetModal();
+        $total = count($this->semanasDelAnio);
+        $this->semanaInicioPlan = max(1, min($semanaInicio, $total));
+        $this->semanaFinPlan    = max(1, min($semanaFin, $total));
+        if ($this->semanaInicioPlan > $this->semanaFinPlan) {
+            [$this->semanaInicioPlan, $this->semanaFinPlan] = [$this->semanaFinPlan, $this->semanaInicioPlan];
+        }
+        $this->sincronizarFechasDesdeSemanas();
+        $this->mostrarModalPlanificacion = true;
+    }
+
+    public function updatedSemanaInicioPlan(): void
+    {
+        if ($this->modoVista === 'anual') {
+            // Asegurar que semanaFin >= semanaInicio
+            if ($this->semanaFinPlan < $this->semanaInicioPlan) {
+                $this->semanaFinPlan = $this->semanaInicioPlan;
+            }
+            $this->sincronizarFechasDesdeSemanas();
+        }
+    }
+
+    public function updatedSemanaFinPlan(): void
+    {
+        if ($this->modoVista === 'anual') {
+            $this->sincronizarFechasDesdeSemanas();
+        }
+    }
+
+    private function sincronizarFechasDesdeSemanas(): void
+    {
+        $semanas = $this->semanasDelAnio;
+        if (empty($semanas)) {
+            return;
+        }
+        $semInicio = collect($semanas)->firstWhere('numero', $this->semanaInicioPlan);
+        $semFin    = collect($semanas)->firstWhere('numero', $this->semanaFinPlan);
+        if ($semInicio) {
+            $this->fechaInicioPlan = $semInicio['inicio'];
+        }
+        if ($semFin) {
+            $this->fechaFinPlan = $semFin['fin'];
+        }
+    }
+
+    /* ────────────────────────────────────────────────────────────────────── */
+    /*  Modal CRUD — compartido                                              */
+    /* ────────────────────────────────────────────────────────────────────── */
 
     public function seleccionarCurso(int $id): void
     {
@@ -158,6 +273,13 @@ class CalendarioCapacitaciones extends Component
         $this->fechaInicioPlan = $plan->fecha_inicio->toDateString();
         $this->fechaFinPlan    = $plan->fecha_fin->toDateString();
         $this->notas           = $plan->notas ?? '';
+
+        // Calcular semanas para los selects en vista anual
+        if ($this->modoVista === 'anual' && ! empty($this->semanasDelAnio)) {
+            $this->semanaInicioPlan = $this->semanaParaFecha($plan->fecha_inicio) ?? 1;
+            $this->semanaFinPlan    = $this->semanaParaFecha($plan->fecha_fin)    ?? 1;
+        }
+
         $this->mostrarModalPlanificacion = true;
     }
 
@@ -171,6 +293,11 @@ class CalendarioCapacitaciones extends Component
     public function guardarPlanificacion(): void
     {
         abort_unless(Auth::user()->hasAdminAccess(), 403);
+
+        // En vista anual: convertir semanas → fechas antes de validar
+        if ($this->modoVista === 'anual') {
+            $this->sincronizarFechasDesdeSemanas();
+        }
 
         $this->validate([
             'cursoId'         => 'required|integer|exists:cursos,id',
@@ -205,6 +332,10 @@ class CalendarioCapacitaciones extends Component
         $this->cargarDatos();
     }
 
+    /* ────────────────────────────────────────────────────────────────────── */
+    /*  Drag/resize — vista mensual (sin cambios)                            */
+    /* ────────────────────────────────────────────────────────────────────── */
+
     public function ajustarBordePlanificacion(int $id, string $borde, int $dia): void
     {
         abort_unless(Auth::user()->hasAdminAccess(), 403);
@@ -229,10 +360,6 @@ class CalendarioCapacitaciones extends Component
         $this->cargarDatos();
     }
 
-    /**
-     * Move an entire planificacion by shifting both dates together.
-     * The duration is preserved; clamps so the period stays within the displayed month.
-     */
     public function moverPlanificacion(int $id, int $nuevoDiaInicio): void
     {
         abort_unless(Auth::user()->hasAdminAccess(), 403);
@@ -244,7 +371,6 @@ class CalendarioCapacitaciones extends Component
         $nuevoDiaInicio = max(1, min($nuevoDiaInicio, $this->diasEnMes));
         $nuevoDiaFin    = $nuevoDiaInicio + $duracionDias;
 
-        // If end goes past month, slide start back
         if ($nuevoDiaFin > $this->diasEnMes) {
             $nuevoDiaFin    = $this->diasEnMes;
             $nuevoDiaInicio = max(1, $nuevoDiaFin - $duracionDias);
@@ -259,12 +385,81 @@ class CalendarioCapacitaciones extends Component
     }
 
     /* ────────────────────────────────────────────────────────────────────── */
+    /*  Drag/resize — vista anual                                            */
+    /* ────────────────────────────────────────────────────────────────────── */
+
+    public function moverPlanificacionSemanas(int $id, int $nuevaSemana): void
+    {
+        abort_unless(Auth::user()->hasAdminAccess(), 403);
+
+        $plan  = PlanificacionCurso::findOrFail($id);
+        $total = count($this->semanasDelAnio);
+
+        $semIni = $this->semanaParaFecha($plan->fecha_inicio) ?? 1;
+        $semFin = $this->semanaParaFecha($plan->fecha_fin)    ?? 1;
+        $duracion = max(0, $semFin - $semIni);
+
+        $nuevaSemana  = max(1, min($nuevaSemana, $total));
+        $nuevaSemFin  = $nuevaSemana + $duracion;
+
+        if ($nuevaSemFin > $total) {
+            $nuevaSemFin = $total;
+            $nuevaSemana = max(1, $nuevaSemFin - $duracion);
+        }
+
+        $semanas = $this->semanasDelAnio;
+        $datoIni = $semanas[$nuevaSemana - 1]  ?? null;
+        $datoFin = $semanas[$nuevaSemFin - 1]  ?? null;
+
+        if (! $datoIni || ! $datoFin) {
+            return;
+        }
+
+        $plan->update([
+            'fecha_inicio' => $datoIni['inicio'],
+            'fecha_fin'    => $datoFin['fin'],
+        ]);
+
+        $this->cargarDatos();
+    }
+
+    public function ajustarBordePlanificacionSemana(int $id, string $borde, int $semana): void
+    {
+        abort_unless(Auth::user()->hasAdminAccess(), 403);
+
+        if (! in_array($borde, ['inicio', 'fin'], true)) {
+            return;
+        }
+
+        $total   = count($this->semanasDelAnio);
+        $semana  = max(1, min($semana, $total));
+        $semanas = $this->semanasDelAnio;
+        $plan    = PlanificacionCurso::findOrFail($id);
+
+        if ($borde === 'inicio') {
+            $semActualFin = $this->semanaParaFecha($plan->fecha_fin) ?? $total;
+            $semana       = min($semana, $semActualFin);
+            $plan->update(['fecha_inicio' => $semanas[$semana - 1]['inicio']]);
+        } else {
+            $semActualIni = $this->semanaParaFecha($plan->fecha_inicio) ?? 1;
+            $semana       = max($semana, $semActualIni);
+            $plan->update(['fecha_fin' => $semanas[$semana - 1]['fin']]);
+        }
+
+        $this->cargarDatos();
+    }
+
+    /* ────────────────────────────────────────────────────────────────────── */
     /*  Data loading                                                         */
     /* ────────────────────────────────────────────────────────────────────── */
 
     private function cargarDatos(): void
     {
-        $this->cargarSemanasDelMes();
+        if ($this->modoVista === 'anual') {
+            $this->cargarDatosAnuales();
+        } else {
+            $this->cargarSemanasDelMes();
+        }
     }
 
     private function resetModal(): void
@@ -275,18 +470,32 @@ class CalendarioCapacitaciones extends Component
         $this->fechaFinPlan    = '';
         $this->notas           = '';
         $this->queryModal      = '';
+        $this->semanaInicioPlan = 1;
+        $this->semanaFinPlan    = 1;
     }
 
     private function cargarCursosDisponibles(): void
     {
-        $primerDia = Carbon::createFromDate($this->anioActual, $this->mesActual, 1)->startOfDay();
-        $ultimoDia = $primerDia->copy()->endOfMonth()->startOfDay();
+        if ($this->modoVista === 'anual') {
+            // En vista anual: cursos planificados en el año actual
+            $inicioAnio = Carbon::create($this->anioActual, 1, 1)->startOfDay();
+            $finAnio    = Carbon::create($this->anioActual, 12, 31)->endOfDay();
 
-        $planificadosIds = PlanificacionCurso::where('fecha_inicio', '<=', $ultimoDia)
-            ->where('fecha_fin', '>=', $primerDia)
-            ->pluck('curso_id')
-            ->unique()
-            ->all();
+            $planificadosIds = PlanificacionCurso::where('fecha_inicio', '<=', $finAnio)
+                ->where('fecha_fin', '>=', $inicioAnio)
+                ->pluck('curso_id')
+                ->unique()
+                ->all();
+        } else {
+            $primerDia = Carbon::createFromDate($this->anioActual, $this->mesActual, 1)->startOfDay();
+            $ultimoDia = $primerDia->copy()->endOfMonth()->startOfDay();
+
+            $planificadosIds = PlanificacionCurso::where('fecha_inicio', '<=', $ultimoDia)
+                ->where('fecha_fin', '>=', $primerDia)
+                ->pluck('curso_id')
+                ->unique()
+                ->all();
+        }
 
         $todos = Curso::orderBy('titulo')
             ->get(['id', 'titulo'])
@@ -303,14 +512,11 @@ class CalendarioCapacitaciones extends Component
             ->all();
     }
 
-    private function obtenerPlanificaciones()
+    private function obtenerPlanificaciones(Carbon $desde, Carbon $hasta)
     {
-        $primerDia = Carbon::createFromDate($this->anioActual, $this->mesActual, 1)->startOfDay();
-        $ultimoDia = $primerDia->copy()->endOfMonth()->startOfDay();
-
         $query = PlanificacionCurso::with('curso:id,titulo,capacitador_id')
-            ->where('fecha_inicio', '<=', $ultimoDia)
-            ->where('fecha_fin', '>=', $primerDia);
+            ->where('fecha_inicio', '<=', $hasta)
+            ->where('fecha_fin', '>=', $desde);
 
         $user = Auth::user();
 
@@ -327,6 +533,202 @@ class CalendarioCapacitaciones extends Component
         return $query->orderBy('fecha_inicio')->get();
     }
 
+    /* ────────────────────────────────────────────────────────────────────── */
+    /*  Vista ANUAL                                                          */
+    /* ────────────────────────────────────────────────────────────────────── */
+
+    private function cargarDatosAnuales(): void
+    {
+        $inicioAnio = Carbon::create($this->anioActual, 1, 1)->startOfDay();
+        $finAnio    = Carbon::create($this->anioActual, 12, 31)->endOfDay();
+
+        $planificaciones = $this->obtenerPlanificaciones($inicioAnio, $finAnio);
+
+        $semanasBruto = $this->generarSemanasAnio($this->anioActual);
+        $hoy          = Carbon::today();
+
+        // Construir mapa: número_semana → lista de cursos
+        $cursosPorSemana = [];
+        foreach ($planificaciones as $plan) {
+            $sIni = $this->semanaParaFecha($plan->fecha_inicio, $semanasBruto);
+            $sFin = $this->semanaParaFecha($plan->fecha_fin,    $semanasBruto);
+
+            if ($sIni === null || $sFin === null) {
+                continue;
+            }
+
+            $colorIdx = $plan->curso_id % count(self::PALETTE);
+
+            for ($s = $sIni; $s <= $sFin; $s++) {
+                $cursosPorSemana[$s][] = [
+                    'id'       => $plan->id,
+                    'curso_id' => $plan->curso_id,
+                    'titulo'   => $plan->curso->titulo ?? '—',
+                    'bg'       => self::PALETTE[$colorIdx],
+                    'esInicio' => $s === $sIni,
+                    'esFin'    => $s === $sFin,
+                    'notas'    => $plan->notas,
+                ];
+            }
+        }
+
+        // Construir array de semanas con datos
+        $semanas = [];
+        foreach ($semanasBruto as $sem) {
+            $fechaIni = Carbon::parse($sem['inicio']);
+            $fechaFin = Carbon::parse($sem['fin']);
+            $cursos   = $cursosPorSemana[$sem['numero']] ?? [];
+
+            // Desduplicar: si el mismo plan_id aparece (no debería), limpiarlo
+            $planIds = array_column($cursos, 'id');
+            $planIdsUnicos = array_unique($planIds);
+            if (count($planIdsUnicos) < count($planIds)) {
+                $vistos  = [];
+                $cursos  = array_filter($cursos, function ($c) use (&$vistos) {
+                    if (isset($vistos[$c['id']])) return false;
+                    $vistos[$c['id']] = true;
+                    return true;
+                });
+                $cursos = array_values($cursos);
+            }
+
+            $semanas[] = [
+                'numero'    => $sem['numero'],
+                'inicio'    => $sem['inicio'],
+                'fin'       => $sem['fin'],
+                'mes'       => $sem['mes'],
+                'esHoy'     => $fechaIni->lte($hoy) && $fechaFin->gte($hoy),
+                'esPasada'  => $fechaFin->lt($hoy),
+                'cursos'    => $cursos,
+                'conflicto' => count(array_unique(array_column($cursos, 'id'))) >= 2,
+            ];
+        }
+
+        $this->semanasDelAnio = $semanas;
+
+        // Construir grupos de meses para header
+        $this->mesesDelAnio = $this->calcularMesesDelAnio($semanas);
+    }
+
+    /**
+     * Genera todas las semanas del año: semana 1 = semana que contiene el primer lunes del año.
+     * Cada semana va de lunes a domingo.
+     *
+     * @return array<int, array{numero: int, inicio: string, fin: string, mes: int}>
+     */
+    private function generarSemanasAnio(int $anio): array
+    {
+        // Buscar el primer lunes en o antes del 1 de enero
+        $cursor  = Carbon::create($anio, 1, 1)->startOfWeek(Carbon::MONDAY);
+        $semanas = [];
+        $numero  = 1;
+
+        while (true) {
+            $fin = $cursor->copy()->endOfWeek(Carbon::SUNDAY);
+
+            // Si el lunes cae en el año anterior, saltar (solo si no hay días en el año actual)
+            if ($fin->year < $anio) {
+                $cursor->addWeek();
+                continue;
+            }
+
+            // Parar cuando el lunes ya esté en el año siguiente
+            if ($cursor->year > $anio) {
+                break;
+            }
+
+            $semanas[] = [
+                'numero' => $numero++,
+                'inicio' => $cursor->toDateString(),
+                'fin'    => $fin->toDateString(),
+                'mes'    => $this->mesDelaSemana($cursor->copy(), $fin->copy()),
+            ];
+
+            $cursor->addWeek();
+        }
+
+        return $semanas;
+    }
+
+    /**
+     * Devuelve el número de mes (1-12) al que pertenece la semana
+     * basándose en qué mes tiene más días en esa semana (≥4 de 7).
+     */
+    private function mesDelaSemana(Carbon $lunes, Carbon $domingo): int
+    {
+        $counts = [];
+        $d = $lunes->copy();
+        for ($i = 0; $i < 7; $i++) {
+            $counts[$d->month] = ($counts[$d->month] ?? 0) + 1;
+            $d->addDay();
+        }
+        arsort($counts);
+        return array_key_first($counts);
+    }
+
+    /**
+     * Agrupa las semanas por mes y calcula el span (número de semanas) de cada mes.
+     *
+     * @param  array $semanas  Output de cargarDatosAnuales
+     * @return array<int, array{nombre: string, span: int, semanaInicio: int, semanaFin: int}>
+     */
+    private function calcularMesesDelAnio(array $semanas): array
+    {
+        $nombresMeses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
+                         'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+        $meses  = [];
+        $ultimo = null;
+
+        foreach ($semanas as $sem) {
+            $mes = $sem['mes'];
+            if ($mes !== $ultimo) {
+                $meses[] = [
+                    'nombre'       => $nombresMeses[$mes - 1],
+                    'span'         => 1,
+                    'semanaInicio' => $sem['numero'],
+                    'semanaFin'    => $sem['numero'],
+                ];
+                $ultimo = $mes;
+            } else {
+                $meses[count($meses) - 1]['span']++;
+                $meses[count($meses) - 1]['semanaFin'] = $sem['numero'];
+            }
+        }
+
+        return $meses;
+    }
+
+    /**
+     * Encuentra el número de semana del año que contiene a $fecha.
+     * Utiliza el array $semanasDelAnio (o el generado ad-hoc si se pasa $semanas).
+     */
+    private function semanaParaFecha(Carbon $fecha, array $semanas = []): ?int
+    {
+        if (empty($semanas)) {
+            $semanas = $this->semanasDelAnio;
+        }
+        foreach ($semanas as $sem) {
+            if ($fecha->between(
+                Carbon::parse($sem['inicio'])->startOfDay(),
+                Carbon::parse($sem['fin'])->endOfDay()
+            )) {
+                return $sem['numero'];
+            }
+        }
+        // Fuera del año: devolver extremo más cercano
+        if (! empty($semanas)) {
+            $primera = Carbon::parse($semanas[0]['inicio']);
+            $ultima  = Carbon::parse($semanas[count($semanas) - 1]['fin']);
+            if ($fecha->lt($primera)) return $semanas[0]['numero'];
+            if ($fecha->gt($ultima))  return $semanas[count($semanas) - 1]['numero'];
+        }
+        return null;
+    }
+
+    /* ────────────────────────────────────────────────────────────────────── */
+    /*  Vista MENSUAL (sin cambios funcionales)                              */
+    /* ────────────────────────────────────────────────────────────────────── */
+
     private function cargarSemanasDelMes(): void
     {
         $primerDia = Carbon::createFromDate($this->anioActual, $this->mesActual, 1);
@@ -336,7 +738,9 @@ class CalendarioCapacitaciones extends Component
         $inicioGrid = $primerDia->copy()->startOfWeek(Carbon::MONDAY);
         $finGrid    = $primerDia->copy()->endOfMonth()->endOfWeek(Carbon::SUNDAY);
 
-        $planificaciones = $this->obtenerPlanificaciones();
+        $primerDiaCal = Carbon::createFromDate($this->anioActual, $this->mesActual, 1)->startOfDay();
+        $ultimoDiaCal = $primerDiaCal->copy()->endOfMonth()->startOfDay();
+        $planificaciones = $this->obtenerPlanificaciones($primerDiaCal, $ultimoDiaCal);
 
         $globalSlots  = [];
         $slotOcupados = [];
@@ -398,14 +802,14 @@ class CalendarioCapacitaciones extends Component
                 $edgeEndDay = ($barEnd->month === $this->mesActual && $barEnd->year === $this->anioActual)
                     ? $barEnd->day : $this->diasEnMes;
 
-                $primerDiaMes  = $primerDia->copy()->startOfDay();
-                $ultimoDiaMes  = $primerDia->copy()->endOfMonth()->startOfDay();
+                $primerDiaMes  = Carbon::createFromDate($this->anioActual, $this->mesActual, 1)->startOfDay();
+                $ultimoDiaMes  = $primerDiaMes->copy()->endOfMonth()->startOfDay();
                 $extiendePorIzq = $plan->fecha_inicio->lt($primerDiaMes);
                 $extiendePorDer = $plan->fecha_fin->gt($ultimoDiaMes);
 
                 $barras[] = [
                     'id'             => $plan->id,
-                    'titulo'         => $plan->curso->titulo ?? "\xe2\x80\x94",
+                    'titulo'         => $plan->curso->titulo ?? '—',
                     'col'            => $col,
                     'span'           => $span,
                     'slot'           => $globalSlots[$plan->id],
@@ -440,12 +844,17 @@ class CalendarioCapacitaciones extends Component
         $this->semanasDelMes = $semanas;
     }
 
+    /* ────────────────────────────────────────────────────────────────────── */
+    /*  Render                                                               */
+    /* ────────────────────────────────────────────────────────────────────── */
+
     public function render()
     {
         $this->cargarCursosDisponibles();
 
         $hoy         = Carbon::now();
         $esMesActual = $this->mesActual === $hoy->month && $this->anioActual === $hoy->year;
+        $esAnioActual = $this->anioActual === $hoy->year;
 
         $busqueda    = mb_strtolower(trim($this->busquedaSidebar));
         $queryMod    = mb_strtolower(trim($this->queryModal));
@@ -463,10 +872,12 @@ class CalendarioCapacitaciones extends Component
         return view('livewire.capacitador.calendario-capacitaciones', [
             'esAdmin'             => Auth::user()->hasAdminAccess(),
             'esMesActual'         => $esMesActual,
+            'esAnioActual'        => $esAnioActual,
             'cursosDisponibles'   => $this->cursosDisponibles,
             'cursosSinPlanificar' => $this->cursosSinPlanificar,
             'sidebarList'         => $sidebarList,
             'modalList'           => $modalList,
+            'nSemanas'            => count($this->semanasDelAnio),
         ])
             ->extends('layouts.panel')
             ->section('content');

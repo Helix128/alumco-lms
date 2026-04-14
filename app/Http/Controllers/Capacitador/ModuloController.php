@@ -68,7 +68,7 @@ class ModuloController extends Controller
         });
 
         return redirect()->route('capacitador.cursos.show', $curso)
-            ->with('success', 'M&oacute;dulo creado correctamente.');
+            ->with('success', 'Módulo creado correctamente.');
     }
 
     public function edit(Curso $curso, Modulo $modulo): View

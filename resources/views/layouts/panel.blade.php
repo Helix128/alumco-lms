@@ -133,7 +133,7 @@
             @csrf
             <button type="submit"
                     class="text-white hover:text-Alumco-cyan cursor-pointer bg-transparent border-none focus-ring p-1 rounded-Alumco transition-colors"
-                    title="Cerrar sesi&oacute;n">
+                    title="Cerrar sesión">
                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                           d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
