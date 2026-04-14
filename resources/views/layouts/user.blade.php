@@ -38,19 +38,21 @@
     {{-- BANNER CONTEXTUAL (cada vista inyecta el suyo) --}}
     @yield('course-banner')
 
-    {{-- CONTENIDO PRINCIPAL --}}
-    <main class="flex-1 px-4 py-6 pb-28 w-full max-w-2xl mx-auto lg:pb-10 lg:px-8">
-        @yield('content')
-    </main>
+    <div class="flex-1 lg:flex lg:flex-row lg:max-w-[90rem] lg:mx-auto lg:w-full lg:items-start lg:gap-8 lg:px-8">
+        {{-- SIDEBAR EN PC / BOTTOM EN MOVIL --}}
+        @hasSection('bottom-nav')
+            @yield('bottom-nav')
+        @endif
 
-    {{-- BOTTOM NAV --}}
-    @hasSection('bottom-nav')
-        @yield('bottom-nav')
-    @endif
+        @sectionMissing('bottom-nav')
+            @include('partials.bottom-nav')
+        @endif
 
-    @sectionMissing('bottom-nav')
-        @include('partials.bottom-nav')
-    @endif
+        {{-- CONTENIDO PRINCIPAL --}}
+        <main class="flex-1 px-4 py-6 pb-28 w-full max-w-2xl mx-auto lg:max-w-5xl lg:pb-10 lg:px-0 lg:pt-6">
+            @yield('content')
+        </main>
+    </div>
 
     @livewireScripts
     @stack('scripts')

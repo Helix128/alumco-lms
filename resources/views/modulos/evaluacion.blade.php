@@ -18,9 +18,7 @@
     </div>
 @endsection
 
-{{-- Ocultar el nav estándar: el componente Livewire renderiza su propio nav inferior --}}
-@section('bottom-nav')@endsection
-
+{{-- Ya no ocultamos el nav por Blade, se ocultará en el componente por CSS dinámico --}}
 @section('content')
     <livewire:ver-evaluacion :modulo="$modulo" :curso="$curso" />
 @endsection

@@ -15,6 +15,8 @@
         </div>
 
     @elseif (!$finalizada)
+        <style>#app-bottom-nav { display: none !important; }</style>
+
         {{-- Barra de progreso --}}
         <div class="flex items-center gap-3 mb-6">
             <span class="font-bold text-Alumco-gray whitespace-nowrap text-sm">
@@ -142,8 +144,5 @@
                 @endif
             @endif
         </div>
-
-        {{-- Nav estándar de la app --}}
-        @include('partials.bottom-nav')
     @endif
 </div>
