@@ -508,6 +508,12 @@
                                 </div>
                             @endforeach
 
+                        </div>{{-- /.cal-week --}}
+                    @endforeach
+
+                </div>{{-- /.bg-white monthly card --}}
+
+            @endif
 
         </div>{{-- /.flex-1 --}}
 
