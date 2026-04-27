@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ReporteController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Auth\PasswordResetController;
-use App\Http\Controllers\Admin\UserController;
+use App\Livewire\Admin\UserManagement;
 use App\Http\Controllers\CursoController;
 use App\Http\Controllers\ModuloController;
 use App\Http\Controllers\PerfilController;
@@ -123,11 +123,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/reportes/exportar', [ReporteController::class, 'exportar'])->name('reportes.exportar');
 
         // Usuarios
-        Route::get('/usuarios', [UserController::class, 'index'])->name('usuarios.index');
-        Route::post('/usuarios', [UserController::class, 'store'])->name('usuarios.store');
-        Route::put('/usuarios/{user}', [UserController::class, 'update'])->name('usuarios.update');
-        Route::delete('/usuarios/{user}', [UserController::class, 'destroy'])->name('usuarios.destroy');
-        Route::patch('/usuarios/{user}/toggle-status', [UserController::class, 'toggleStatus'])->name('usuarios.toggle-status');
-        Route::patch('/usuarios/{user}/reset-password', [UserController::class, 'resetPassword'])->name('usuarios.reset-password');
+        Route::get('/usuarios', function () {
+            return view('admin.usuarios.index');
+        })->name('usuarios.index');
     });
 });
