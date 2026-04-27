@@ -13,8 +13,6 @@ class EditarEvaluacion extends Component
     public Evaluacion $evaluacion;
     public Curso $curso;
 
-    public int $puntos_aprobacion = 0;
-    public int $max_intentos_semanales = 2;
     public array $preguntas = [];
     public string $nuevaPreguntaEnunciado = '';
     public string $flashMensaje = '';
@@ -23,8 +21,6 @@ class EditarEvaluacion extends Component
     {
         $this->evaluacion = $evaluacion;
         $this->curso = $curso;
-        $this->puntos_aprobacion = $evaluacion->puntos_aprobacion;
-        $this->max_intentos_semanales = $evaluacion->max_intentos_semanales ?? 2;
         $this->cargarPreguntas();
     }
 
@@ -66,7 +62,6 @@ class EditarEvaluacion extends Component
         ];
 
         $this->nuevaPreguntaEnunciado = '';
-        $this->recalcularAprobacion();
     }
 
     public function eliminarPregunta(int $preguntaId): void
@@ -81,8 +76,6 @@ class EditarEvaluacion extends Component
         foreach ($this->preguntas as $i => &$p) {
             $p['orden'] = $i + 1;
         }
-
-        $this->recalcularAprobacion();
     }
 
     public function agregarOpcion(int $preguntaId): void
@@ -152,19 +145,8 @@ class EditarEvaluacion extends Component
             }
         }
 
-        $this->evaluacion->update([
-            'puntos_aprobacion'      => $this->puntos_aprobacion,
-            'max_intentos_semanales' => $this->max_intentos_semanales,
-        ]);
-
         $this->flashMensaje = 'Cambios guardados correctamente.';
         $this->dispatch('evaluacion-guardada');
-    }
-
-    public function recalcularAprobacion(): void
-    {
-        $total = count($this->preguntas);
-        $this->puntos_aprobacion = $total > 0 ? (int) ceil($total * 0.70) : 0;
     }
 
     public function render()

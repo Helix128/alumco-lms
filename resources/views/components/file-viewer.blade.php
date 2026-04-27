@@ -1,8 +1,9 @@
-@props(['rutaArchivo'])
+@props(['rutaArchivo', 'descargarUrl' => null, 'nombreOriginal' => null])
 
 @php
     $extension = $rutaArchivo ? strtolower(pathinfo($rutaArchivo, PATHINFO_EXTENSION)) : null;
-    $url = Storage::url($rutaArchivo); // o asset('storage/' . $rutaArchivo);
+    $url = Storage::url($rutaArchivo);
+    $finalDownloadUrl = $descargarUrl ?? $url;
 @endphp
 
 @if ($extension)
@@ -26,8 +27,8 @@
                     type="application/pdf">
                 <p class="p-4 text-center text-sm text-Alumco-gray">
                     Tu navegador no puede mostrar el PDF. 
-                    <a href="{{ $url }}" 
-                       target="_blank" 
+                    <a href="{{ $finalDownloadUrl }}" 
+                       download="{{ $nombreOriginal }}" 
                        class="text-Alumco-blue font-semibold underline ml-1">Descargar PDF</a>
                 </p>
             </iframe>
@@ -43,7 +44,7 @@
             <h3 class="font-bold text-Alumco-gray text-lg mb-1">Archivo adjunto</h3>
             <p class="text-sm text-Alumco-gray/60 mb-4">Este archivo está en formato .{{ strtoupper($extension) }}</p>
             
-            <a href="{{ $url }}" download
+            <a href="{{ $finalDownloadUrl }}" download="{{ $nombreOriginal }}"
                class="inline-flex items-center gap-2 bg-Alumco-blue text-white font-bold py-2.5 px-6 rounded-xl hover:bg-Alumco-blue/90 transition-colors shadow-sm">
                 Descargar Archivo
             </a>

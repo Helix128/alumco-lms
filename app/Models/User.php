@@ -7,13 +7,14 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Notifications\ResetPasswordNotification;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable, SoftDeletes;
+    use HasFactory, Notifiable, SoftDeletes, HasRoles;
 
     protected $fillable = [
-        'name', 'email', 'password', 'fecha_nacimiento', 'sexo', 'activo', 'sede_id', 'estamento_id'
+        'name', 'email', 'password', 'fecha_nacimiento', 'sexo', 'activo', 'firma_digital', 'sede_id', 'estamento_id'
     ];
 
     protected $hidden = [
@@ -56,12 +57,12 @@ class User extends Authenticatable
 
     public function isDesarrollador(): bool
     {
-        return $this->estamento && $this->estamento->nombre === 'Desarrollador';
+        return $this->hasRole('Desarrollador');
     }
 
     public function isAdmin(): bool
     {
-        return $this->estamento && $this->estamento->nombre === 'Administrador';
+        return $this->hasRole('Administrador');
     }
 
     public function hasAdminAccess(): bool
@@ -71,17 +72,22 @@ class User extends Authenticatable
 
     public function isCapacitadorInterno(): bool
     {
-        return $this->estamento && $this->estamento->nombre === 'Capacitador Interno';
+        return $this->hasRole('Capacitador Interno');
     }
 
     public function isCapacitadorExterno(): bool
     {
-        return $this->estamento && $this->estamento->nombre === 'Capacitador Externo';
+        return $this->hasRole('Capacitador Externo');
     }
 
     public function isCapacitador(): bool
     {
-        return $this->isCapacitadorInterno() || $this->isCapacitadorExterno();
+        return $this->hasAnyRole(['Capacitador Interno', 'Capacitador Externo']);
+    }
+
+    public function isTrabajador(): bool
+    {
+        return $this->hasRole('Trabajador');
     }
 
     public function sendPasswordResetNotification($token): void

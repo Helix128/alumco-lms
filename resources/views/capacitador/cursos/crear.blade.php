@@ -2,86 +2,73 @@
 
 @section('title', 'Nuevo curso')
 
+@section('header_title', 'Gestión de Contenido')
+
 @section('content')
-    <div class="max-w-2xl">
-        <div class="flex items-center gap-3 mb-6">
-            <a href="{{ route('capacitador.cursos.index') }}" class="text-Alumco-blue hover:underline text-sm">
-                ← Volver a mis cursos
+    <div class="max-w-3xl mx-auto space-y-8">
+        {{-- Navegación y Título --}}
+        <div>
+            <a href="{{ route('capacitador.cursos.index') }}" 
+               class="inline-flex items-center gap-2 text-sm font-bold text-Alumco-blue hover:text-Alumco-blue/70 transition-colors mb-4 group">
+                <svg class="w-4 h-4 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+                Volver a mis cursos
             </a>
+            <h2 class="text-3xl font-display font-black text-Alumco-blue">Crear nuevo curso</h2>
+            <p class="text-Alumco-gray/50 font-bold uppercase tracking-wider text-[10px] mt-1">Configuración inicial del material educativo</p>
         </div>
 
-        <h2 class="text-2xl font-bold text-Alumco-gray mb-6">Crear nuevo curso</h2>
-
+        {{-- Formulario --}}
         <form action="{{ route('capacitador.cursos.store') }}" method="POST" enctype="multipart/form-data"
-              class="filter-card space-y-5">
+              class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 lg:p-10 space-y-8">
             @csrf
 
-            <div>
-                <label class="block text-sm font-semibold text-Alumco-gray mb-1">Título *</label>
-                <input type="text" name="titulo" value="{{ old('titulo') }}" required
-                       class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none
-                              focus:ring-2 focus:ring-Alumco-blue/30 @error('titulo') border-red-400 @enderror">
-                @error('titulo')
-                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                @enderror
-            </div>
-
-            <div>
-                <label class="block text-sm font-semibold text-Alumco-gray mb-1">Descripción</label>
-                <textarea name="descripcion" rows="3"
-                          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none
-                                 focus:ring-2 focus:ring-Alumco-blue/30">{{ old('descripcion') }}</textarea>
-            </div>
-
-            <div>
-                <label class="block text-sm font-semibold text-Alumco-gray mb-1">Imagen de portada</label>
-                <input type="file" name="imagen_portada" accept="image/*"
-                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm
-                              @error('imagen_portada') border-red-400 @enderror">
-                <p class="text-xs text-Alumco-gray/50 mt-1">Máximo 4 MB. Formatos: JPG, PNG, WebP.</p>
-                @error('imagen_portada')
-                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                @enderror
-            </div>
-
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-semibold text-Alumco-gray mb-1">Fecha de inicio *</label>
-                    <input type="date" name="fecha_inicio" value="{{ old('fecha_inicio') }}" required
-                           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none
-                                  focus:ring-2 focus:ring-Alumco-blue/30 @error('fecha_inicio') border-red-400 @enderror">
-                    @error('fecha_inicio')
-                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                    @enderror
+            <div class="grid grid-cols-1 gap-8">
+                {{-- Título --}}
+                <div class="space-y-2">
+                    <label class="block text-sm font-black text-Alumco-blue/40 uppercase tracking-widest">Título del Curso <span class="text-Alumco-coral">*</span></label>
+                    <input type="text" name="titulo" value="{{ old('titulo') }}" required placeholder="Ej: Prevención de Riesgos Laborales"
+                           class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3.5 text-Alumco-gray font-medium focus:ring-4 focus:ring-Alumco-blue/10 focus:border-Alumco-blue outline-none transition-all @error('titulo') border-Alumco-coral @enderror">
+                    @error('titulo') <p class="text-Alumco-coral text-xs font-bold mt-1">{{ $message }}</p> @enderror
                 </div>
-                <div>
-                    <label class="block text-sm font-semibold text-Alumco-gray mb-1">Fecha de cierre *</label>
-                    <input type="date" name="fecha_fin" value="{{ old('fecha_fin') }}" required
-                           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none
-                                  focus:ring-2 focus:ring-Alumco-blue/30 @error('fecha_fin') border-red-400 @enderror">
-                    @error('fecha_fin')
-                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                    @enderror
+
+                {{-- Descripción --}}
+                <div class="space-y-2">
+                    <label class="block text-sm font-black text-Alumco-blue/40 uppercase tracking-widest">Descripción</label>
+                    <textarea name="descripcion" rows="4" placeholder="Breve resumen de los objetivos del curso..."
+                              class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3.5 text-Alumco-gray font-medium focus:ring-4 focus:ring-Alumco-blue/10 focus:border-Alumco-blue outline-none transition-all">{{ old('descripcion') }}</textarea>
                 </div>
+
+                {{-- Imagen de Portada --}}
+                <div class="space-y-3">
+                    <label class="block text-sm font-black text-Alumco-blue/40 uppercase tracking-widest">Imagen de portada</label>
+                    <div class="group relative">
+                        <input type="file" name="imagen_portada" accept="image/*"
+                               class="w-full bg-Alumco-cream/30 border border-dashed border-gray-200 rounded-xl px-4 py-8 text-sm file:hidden cursor-pointer hover:bg-Alumco-blue/5 transition-all text-center font-bold text-Alumco-gray/40
+                                      @error('imagen_portada') border-Alumco-coral @enderror">
+                        <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none gap-2">
+                            <svg class="w-8 h-8 text-Alumco-blue/20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            <span class="text-xs uppercase tracking-widest">Click para subir (Max 4MB)</span>
+                        </div>
+                    </div>
+                    @error('imagen_portada') <p class="text-Alumco-coral text-xs font-bold mt-1">{{ $message }}</p> @enderror
+                </div>
+
+
+
+
             </div>
 
-            <div class="flex items-center gap-3">
-                <input type="checkbox" name="es_secuencial" id="es_secuencial" value="1"
-                       {{ old('es_secuencial', '1') ? 'checked' : '' }}
-                       class="w-4 h-4 rounded border-gray-300">
-                <label for="es_secuencial" class="text-sm font-semibold text-Alumco-gray">
-                    Módulos secuenciales
-                    <span class="text-Alumco-gray/50 font-normal">(el alumno debe completar cada módulo antes de ver el siguiente)</span>
-                </label>
-            </div>
-
-            <div class="flex justify-end gap-3 pt-2">
+            {{-- Footer de Acciones --}}
+            <div class="flex items-center justify-end gap-2 pt-6 border-t border-gray-50">
                 <a href="{{ route('capacitador.cursos.index') }}"
-                   class="border border-gray-300 text-Alumco-gray px-5 py-2 rounded-lg text-sm font-semibold hover:bg-gray-50 transition">
+                   class="px-8 py-3.5 text-sm font-display font-black uppercase tracking-widest text-Alumco-gray/50 hover:text-Alumco-coral transition-colors text-center">
                     Cancelar
                 </a>
                 <button type="submit"
-                        class="bg-Alumco-blue text-white px-6 py-2 rounded-lg font-bold hover:brightness-110 transition">
+                        class="bg-Alumco-blue hover:bg-Alumco-blue/90 text-white font-display font-black text-xs uppercase tracking-[0.2em] py-4 px-12 rounded-xl shadow-lg shadow-Alumco-blue/20 transition-all active:scale-95 flex items-center justify-center gap-3">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                     Crear curso
                 </button>
             </div>

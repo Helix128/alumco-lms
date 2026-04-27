@@ -39,7 +39,7 @@ class CalendarioCapacitaciones extends Component
     public int  $anioDestino;
 
     // ── Filtro de sede ────────────────────────────────────────────────────
-    public ?int $filtroSedeId = null;
+    public array $filtroSedesIds = [];
     public array $sedes = [];
 
     // ── Datos vista mensual ────────────────────────────────────────────────
@@ -344,7 +344,7 @@ class CalendarioCapacitaciones extends Component
         }
 
         $this->cerrarModal();
-        $this->filtroSedeId = null; // Mostrar todas las sedes para que el ítem guardado sea visible
+        $this->filtroSedesIds = []; // Mostrar todas las sedes para que el ítem guardado sea visible
         $this->cargarDatos();
     }
 
@@ -581,8 +581,8 @@ class CalendarioCapacitaciones extends Component
         }
 
         // Filtro global de sede (header dropdown)
-        if ($this->filtroSedeId) {
-            $query->where(fn ($q) => $q->whereNull('sede_id')->orWhere('sede_id', $this->filtroSedeId));
+        if (!empty($this->filtroSedesIds)) {
+            $query->where(fn ($q) => $q->whereNull('sede_id')->orWhereIn('sede_id', $this->filtroSedesIds));
         }
 
         return $query->orderBy('fecha_inicio')->get();
@@ -687,15 +687,34 @@ class CalendarioCapacitaciones extends Component
         if (count($filas) > 1) {
             foreach ($semanasBase as $sem) {
                 $semNum = $sem['numero'];
-                $globalConCursos = count($filas[0]['semanas'][$semNum]['cursos']) > 0;
+                $cursosGlobales = $filas[0]['semanas'][$semNum]['cursos'];
+                $globalConCursos = count($cursosGlobales) > 0;
+                
                 if (! $globalConCursos) {
                     continue;
                 }
+
+                $todosGlobalesConflicto = $cursosGlobales;
+                $huboConflictoGlobal = false;
+
                 for ($i = 1; $i < count($filas); $i++) {
-                    if (count($filas[$i]['semanas'][$semNum]['cursos']) > 0) {
+                    $cursosEspecificos = $filas[$i]['semanas'][$semNum]['cursos'];
+                    if (count($cursosEspecificos) > 0) {
                         $filas[0]['semanas'][$semNum]['conflicto'] = true;
                         $filas[$i]['semanas'][$semNum]['conflicto'] = true;
+                        $huboConflictoGlobal = true;
+
+                        // Popover para sede específica: sus propios cursos + los globales
+                        $todos = array_merge($cursosGlobales, $cursosEspecificos);
+                        $filas[$i]['semanas'][$semNum]['cursos_popover'] = $todos;
+
+                        // Acumular los de esta sede en el array global
+                        $todosGlobalesConflicto = array_merge($todosGlobalesConflicto, $cursosEspecificos);
                     }
+                }
+
+                if ($huboConflictoGlobal) {
+                    $filas[0]['semanas'][$semNum]['cursos_popover'] = $todosGlobalesConflicto;
                 }
             }
         }
@@ -872,11 +891,14 @@ class CalendarioCapacitaciones extends Component
                     'esMesActual' => $d->month === $this->mesActual && $d->year === $this->anioActual,
                     'fecha'       => $d->toDateString(),
                     'esWeekend'   => $d->dayOfWeekIso >= 6,
+                    'cursosExtra' => [], // Cursos que exceden el límite de slot (>= 3)
                 ];
                 $d->addDay();
             }
 
             $barras = [];
+            $maxSlotInWeek = 0;
+
             foreach ($planificaciones as $plan) {
                 if ($plan->fecha_fin->lt($weekStart) || $plan->fecha_inicio->gt($weekEnd)) {
                     continue;
@@ -885,52 +907,40 @@ class CalendarioCapacitaciones extends Component
                 $barStart = $plan->fecha_inicio->lt($weekStart) ? $weekStart->copy() : $plan->fecha_inicio->copy();
                 $barEnd   = $plan->fecha_fin->gt($weekEnd)      ? $weekEnd->copy()   : $plan->fecha_fin->copy();
 
-                $col  = $barStart->dayOfWeekIso;
-                $span = (int) $barStart->diffInDays($barEnd) + 1;
+                $colStart = $barStart->dayOfWeekIso;
+                $colEnd   = $barEnd->dayOfWeekIso;
+                $span     = (int) $barStart->diffInDays($barEnd) + 1;
 
+                $slot     = $globalSlots[$plan->id];
                 $colorIdx = $plan->curso_id % count(self::PALETTE);
-
-                $edgeStartDay = ($barStart->month === $this->mesActual && $barStart->year === $this->anioActual)
-                    ? $barStart->day : 1;
-                $edgeEndDay = ($barEnd->month === $this->mesActual && $barEnd->year === $this->anioActual)
-                    ? $barEnd->day : $this->diasEnMes;
-
-                $primerDiaMes  = Carbon::createFromDate($this->anioActual, $this->mesActual, 1)->startOfDay();
-                $ultimoDiaMes  = $primerDiaMes->copy()->endOfMonth()->startOfDay();
-                $extiendePorIzq = $plan->fecha_inicio->lt($primerDiaMes);
-                $extiendePorDer = $plan->fecha_fin->gt($ultimoDiaMes);
+                
+                if ($slot > $maxSlotInWeek) {
+                    $maxSlotInWeek = $slot;
+                }
 
                 $barras[] = [
                     'id'             => $plan->id,
                     'titulo'         => $plan->curso->titulo ?? '—',
-                    'col'            => $col,
+                    'col'            => $colStart,
                     'span'           => $span,
-                    'slot'           => $globalSlots[$plan->id],
+                    'slot'           => $slot,
                     'bg'             => self::PALETTE[$colorIdx],
                     'roundLeft'      => $plan->fecha_inicio->gte($weekStart),
                     'roundRight'     => $plan->fecha_fin->lte($weekEnd),
                     'notas'          => $plan->notas,
                     'fechaIni'       => $plan->fecha_inicio->toDateString(),
                     'fechaFin'       => $plan->fecha_fin->toDateString(),
-                    'edgeStartDay'   => $edgeStartDay,
-                    'edgeEndDay'     => $edgeEndDay,
-                    'segStartDay'    => $edgeStartDay,
-                    'extiendePorIzq' => $extiendePorIzq,
-                    'extiendePorDer' => $extiendePorDer,
+                    'extiendePorIzq' => $plan->fecha_inicio->lt($weekStart),
+                    'extiendePorDer' => $plan->fecha_fin->gt($weekEnd),
                     'sede_id'        => $plan->sede_id,
                     'sede_nombre'    => $plan->sede->nombre ?? null,
                 ];
             }
 
-            $maxSlot = 0;
-            foreach ($barras as $b) {
-                if ($b['slot'] > $maxSlot) $maxSlot = $b['slot'];
-            }
-
             $semanas[] = [
                 'dias'    => $dias,
                 'barras'  => $barras,
-                'maxSlot' => count($barras) ? $maxSlot + 1 : 0,
+                'maxSlot' => max(2, $maxSlotInWeek + 1), // Al menos 2 espacios para mantener altura mínima
             ];
 
             $cursor->addWeek();
@@ -945,7 +955,12 @@ class CalendarioCapacitaciones extends Component
 
     public function filtrarPorSede($sedeId): void
     {
-        $this->filtroSedeId = $sedeId ?: null;
+        $sedeId = (int)$sedeId;
+        if (in_array($sedeId, $this->filtroSedesIds, true)) {
+            $this->filtroSedesIds = array_values(array_diff($this->filtroSedesIds, [$sedeId]));
+        } else {
+            $this->filtroSedesIds[] = $sedeId;
+        }
         $this->cargarDatos();
     }
 

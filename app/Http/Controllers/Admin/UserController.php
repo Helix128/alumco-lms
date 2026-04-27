@@ -7,10 +7,12 @@ use App\Models\User;
 use App\Models\Estamento;
 use App\Models\Sede;
 use App\Notifications\SetupPasswordNotification;
+use Spatie\Permission\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
@@ -18,7 +20,7 @@ class UserController extends Controller
 {
     public function index(Request $request)
     {
-        $query = User::with(['estamento', 'sede']);
+        $query = User::with(['estamento', 'sede', 'roles']);
 
         // Búsqueda simple
         if ($request->filled('search')) {
@@ -33,8 +35,9 @@ class UserController extends Controller
         
         $estamentos = Estamento::all();
         $sedes = Sede::all();
+        $roles = Role::all();
 
-        return view('admin.usuarios.index', compact('usuarios', 'estamentos', 'sedes'));
+        return view('admin.usuarios.index', compact('usuarios', 'estamentos', 'sedes', 'roles'));
     }
 
     public function store(Request $request)
@@ -44,7 +47,22 @@ class UserController extends Controller
         $validated['password'] = Hash::make(Str::random(64));
         $validated['activo'] = true;
 
-        $user = User::create($validated);
+        if ($request->hasFile('firma_digital')) {
+            $validated['firma_digital'] = $request->file('firma_digital')->store('firmas', 'public');
+        }
+
+        $user = User::create(collect($validated)->except(['role', 'firma_digital'])->toArray());
+        
+        if (isset($validated['firma_digital'])) {
+            $user->firma_digital = $validated['firma_digital'];
+            $user->save();
+        }
+
+        if ($request->filled('role')) {
+            $user->assignRole($request->role);
+        } else {
+            $user->assignRole('Trabajador');
+        }
 
         $user->notify(new SetupPasswordNotification());
 
@@ -57,7 +75,23 @@ class UserController extends Controller
 
         $validated = $request->validate($this->updateRules($user));
 
-        $user->update($validated);
+        if ($request->hasFile('firma_digital')) {
+            if ($user->firma_digital) {
+                Storage::disk('public')->delete($user->firma_digital);
+            }
+            $validated['firma_digital'] = $request->file('firma_digital')->store('firmas', 'public');
+        }
+
+        $user->update(collect($validated)->except(['role', 'firma_digital'])->toArray());
+
+        if (isset($validated['firma_digital'])) {
+            $user->firma_digital = $validated['firma_digital'];
+            $user->save();
+        }
+
+        if ($request->filled('role')) {
+            $user->syncRoles([$request->role]);
+        }
 
         return redirect()->route('admin.usuarios.index')->with('success', 'Usuario actualizado exitosamente.');
     }
@@ -107,8 +141,10 @@ class UserController extends Controller
         return [
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
-            'estamento_id' => 'required|exists:estamentos,id',
+            'estamento_id' => 'nullable|exists:estamentos,id',
             'sede_id' => 'required|exists:sedes,id',
+            'role' => 'required|exists:roles,name',
+            'firma_digital' => 'nullable|image|max:1024',
             'fecha_nacimiento' => 'nullable|date',
             'sexo' => 'nullable|in:F,M,Otro',
         ];
@@ -119,8 +155,10 @@ class UserController extends Controller
         return [
             'name' => 'required|string|max:255',
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
-            'estamento_id' => 'required|exists:estamentos,id',
+            'estamento_id' => 'nullable|exists:estamentos,id',
             'sede_id' => 'required|exists:sedes,id',
+            'role' => 'required|exists:roles,name',
+            'firma_digital' => 'nullable|image|max:1024',
             'fecha_nacimiento' => 'nullable|date',
             'sexo' => 'nullable|in:F,M,Otro',
         ];

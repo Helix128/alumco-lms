@@ -31,6 +31,7 @@ Route::middleware('auth')->group(function () {
 
     // Redirección / según rol
     Route::get('/', function () {
+        if (session('preview_mode')) return redirect()->route('cursos.index');
         if (auth()->user()->hasAdminAccess()) return redirect()->route('admin.reportes.index');
         if (auth()->user()->isCapacitador())  return redirect()->route('capacitador.dashboard');
         return redirect()->route('cursos.index');
@@ -40,12 +41,30 @@ Route::middleware('auth')->group(function () {
     Route::get('/cursos', [CursoController::class, 'index'])->name('cursos.index');
     Route::get('/cursos/{curso}', [CursoController::class, 'show'])->name('cursos.show');
     Route::get('/cursos/{curso}/modulos/{modulo}', [ModuloController::class, 'show'])->name('modulos.show');
+    Route::get('/cursos/{curso}/modulos/{modulo}/descargar', [ModuloController::class, 'descargarArchivo'])->name('modulos.descargar');
     Route::post('/cursos/{curso}/modulos/{modulo}/completar', [ModuloController::class, 'completar'])->name('modulos.completar');
     Route::get('/calendario', \App\Livewire\Capacitador\CalendarioCapacitaciones::class)->name('calendario.index');
     Route::get('/calendario-cursos', \App\Livewire\Capacitador\CalendarioCapacitaciones::class)->name('calendario-cursos.index');
 
     // Perfil del colaborador
     Route::get('/perfil', [PerfilController::class, 'show'])->name('perfil.index');
+
+    // --- MODO VISTA PREVIA (Admin/Dev) ---
+    Route::post('/admin/preview-mode/toggle', function () {
+        if (!auth()->user()->hasAdminAccess() && !auth()->user()->isCapacitador()) abort(403);
+        
+        $current = session('preview_mode', false);
+        session(['preview_mode' => !$current]);
+        
+        // Si activamos la vista previa, redirigir al catálogo de cursos del trabajador
+        if (session('preview_mode')) {
+            return redirect()->route('cursos.index')->with('success', 'Modo vista previa activado.');
+        }
+        
+        // Si desactivamos la vista previa, redirigir al dashboard correspondiente
+        if (auth()->user()->hasAdminAccess()) return redirect()->route('admin.reportes.index')->with('success', 'Has vuelto al Panel de Administración.');
+        return redirect()->route('capacitador.dashboard')->with('success', 'Has vuelto al Panel del Capacitador.');
+    })->name('admin.preview.toggle');
 
     // Mis certificados (reemplaza Ajustes en el nav)
     Route::get('/mis-certificados', [MisCertificadosController::class, 'index'])->name('mis-certificados.index');
@@ -66,6 +85,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/cursos/{curso}/editar', [CapacitadorCurso::class, 'edit'])->name('cursos.editar');
         Route::put('/cursos/{curso}', [CapacitadorCurso::class, 'update'])->name('cursos.update');
         Route::delete('/cursos/{curso}', [CapacitadorCurso::class, 'destroy'])->name('cursos.destroy');
+        Route::post('/cursos/{curso}/duplicar', [CapacitadorCurso::class, 'duplicar'])->name('cursos.duplicar');
 
         // Módulos
         Route::get('/cursos/{curso}/modulos/crear', [CapacitadorModulo::class, 'create'])->name('cursos.modulos.crear');
@@ -90,6 +110,12 @@ Route::middleware('auth')->group(function () {
         });
     });
 
+    // --- SOLO DESARROLLADOR ---
+    Route::get('/dev/configuracion', function () {
+        if (!auth()->user()->isDesarrollador()) abort(403);
+        return view('admin.configuracion');
+    })->name('dev.configuracion');
+
     // RUTAS DE ADMINISTRACIÓN
     Route::middleware(['admin'])->prefix('admin')->name('admin.')->group(function () {
         // Reportes
@@ -103,7 +129,5 @@ Route::middleware('auth')->group(function () {
         Route::delete('/usuarios/{user}', [UserController::class, 'destroy'])->name('usuarios.destroy');
         Route::patch('/usuarios/{user}/toggle-status', [UserController::class, 'toggleStatus'])->name('usuarios.toggle-status');
         Route::patch('/usuarios/{user}/reset-password', [UserController::class, 'resetPassword'])->name('usuarios.reset-password');
-        
-        // Futuras rutas de Estamentos y Sedes se añadirán aquí.
     });
 });

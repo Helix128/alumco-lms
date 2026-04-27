@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Capacitador;
 use App\Http\Controllers\Controller;
 use App\Models\Curso;
 use App\Models\Evaluacion;
+use App\Actions\Cursos\DuplicateCourseAction;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -27,7 +28,8 @@ class CursoController extends Controller
             : auth()->user()->cursosImpartidos();
 
         $cursos = $query
-            ->withCount(['modulos', 'estamentos'])
+            ->with('capacitador')
+            ->withCount(['modulos', 'estamentos', 'planificaciones'])
             ->orderByDesc('created_at')
             ->paginate(15);
 
@@ -45,13 +47,9 @@ class CursoController extends Controller
             'titulo'         => 'required|string|max:255',
             'descripcion'    => 'nullable|string',
             'imagen_portada' => 'nullable|image|max:4096',
-            'fecha_inicio'   => 'required|date',
-            'fecha_fin'      => 'required|date|after_or_equal:fecha_inicio',
-            'es_secuencial'  => 'boolean',
         ]);
 
         $data['capacitador_id'] = auth()->id();
-        $data['es_secuencial']  = $request->boolean('es_secuencial', true);
 
         if ($request->hasFile('imagen_portada')) {
             $data['imagen_portada'] = $request->file('imagen_portada')
@@ -100,12 +98,7 @@ class CursoController extends Controller
             'titulo'         => 'required|string|max:255',
             'descripcion'    => 'nullable|string',
             'imagen_portada' => 'nullable|image|max:4096',
-            'fecha_inicio'   => 'required|date',
-            'fecha_fin'      => 'required|date|after_or_equal:fecha_inicio',
-            'es_secuencial'  => 'boolean',
         ]);
-
-        $data['es_secuencial'] = $request->boolean('es_secuencial', true);
 
         if ($request->hasFile('imagen_portada')) {
             if ($curso->imagen_portada) {
@@ -141,5 +134,19 @@ class CursoController extends Controller
 
         return redirect()->route('capacitador.cursos.index')
             ->with('success', 'Curso eliminado correctamente.');
+    }
+
+    public function duplicar(Request $request, Curso $curso, DuplicateCourseAction $action): RedirectResponse
+    {
+        $this->authorizeCurso($curso);
+
+        $request->validate([
+            'titulo' => 'required|string|max:255',
+        ]);
+
+        $nuevoCurso = $action->execute($curso, $request->titulo);
+
+        return redirect()->route('capacitador.cursos.show', $nuevoCurso)
+            ->with('success', 'Nueva versión del curso creada exitosamente. Ahora puedes editarla.');
     }
 }

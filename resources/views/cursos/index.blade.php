@@ -40,6 +40,13 @@
                         </div>
                     @endif
 
+                    @if (isset($curso->is_preview))
+                        <div class="absolute top-3 left-3 bg-amber-500 text-white text-[9px] font-black uppercase tracking-widest px-2.5 py-1.5 rounded-lg shadow-lg flex items-center gap-1.5 animate-pulse">
+                            <div class="w-1.5 h-1.5 bg-white rounded-full"></div>
+                            Borrador de Vista Previa
+                        </div>
+                    @endif
+
                     @if ($progreso > 0)
                         <span class="absolute bottom-2.5 right-3 bg-black/50 backdrop-blur-sm
                                      text-white text-xs font-bold px-2.5 py-1 rounded-full">

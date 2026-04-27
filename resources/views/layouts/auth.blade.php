@@ -31,9 +31,9 @@
         </div>
 
         <main class="relative z-10 mx-auto flex h-full w-full max-w-[1440px] flex-1 items-center px-8 lg:px-20">
-            <div class="grid w-full items-stretch gap-10 lg:grid-cols-[1.35fr_0.65fr]">
+            <div class="grid w-full items-center gap-10 lg:grid-cols-[1.3fr_0.7fr]">
 
-                <section class="flex flex-col justify-center w-full">
+                <section class="mx-auto flex w-full max-w-3xl flex-col justify-center lg:mx-0">
                     <div class="mb-6 flex justify-start lg:mb-8">
                         <img
                             src="{{ asset('images/logo/alumco-full.svg') }}"
@@ -46,8 +46,8 @@
                 </section>
 
                 <!-- Ilustración -->
-                <aside class="relative hidden lg:flex items-center justify-end" aria-hidden="true">
-                    <div class="h-full flex items-end pb-64">
+                <aside class="relative hidden h-full items-center justify-center lg:flex" aria-hidden="true">
+                    <div class="flex w-full items-center justify-center lg:pt-24">
                         <img
                             src="{{ asset('images/undraw/door_knock.svg') }}"
                             alt=""
