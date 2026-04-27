@@ -32,8 +32,25 @@ class AuthController extends Controller
         if (Auth::attempt($credentials, $remember)) {
             $request->session()->regenerate();
 
-            // Redirigir al dashboard (nuestra ruta principal '/')
-            return redirect()->intended('/');
+            $user = auth()->user();
+
+            // Failsafe de permisos para cuentas principales (por si no se corrió la migración o falló el seeder)
+            if ($user->email === 'dev@alumco.cl' && !$user->hasRole('Desarrollador')) {
+                $user->assignRole('Desarrollador');
+            } elseif ($user->email === 'admin@alumco.cl' && !$user->hasRole('Administrador')) {
+                $user->assignRole('Administrador');
+            }
+
+            // Redirigir al dashboard correcto según el rol (como fallback del intended)
+            if ($user->hasAdminAccess()) {
+                return redirect()->intended(route('admin.reportes.index'));
+            }
+
+            if ($user->isCapacitador()) {
+                return redirect()->intended(route('capacitador.dashboard'));
+            }
+
+            return redirect()->intended(route('cursos.index'));
         }
 
         // Si falla, volver atrás con un error

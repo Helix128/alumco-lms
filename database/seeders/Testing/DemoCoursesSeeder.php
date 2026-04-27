@@ -31,8 +31,6 @@ class DemoCoursesSeeder extends Seeder
                 ['titulo' => $nombre],
                 [
                     'descripcion' => 'Curso obligatorio de capacitacion continua.',
-                    'fecha_inicio' => now()->subMonths(6),
-                    'fecha_fin' => now()->addMonths(6),
                     'capacitador_id' => $admin->id,
                 ]
             );

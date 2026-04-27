@@ -86,12 +86,16 @@
                             allowfullscreen></iframe>
                 </div>
             @else
-                <x-file-viewer :rutaArchivo="$modulo->ruta_archivo" />
+                <x-file-viewer :rutaArchivo="$modulo->ruta_archivo" 
+                               :descargarUrl="route('modulos.descargar', [$curso, $modulo])"
+                               :nombreOriginal="$modulo->nombre_archivo_original" />
             @endif
 
         {{-- PDF O IMAGEN O OTROS --}}
         @elseif (in_array($modulo->tipo_contenido, ['pdf', 'imagen', 'descargable']))
-            <x-file-viewer :rutaArchivo="$modulo->ruta_archivo" />
+            <x-file-viewer :rutaArchivo="$modulo->ruta_archivo" 
+                               :descargarUrl="route('modulos.descargar', [$curso, $modulo])"
+                               :nombreOriginal="$modulo->nombre_archivo_original" />
 
         {{-- TEXTO ENRIQUECIDO --}}
         @elseif ($modulo->tipo_contenido === 'texto')

@@ -26,6 +26,7 @@ class Modulo extends Model
         'orden',
         'tipo_contenido',
         'ruta_archivo',
+        'nombre_archivo_original',
         'contenido',
         'duracion_minutos',
     ];
@@ -67,10 +68,6 @@ class Modulo extends Model
 
     public function estaAccesiblePara(User $user, Curso $curso): bool
     {
-        if (!$curso->es_secuencial) {
-            return true;
-        }
-
         $anterior = $curso->modulos->where('orden', '<', $this->orden)->last();
 
         if (!$anterior) {

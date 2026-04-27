@@ -14,16 +14,11 @@ class Curso extends Model
         'titulo',
         'descripcion',
         'imagen_portada',
-        'fecha_inicio',
-        'fecha_fin',
         'capacitador_id',
-        'es_secuencial',
+        'curso_original_id',
     ];
 
     protected $casts = [
-        'fecha_inicio'  => 'date',
-        'fecha_fin'     => 'date',
-        'es_secuencial' => 'boolean',
     ];
 
     // --- RELACIONES ---
@@ -31,6 +26,16 @@ class Curso extends Model
     public function capacitador()
     {
         return $this->belongsTo(User::class, 'capacitador_id');
+    }
+
+    public function cursoOriginal()
+    {
+        return $this->belongsTo(Curso::class, 'curso_original_id');
+    }
+
+    public function versionesDerivadas()
+    {
+        return $this->hasMany(Curso::class, 'curso_original_id');
     }
 
     public function estamentos()

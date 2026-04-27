@@ -8,7 +8,7 @@ class Evaluacion extends Model
 {
     protected $table = 'evaluaciones';
 
-    protected $fillable = ['modulo_id', 'puntos_aprobacion', 'max_intentos_semanales'];
+    protected $fillable = ['modulo_id'];
 
     public function modulo()
     {

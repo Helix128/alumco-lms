@@ -1,4 +1,21 @@
-    <!DOCTYPE html>
+@php
+    $fontDir          = storage_path('fonts');
+    $logoPath         = public_path('images/logo/alumco-full.svg');
+    $logoBase64       = base64_encode(file_get_contents($logoPath));
+    $labelCapacitador = ($capacitador->sexo ?? 'M') === 'F' ? 'Capacitadora' : 'Capacitador';
+
+    // Preparar firmas en Base64
+    $firmaCapBase64 = null;
+    if ($capacitador->firma_digital && Storage::disk('public')->exists($capacitador->firma_digital)) {
+        $firmaCapBase64 = base64_encode(Storage::disk('public')->get($capacitador->firma_digital));
+    }
+
+    $firmaRepBase64 = null;
+    if ($firmaRepLegal && Storage::disk('public')->exists($firmaRepLegal)) {
+        $firmaRepBase64 = base64_encode(Storage::disk('public')->get($firmaRepLegal));
+    }
+@endphp
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -30,7 +47,7 @@
         }
 
         @page {
-            size: A4 landscape;
+            size: letter landscape;
             margin: 0;
         }
 
@@ -39,42 +56,43 @@
         body {
             font-family: 'Fira Sans', sans-serif;
             background: #ffffff;
-            width: 297mm;
-            height: 210mm;
-            display: flex;
-            align-items: stretch;
+            width: 100%;
+            height: 100%;
         }
 
         .borde-izq {
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
             width: 14mm;
             background: #205099;
         }
 
         .borde-der {
+            position: absolute;
+            right: 0; top: 0; bottom: 0;
             width: 14mm;
             background: #205099;
         }
 
-        .contenido {
-            flex: 1;
-            padding: 14mm 18mm;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            border-top: 8px solid #AFDD83;
-            border-bottom: 8px solid #AFDD83;
+        .contenedor {
+            padding: 15mm 25mm;
+            height: 100%;
+            border-top: 6px solid #AFDD83;
+            border-bottom: 6px solid #AFDD83;
+            margin-left: 14mm;
+            margin-right: 14mm;
+            position: relative;
         }
 
         .encabezado {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
+            width: 100%;
+            margin-bottom: 20mm;
         }
 
         .logo-img {
-            width: 58mm;
-            height: auto;
-            display: block;
+            height: 36px;
+            width: auto;
+            float: left;
         }
 
         .titulo-cert {
@@ -84,71 +102,120 @@
             color: #4A4A4A;
             letter-spacing: 3px;
             text-transform: uppercase;
+            float: right;
             text-align: right;
         }
 
+        .clear { clear: both; }
+
         .cuerpo {
             text-align: center;
+            margin-bottom: 25mm;
         }
 
         .prezenta {
+            font-family: 'FiraSans', Arial, sans-serif;
             font-size: 10pt;
-            color: #4A4A4A;
+            color: #6B7280;
             text-transform: uppercase;
-            letter-spacing: 2px;
+            letter-spacing: 3px;
             margin-bottom: 12px;
         }
 
         .nombre-alumno {
-            font-size: 38pt;
-            font-weight: 900;
+            font-family: 'Sora', Arial, sans-serif;
+            font-weight: 800;
+            font-size: 36pt;
             color: #205099;
-            margin-bottom: 16px;
+            margin-bottom: 15px;
             line-height: 1.1;
         }
 
         .texto-completado {
+            font-family: 'FiraSans', Arial, sans-serif;
             font-size: 11pt;
             color: #4A4A4A;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
 
         .nombre-curso {
-            font-size: 22pt;
-            font-weight: 700;
+            font-family: 'Sora', Arial, sans-serif;
+            font-weight: 600;
+            font-size: 18pt;
             color: #205099;
             font-style: italic;
         }
 
-        .pie {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
+        .firmas-container {
+            width: 100%;
+            margin-top: 30mm;
         }
 
-        .firma-bloque {
+        .firma-box {
+            width: 45%;
+            float: left;
             text-align: center;
         }
 
-        .firma-nombre {
-            font-family: 'Sora', sans-serif;
-            font-weight: 700;
-            font-style: italic;
-            font-size: 15pt;
-            color: #205099;
+        .firma-box-right {
+            width: 45%;
+            float: right;
+            text-align: center;
+        }
+
+        .firma-img-wrapper {
+            height: 22mm;
+            margin-bottom: 2mm;
+            display: block;
+        }
+
+        .firma-img {
+            height: 100%;
+            width: auto;
+            max-width: 50mm;
+            mix-blend-multiply;
+        }
+
+        .linea-firma {
             border-bottom: 1.5px solid #205099;
-            padding-bottom: 4px;
             margin-bottom: 4px;
+            width: 60mm;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .firma-nombre {
+            font-family: 'Sora', Arial, sans-serif;
+            font-weight: 600;
+            font-size: 11pt;
+            color: #205099;
         }
 
         .firma-label {
+            font-family: 'FiraSans', Arial, sans-serif;
             font-size: 8pt;
-            color: #4A4A4A;
+            color: #6B7280;
             text-transform: uppercase;
             letter-spacing: 1px;
         }
 
+        .footer-info {
+            position: absolute;
+            bottom: 15mm;
+            left: 25mm;
+            right: 25mm;
+            width: auto;
+        }
+
+        .fecha-bloque {
+            font-family: 'FiraSans', Arial, sans-serif;
+            font-size: 9pt;
+            color: #6B7280;
+            float: left;
+        }
+
         .codigo-bloque {
+            float: right;
             text-align: right;
         }
 
@@ -163,11 +230,6 @@
         .codigo-valor {
             font-family: 'Courier New', monospace;
             font-size: 8pt;
-            color: #4A4A4A;
-        }
-
-        .fecha-bloque {
-            font-size: 9pt;
             color: #4A4A4A;
         }
     </style>
@@ -197,8 +259,9 @@
 @endphp
 <body>
     <div class="borde-izq"></div>
+    <div class="borde-der"></div>
 
-    <div class="contenido">
+    <div class="contenedor">
         <div class="encabezado">
             <div>
                 <img src="{{ public_path('images/logo/alumco-full.svg') }}" class="logo-img" alt="Alumco">
@@ -206,6 +269,7 @@
             <div class="titulo-cert">
                 Certificado<br>de Completado
             </div>
+            <div class="clear"></div>
         </div>
 
         <div class="cuerpo">
@@ -215,23 +279,44 @@
             <p class="nombre-curso">"{{ $curso->titulo }}"</p>
         </div>
 
-        <div class="pie">
-            <div class="fecha-bloque">
-                {{ now()->format('d') }} de {{ \Carbon\Carbon::now()->locale('es')->isoFormat('MMMM') }} de {{ now()->format('Y') }}
-            </div>
-
-            <div class="firma-bloque">
+        <div class="firmas-container">
+            {{-- Firma del Capacitador --}}
+            <div class="firma-box">
+                <div class="firma-img-wrapper">
+                    @if($firmaCapBase64)
+                        <img src="data:image/png;base64,{{ $firmaCapBase64 }}" class="firma-img">
+                    @endif
+                </div>
+                <div class="linea-firma"></div>
                 <div class="firma-nombre">{{ $capacitador->name }}</div>
                 <div class="firma-label">{{ $labelCapacitador }}</div>
+            </div>
+
+            {{-- Firma del Representante Legal --}}
+            <div class="firma-box-right">
+                <div class="firma-img-wrapper">
+                    @if($firmaRepBase64)
+                        <img src="data:image/png;base64,{{ $firmaRepBase64 }}" class="firma-img">
+                    @endif
+                </div>
+                <div class="linea-firma"></div>
+                <div class="firma-nombre">Representante Legal</div>
+                <div class="firma-label">Fundación Alumco</div>
+            </div>
+            <div class="clear"></div>
+        </div>
+
+        <div class="footer-info">
+            <div class="fecha-bloque">
+                Emitido el {{ now()->format('d') }} de {{ \Carbon\Carbon::now()->locale('es')->isoFormat('MMMM') }} de {{ now()->format('Y') }}
             </div>
 
             <div class="codigo-bloque">
                 <div class="codigo-label">Código de verificación</div>
                 <div class="codigo-valor">{{ strtoupper(substr($codigo, 0, 8)) }}</div>
             </div>
+            <div class="clear"></div>
         </div>
     </div>
-
-    <div class="borde-der"></div>
 </body>
 </html>

@@ -5,9 +5,20 @@ namespace App\Http\Controllers;
 use App\Models\Curso;
 use App\Models\Modulo;
 use App\Models\ProgresoModulo;
+use Illuminate\Support\Facades\Storage;
 
 class ModuloController extends Controller
 {
+    public function descargarArchivo(Curso $curso, Modulo $modulo)
+    {
+        abort_if($modulo->curso_id !== $curso->id, 404);
+        abort_unless($modulo->ruta_archivo, 404);
+
+        $nombreDownload = $modulo->nombre_archivo_original ?? basename($modulo->ruta_archivo);
+
+        return Storage::disk('public')->download($modulo->ruta_archivo, $nombreDownload);
+    }
+
     public function show(Curso $curso, Modulo $modulo)
     {
         abort_if($modulo->curso_id !== $curso->id, 404);

@@ -12,7 +12,6 @@ class GestionEstamentos extends Component
     public Curso $curso;
     public array $seleccionados = [];
     public Collection $todos;
-    public string $flashMensaje = '';
 
     public function mount(Curso $curso): void
     {
@@ -35,7 +34,7 @@ class GestionEstamentos extends Component
     public function guardar(): void
     {
         $this->curso->estamentos()->sync($this->seleccionados);
-        $this->flashMensaje = 'Asignaciones guardadas correctamente.';
+        session()->flash('success', 'Asignaciones guardadas correctamente.');
         $this->dispatch('estamentos-guardados');
     }
 

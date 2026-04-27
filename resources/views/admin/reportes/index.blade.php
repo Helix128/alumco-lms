@@ -1,455 +1,449 @@
 @extends('layouts.panel')
 
-@section('title', 'Panel de administración')
+@section('title', 'Reportes de Capacitación')
 
-@push('styles')
-<style>
-    /* Slider con doble control (filtro de edad) */
-    .slider-thumb::-webkit-slider-thumb {
-        pointer-events: auto;
-        -webkit-appearance: none;
-        appearance: none;
-        width: 24px;
-        height: 24px;
-        border-radius: 50%;
-        background: var(--color-Alumco-blue);
-        border: 3px solid #fff;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-        cursor: pointer;
-        margin-top: -11px;
-        transition: transform 0.1s;
-    }
-
-    .slider-thumb::-moz-range-thumb {
-        pointer-events: auto;
-        appearance: none;
-        width: 24px;
-        height: 24px;
-        border-radius: 50%;
-        background: var(--color-Alumco-blue);
-        border: 3px solid #fff;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-        cursor: pointer;
-        transition: transform 0.1s;
-    }
-
-    .slider-thumb:active::-webkit-slider-thumb {
-        transform: scale(1.15);
-    }
-
-    .slider-thumb:active::-moz-range-thumb {
-        transform: scale(1.15);
-    }
-
-    /* Estado deshabilitado cuando el toggle está apagado */
-    .range-disabled {
-        opacity: 0.4;
-        pointer-events: none;
-        filter: grayscale(100%);
-    }
-</style>
-@endpush
+@section('header_title', 'Reportes e Impacto')
 
 @section('content')
-<div class="flex justify-between items-end mb-8">
-    <div>
-        <h2 class="text-[32px] font-bold text-Alumco-gray mb-1">Reporte de Capacitaciones</h2>
-    </div>
-    <div class="flex items-center gap-4">
-        <a href="{{ route('admin.reportes.exportar', request()->query()) }}"
-            class="bg-Alumco-green hover:bg-opacity-90 text-Alumco-blue font-bold py-2 px-4 rounded-Alumco shadow flex items-center transition-colors">
-            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
-                </path>
-            </svg>
-            Descargar reporte Excel
-        </a>
+<div class="mb-8">
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div>
+            <h2 class="text-3xl font-display font-black text-Alumco-blue">Análisis de Cumplimiento</h2>
+            <p class="text-Alumco-gray/50 font-bold uppercase tracking-wider text-[10px] mt-1">Visualización de progreso y resultados por estamentos</p>
+        </div>
     </div>
 </div>
 
+{{-- Filtros --}}
 <div class="mb-8">
-    @php
-        $selectedSedes = array_map('intval', (array) request()->input('sede_id', []));
-        $selectedEstamentos = array_map('intval', (array) request()->input('estamento_id', []));
-        $selectedCursos = array_map('intval', (array) request()->input('curso_id', []));
-        $edadMinGlobal = $ageBounds['min'] ?? 0;
-        $edadMaxGlobal = $ageBounds['max'] ?? 120;
-        $edadMinInicial = request()->filled('edad_min') ? (int) request('edad_min') : $edadMinGlobal;
-        $edadMaxInicial = request()->filled('edad_max') ? (int) request('edad_max') : $edadMaxGlobal;
-        $edadActiva = request()->filled('edad_min') || request()->filled('edad_max');
-
-        $edadMinInicial = max($edadMinGlobal, min($edadMinInicial, $edadMaxGlobal));
-        $edadMaxInicial = max($edadMinGlobal, min($edadMaxInicial, $edadMaxGlobal));
-        if ($edadMinInicial > $edadMaxInicial) {
-            [$edadMinInicial, $edadMaxInicial] = [$edadMaxInicial, $edadMinInicial];
-        }
-    @endphp
-
-    <form action="{{ route('admin.reportes.index') }}" method="GET" class="bg-white border border-Alumco-gray/15 rounded-Alumco p-4 md:p-5">
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
-            <div class="lg:col-span-4 filter-card">
-                <label class="block text-xs uppercase tracking-wide font-bold text-Alumco-gray/75 mb-2">Estamento</label>
-                <select name="estamento_id[]" multiple class="w-full min-h-[140px] border-Alumco-gray/30 rounded-Alumco shadow-sm border p-2 bg-white text-Alumco-gray focus-ring">
-                    @foreach($estamentos as $estamento)
-                    <option value="{{ $estamento->id }}" {{ in_array((int) $estamento->id, $selectedEstamentos, true) ? 'selected' : '' }}>
-                        {{ $estamento->nombre }}
-                    </option>
-                    @endforeach
-                </select>
-                <p class="text-xs text-Alumco-gray/70 mt-2">Puedes seleccionar uno o varios estamentos.</p>
+    <form action="{{ route('admin.reportes.index') }}" method="GET" class="filter-card">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            {{-- Sedes (Multi) --}}
+            <div class="lg:col-span-3 space-y-2">
+                <label class="block text-[11px] font-black text-Alumco-blue/70 uppercase tracking-widest">Sedes</label>
+                <x-picker-multi name="sede_id" :options="$sedes->pluck('nombre', 'id')->toArray()" :selected="$selectedSedes" placeholder="Todas las sedes" />
             </div>
 
-            <div class="lg:col-span-4 filter-card relative overflow-visible" id="course-filter-root">
-                <div class="flex items-center justify-between mb-2">
-                    <label class="text-xs uppercase tracking-wide font-bold text-Alumco-gray/75">Cursos (debe cumplir todos)</label>
-                    <button type="button" id="course-clear-btn" class="text-xs font-semibold text-Alumco-blue hover:underline">Limpiar</button>
-                </div>
+            {{-- Estamentos (Multi) --}}
+            <div class="lg:col-span-3 space-y-2">
+                <label class="block text-[11px] font-black text-Alumco-blue/70 uppercase tracking-widest">Estamentos</label>
+                <x-picker-multi name="estamento_id" :options="$estamentos->pluck('nombre', 'id')->toArray()" :selected="$selectedEstamentos" placeholder="Todos los estamentos" />
+            </div>
 
-                <button type="button" id="course-picker-trigger" aria-expanded="false" aria-controls="course-picker-panel"
-                    class="w-full flex items-center justify-between gap-3 border border-Alumco-gray/30 rounded-Alumco px-3 py-2 bg-white text-left focus-ring">
-                    <span id="course-picker-summary" class="text-sm font-medium text-Alumco-gray">Selecciona uno o mas cursos</span>
-                    <span id="course-picker-count" class="inline-flex items-center justify-center rounded-full bg-Alumco-blue text-white text-xs font-bold px-2 py-0.5 min-w-[28px]">0</span>
-                </button>
+            {{-- Cursos (Multi) --}}
+            <div class="lg:col-span-4 space-y-2">
+                <label class="block text-[11px] font-black text-Alumco-blue/70 uppercase tracking-widest">Cursos Aprobados</label>
+                <x-picker-multi name="curso_id" :options="$cursos->pluck('titulo', 'id')->toArray()" :selected="$selectedCursos" placeholder="Cualquier curso" />
+            </div>
 
-                <div id="selected-course-chips" class="mt-2 flex flex-wrap gap-2"></div>
-
-                <div id="course-picker-panel" class="hidden absolute top-[calc(100%+10px)] left-0 right-0 z-50 max-h-[70vh] overflow-y-auto">
-                    <div class="bg-white rounded-Alumco border border-Alumco-gray/20 shadow-xl p-4">
-                        <div class="flex items-center justify-between mb-3">
-                            <h3 class="text-base font-bold text-Alumco-gray">Seleccion de cursos</h3>
-                            <button type="button" id="course-picker-close" class="text-Alumco-gray/75 hover:text-Alumco-gray text-sm font-semibold">Cerrar</button>
-                        </div>
-
-                        <input type="text" id="course-search" placeholder="Buscar curso..." class="w-full border border-Alumco-gray/30 rounded-Alumco px-3 py-2 text-sm mb-3 focus-ring">
-
-                        <div id="course-options-list" class="max-h-64 overflow-y-auto custom-scrollbar space-y-1 pr-1">
-                            @foreach($cursos as $curso)
-                            <label class="course-option flex items-center gap-3 rounded-Alumco border border-transparent hover:border-Alumco-blue/30 hover:bg-Alumco-cream px-2 py-2 cursor-pointer"
-                                data-course-title="{{ strtolower($curso->titulo) }}">
-                                <input type="checkbox" name="curso_id[]" value="{{ $curso->id }}" data-course-option data-course-label="{{ $curso->titulo }}"
-                                    class="h-4 w-4 accent-Alumco-blue" {{ in_array((int) $curso->id, $selectedCursos, true) ? 'checked' : '' }}>
-                                <span class="text-sm font-medium text-Alumco-gray">{{ $curso->titulo }}</span>
-                            </label>
-                            @endforeach
-                        </div>
+            {{-- Rango Etario --}}
+            <div class="lg:col-span-2 space-y-2" id="age-filter-root">
+                <label class="block text-[11px] font-black text-Alumco-blue/70 uppercase tracking-widest">Rango Etario</label>
+                
+                <div class="pt-2 px-1" id="age-slider-wrapper">
+                    <div class="relative h-1 bg-gray-100 rounded-full">
+                        <div id="age-range-fill" class="absolute h-full bg-Alumco-blue rounded-full" style="left: 0%; width: 100%;"></div>
+                        <input type="range" id="age-min-slider" min="{{ $ageBounds['min'] }}" max="{{ $ageBounds['max'] }}" value="{{ request('edad_min', $ageBounds['min']) }}" class="absolute w-full -top-1.5 h-4 appearance-none bg-transparent pointer-events-none custom-slider">
+                        <input type="range" id="age-max-slider" min="{{ $ageBounds['min'] }}" max="{{ $ageBounds['max'] }}" value="{{ request('edad_max', $ageBounds['max']) }}" class="absolute w-full -top-1.5 h-4 appearance-none bg-transparent pointer-events-none custom-slider">
+                    </div>
+                    <div class="flex justify-between mt-3 text-xs font-black text-Alumco-blue/60">
+                        <span id="age-min-value">{{ request('edad_min', $ageBounds['min']) }}</span>
+                        <span id="age-max-value">{{ request('edad_max', $ageBounds['max']) }}</span>
                     </div>
                 </div>
-
-                <noscript>
-                    <div class="mt-3">
-                        <label class="block text-sm font-semibold text-Alumco-gray mb-1">Seleccion multiple (modo basico)</label>
-                        <select name="curso_id[]" multiple class="w-full min-h-[120px] border-Alumco-gray/30 rounded-Alumco shadow-sm border p-2 bg-white text-Alumco-gray">
-                            @foreach($cursos as $curso)
-                            <option value="{{ $curso->id }}" {{ in_array((int) $curso->id, $selectedCursos, true) ? 'selected' : '' }}>{{ $curso->titulo }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                </noscript>
+                <input type="hidden" name="edad_min" id="edad-min-input" value="{{ request('edad_min', $ageBounds['min']) }}">
+                <input type="hidden" name="edad_max" id="edad-max-input" value="{{ request('edad_max', $ageBounds['max']) }}">
             </div>
 
-            <div class="lg:col-span-4 filter-card">
-                <label class="block text-xs uppercase tracking-wide font-bold text-Alumco-gray/75 mb-2">Sede</label>
-                <select name="sede_id[]" multiple class="w-full min-h-[140px] border-Alumco-gray/30 rounded-Alumco shadow-sm border p-2 bg-white text-Alumco-gray focus-ring">
-                    @foreach($sedes as $sede)
-                    <option value="{{ $sede->id }}" {{ in_array((int) $sede->id, $selectedSedes, true) ? 'selected' : '' }}>
-                        {{ $sede->nombre }}
-                    </option>
-                    @endforeach
-                </select>
-                <p class="text-xs text-Alumco-gray/70 mt-2">Puedes seleccionar una o varias sedes.</p>
-            </div>
-
-            <div class="lg:col-span-6 filter-card" id="age-filter-root" data-age-enabled="{{ $edadActiva ? '1' : '0' }}">
-                <div class="flex items-center justify-between mb-2">
-                    <label class="text-xs uppercase tracking-wide font-bold text-Alumco-gray/75">Rango etario</label>
-                    <label class="inline-flex items-center gap-2 text-sm font-semibold text-Alumco-gray cursor-pointer">
-                        <input type="checkbox" id="age-filter-toggle" class="h-4 w-4 accent-Alumco-blue" {{ $edadActiva ? 'checked' : '' }}>
-                        Aplicar
-                    </label>
+            <!-- Footer del Formulario -->
+            <div class="lg:col-span-12 flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-gray-100">
+                <div class="flex items-center gap-3">
+                    @php
+                        $activeFiltersCount = 0;
+                        if (count($selectedSedes) > 0) { $activeFiltersCount++; }
+                        if (count($selectedEstamentos) > 0) { $activeFiltersCount++; }
+                        if (count($selectedCursos) > 0) { $activeFiltersCount++; }
+                        if ((request()->filled('edad_min') && request('edad_min') != $ageBounds['min']) || 
+                            (request()->filled('edad_max') && request('edad_max') != $ageBounds['max'])) { 
+                            $activeFiltersCount++; 
+                        }
+                        if (request()->filled('fecha_inicio') || request()->filled('fecha_fin')) { $activeFiltersCount++; }
+                    @endphp
+                    <span class="badge-filter">{{ $activeFiltersCount }} filtros aplicados</span>
+                    @if($activeFiltersCount > 0)
+                        <a href="{{ route('admin.reportes.index') }}" class="text-xs font-bold text-gray-400 hover:text-Alumco-coral transition-colors underline underline-offset-4">Limpiar todo</a>
+                    @endif
                 </div>
 
-                <div id="age-slider-wrapper" class="pt-4 pb-2 px-3">
-                    <div class="relative w-full h-2 bg-Alumco-gray/20 rounded-full mb-8 mt-2">
-                        <div class="absolute h-full bg-Alumco-blue rounded-full" id="age-range-fill"></div>
-                        <input type="range" id="age-min-slider" min="{{ $edadMinGlobal }}" max="{{ $edadMaxGlobal }}" value="{{ $edadMinInicial }}" class="absolute w-full h-2 bg-transparent appearance-none pointer-events-none z-20 slider-thumb">
-                        <input type="range" id="age-max-slider" min="{{ $edadMinGlobal }}" max="{{ $edadMaxGlobal }}" value="{{ $edadMaxInicial }}" class="absolute w-full h-2 bg-transparent appearance-none pointer-events-none z-20 slider-thumb">
-                    </div>
-
-                    <div class="flex items-center justify-between">
-                        <div class="flex flex-col items-center">
-                            <span class="text-xs font-bold text-Alumco-gray/70 uppercase tracking-wider">Mínimo</span>
-                            <div class="bg-white border border-Alumco-gray/20 shadow-sm rounded-lg px-4 py-1.5 mt-1 text-sm font-bold text-Alumco-gray">
-                                <span id="age-min-value">{{ $edadMinInicial }}</span> años
-                            </div>
-                        </div>
-                        <div class="flex flex-col items-center">
-                            <span class="text-xs font-bold text-Alumco-gray/70 uppercase tracking-wider">Máximo</span>
-                            <div class="bg-white border border-Alumco-gray/20 shadow-sm rounded-lg px-4 py-1.5 mt-1 text-sm font-bold text-Alumco-gray">
-                                <span id="age-max-value">{{ $edadMaxInicial }}</span> años
-                            </div>
-                        </div>
-                    </div>
+                <div class="flex items-center gap-4 w-full sm:w-auto">
+                    <button type="button" onclick="openExportModal()"
+                        class="bg-Alumco-green hover:bg-Alumco-green-vivid text-Alumco-blue font-display font-bold py-3 px-6 rounded-2xl shadow-lg shadow-Alumco-green/20 flex items-center transition-all active:scale-95 text-sm">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        Exportar Excel
+                    </button>
+                    
+                    <button type="submit" class="flex-1 sm:flex-none bg-Alumco-blue hover:bg-Alumco-blue/90 text-white font-display font-bold py-3 px-10 rounded-2xl shadow-lg shadow-Alumco-blue/20 transition-all active:scale-95">
+                        Aplicar Filtros
+                    </button>
                 </div>
-
-                <input type="hidden" id="edad-min-input" name="edad_min" value="{{ request('edad_min') }}">
-                <input type="hidden" id="edad-max-input" name="edad_max" value="{{ request('edad_max') }}">
-
-                <noscript>
-                    <div class="grid grid-cols-2 gap-2 mt-3">
-                        <input type="number" min="0" max="120" name="edad_min" value="{{ request('edad_min') }}" class="w-full border-Alumco-gray/30 rounded-Alumco shadow-sm border p-2" placeholder="Edad min">
-                        <input type="number" min="0" max="120" name="edad_max" value="{{ request('edad_max') }}" class="w-full border-Alumco-gray/30 rounded-Alumco shadow-sm border p-2" placeholder="Edad max">
-                    </div>
-                </noscript>
-            </div>
-
-            <div class="lg:col-span-6 filter-card">
-                <label class="block text-xs uppercase tracking-wide font-bold text-Alumco-gray/75 mb-2">Certificacion</label>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-sm font-semibold text-Alumco-gray mb-1">Aprobado desde</label>
-                        <input type="date" name="fecha_inicio" value="{{ request('fecha_inicio') }}"
-                            class="w-full border-Alumco-gray/30 rounded-Alumco shadow-sm border p-2 text-Alumco-gray focus-ring">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-Alumco-gray mb-1">Aprobado hasta</label>
-                        <input type="date" name="fecha_fin" value="{{ request('fecha_fin') }}"
-                            class="w-full border-Alumco-gray/30 rounded-Alumco shadow-sm border p-2 text-Alumco-gray focus-ring">
-                    </div>
-                </div>
-            </div>
-
-            <div class="lg:col-span-12 flex flex-wrap items-center gap-2">
-                @php
-                    $activeFiltersCount = 0;
-                    if (count($selectedSedes) > 0) { $activeFiltersCount++; }
-                    if (count($selectedEstamentos) > 0) { $activeFiltersCount++; }
-                    if (count($selectedCursos) > 0) { $activeFiltersCount++; }
-                    if ($edadActiva) { $activeFiltersCount++; }
-                    if (request()->filled('fecha_inicio') || request()->filled('fecha_fin')) { $activeFiltersCount++; }
-                @endphp
-                <span class="inline-flex items-center rounded-full bg-Alumco-blue/10 text-Alumco-blue text-sm font-bold px-3 py-1">
-                    {{ $activeFiltersCount }} filtros activos
-                </span>
-            </div>
-
-            <div class="lg:col-span-12 flex flex-wrap gap-2 pt-1">
-                <button type="submit" class="bg-Alumco-blue hover:bg-opacity-90 text-white font-bold py-2.5 px-7 rounded-Alumco shadow transition-colors">Filtrar</button>
-                <a href="{{ route('admin.reportes.index') }}" class="bg-gray-200 hover:bg-gray-300 text-Alumco-gray font-bold py-2.5 px-7 rounded-Alumco shadow transition-colors flex items-center">Limpiar todo</a>
             </div>
         </div>
     </form>
 </div>
 
-<div class="mb-3 rounded-Alumco border border-Alumco-blue/20 bg-Alumco-blue/5 px-4 py-3 text-sm font-semibold text-Alumco-blue">
-    {{ $usuarios->total() }} {{ $usuarios->total() === 1 ? 'usuario' : 'usuarios' }} encontrados.
+<div class="mb-4 flex items-center gap-3">
+    <div class="h-px bg-gray-200 flex-1"></div>
+    <span class="px-4 py-1 rounded-full bg-white border border-gray-100 text-[11px] font-display font-black text-Alumco-blue uppercase tracking-widest shadow-sm">
+        {{ $usuarios->total() }} registros encontrados
+    </span>
+    <div class="h-px bg-gray-200 flex-1"></div>
 </div>
 
-<div class="bg-white rounded-Alumco border border-Alumco-gray/20 overflow-hidden shadow-sm">
-    <table class="min-w-full leading-normal text-Alumco-gray">
-        <thead>
-            <tr>
-                <th class="px-5 py-3 border-b border-Alumco-gray/20 bg-white text-left text-sm font-bold tracking-wider">Nombre</th>
-                <th class="px-5 py-3 border-b border-Alumco-gray/20 bg-white text-left text-sm font-bold tracking-wider">Sexo</th>
-                <th class="px-5 py-3 border-b border-Alumco-gray/20 bg-white text-left text-sm font-bold tracking-wider">Edad</th>
-                <th class="px-5 py-3 border-b border-Alumco-gray/20 bg-white text-left text-sm font-bold tracking-wider">Sede</th>
-                <th class="px-5 py-3 border-b border-Alumco-gray/20 bg-white text-left text-sm font-bold tracking-wider">Estamento</th>
-                <th class="px-5 py-3 border-b border-Alumco-gray/20 bg-white text-left text-sm font-bold tracking-wider">Estado</th>
-                <th class="px-5 py-3 border-b-2 bg-gray-50 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Cursos Aprobados</th>
-                @if($cursoSeleccionado)
-                    <th class="px-5 py-3 border-b-2 bg-gray-50 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Progreso: {{ $cursoSeleccionado->titulo }}</th>
-                @endif
-            </tr>
-        </thead>
-        <tbody>
-            @forelse($usuarios as $user)
-            <tr class="hover:bg-Alumco-cream/50 transition-colors">
-                <td class="px-5 py-4 border-b border-Alumco-gray/10 bg-transparent text-sm">
-                    <p class="font-bold whitespace-no-wrap">{{ $user->name }}</p>
-                    <p class="text-xs opacity-75 mt-0.5">{{ $user->email }}</p>
-                </td>
-                <td class="px-5 py-4 border-b border-Alumco-gray/10 bg-transparent text-sm font-medium">
-                    @php
-                        $sexo = strtolower((string) ($user->sexo ?? ''));
-                    @endphp
-                    @if($sexo === 'm' || $sexo === 'masculino' || $sexo === 'hombre')
-                    Masculino
-                    @elseif($sexo === 'f' || $sexo === 'femenino' || $sexo === 'mujer')
-                    Femenino
-                    @elseif($sexo !== '')
-                    {{ ucfirst($sexo) }}
-                    @else
-                    <span class="opacity-75 italic">No informado</span>
+<!-- Tabla Card-Style -->
+<div class="bg-white rounded-[24px] shadow-sm border border-gray-100">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-gray-50/50">
+                    <th class="px-8 py-5 text-[11px] font-display font-bold uppercase tracking-widest text-gray-400 border-b border-gray-100">Colaborador</th>
+                    <th class="px-8 py-5 text-[11px] font-display font-bold uppercase tracking-widest text-gray-400 border-b border-gray-100">Perfil</th>
+                    <th class="px-8 py-5 text-[11px] font-display font-bold uppercase tracking-widest text-gray-400 border-b border-gray-100">Sede & Rol</th>
+                    <th class="px-8 py-5 text-[11px] font-display font-bold uppercase tracking-widest text-gray-400 border-b border-gray-100">Cursos Aprobados</th>
+                    @if($cursoSeleccionado)
+                        <th class="px-8 py-5 text-[11px] font-display font-bold uppercase tracking-widest text-gray-400 border-b border-gray-100 text-right">Fecha Aprobación</th>
                     @endif
-                </td>
-                <td class="px-5 py-4 border-b border-Alumco-gray/10 bg-transparent text-sm">
-                    @if($user->fecha_nacimiento)
-                    @php
-                        $edad = \Carbon\Carbon::parse($user->fecha_nacimiento)->age;
-                    @endphp
-                    <p class="font-bold">{{ $edad }} años</p>
-                    <p class="text-xs opacity-75">{{ \Carbon\Carbon::parse($user->fecha_nacimiento)->format('d/m/Y') }}</p>
-                    @else
-                    <span class="opacity-75 italic">Sin fecha</span>
-                    @endif
-                </td>
-                <td class="px-5 py-4 border-b border-Alumco-gray/10 bg-transparent text-sm font-medium">
-                    <p class="whitespace-no-wrap">{{ $user->sede->nombre ?? 'N/A' }}</p>
-                </td>
-                <td class="px-5 py-4 border-b border-Alumco-gray/10 bg-transparent text-sm font-medium">
-                    {{ $user->estamento->nombre ?? 'N/A' }}
-                </td>
-                <td class="px-5 py-4 border-b border-Alumco-gray/10 bg-transparent text-sm">
-                    @if($user->activo)
-                    <span class="text-green-600 font-bold">Activo</span>
-                    @else
-                    <span class="text-red-600 font-bold">Inactivo</span>
-                    @endif
-                </td>
-                <td class="px-5 py-4 border-b border-Alumco-gray/10 bg-transparent text-sm">
-                    @forelse($user->certificados as $certificado)
-                    <div class="mb-1">
-                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-Alumco-green text-Alumco-blue">✓ {{ $certificado->curso->titulo }}</span>
-                        <span class="text-xs opacity-75 ml-1">({{ $certificado->fecha_emision->format('d/m/Y') }})</span>
-                    </div>
-                    @empty
-                    <span class="opacity-75 italic text-sm">Sin cursos aprobados</span>
-                    @endforelse
-                </td>
-
-                @if($cursoSeleccionado)
-                    <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm min-w-[200px]">
-                        @php
-                            $totalModulos = $cursoSeleccionado->modulos_count;
-                            $completados = $user->modulos_completados_count ?? 0;
-                            $porcentaje = $totalModulos > 0 ? round(($completados / $totalModulos) * 100) : 0;
-                        @endphp
-
-                        <div class="flex items-center">
-                            <span class="mr-2 text-gray-700 font-bold">{{ $porcentaje }}%</span>
-                            <div class="w-full bg-gray-200 rounded-full h-2.5 flex-1">
-                                <div class="bg-blue-600 h-2.5 rounded-full" style="width: {{ $porcentaje }}%"></div>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-50">
+                @forelse ($usuarios as $user)
+                <tr class="hover:bg-Alumco-cream/30 transition-colors group cursor-default">
+                    <td class="px-8 py-5">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-full bg-Alumco-blue/5 text-Alumco-blue flex items-center justify-center font-display font-bold text-sm">
+                                {{ collect(explode(' ', $user->name))->map(fn($n) => $n[0])->take(2)->join('') }}
+                            </div>
+                            <div>
+                                <p class="font-display font-bold text-Alumco-gray leading-tight">{{ $user->name }}</p>
+                                <p class="text-xs text-Alumco-gray/50 mt-1">{{ $user->email }}</p>
                             </div>
                         </div>
-                        <p class="text-xs text-gray-500 mt-1">{{ $completados }} de {{ $totalModulos }} módulos completados</p>
                     </td>
-                @endif
-            </tr>
-            @empty
-            <tr>
-                <td colspan="8" class="px-5 py-8 border-b border-Alumco-gray/10 bg-transparent text-sm text-center opacity-75">
-                    No se encontraron registros con esos filtros.
-                </td>
-            </tr>
-            @endforelse
-        </tbody>
-    </table>
-    <div class="px-5 py-3 bg-white border-t border-Alumco-gray/10 flex flex-col xs:flex-row items-center xs:justify-between">
+                    <td class="px-8 py-5">
+                        <div class="flex flex-col">
+                            <span class="text-sm font-bold text-Alumco-gray capitalize">{{ $user->sexo === 'F' ? 'Femenino' : ($user->sexo === 'M' ? 'Masculino' : 'Otro') }}</span>
+                            <span class="text-[11px] text-Alumco-gray/40">{{ $user->fecha_nacimiento ? \Carbon\Carbon::parse($user->fecha_nacimiento)->age . ' años' : 'Sin edad' }}</span>
+                        </div>
+                    </td>
+                    <td class="px-8 py-5">
+                        <div class="flex flex-col">
+                            <span class="text-sm font-bold text-Alumco-gray">{{ $user->estamento->nombre ?? 'Sin Estamento' }}</span>
+                            <span class="text-[11px] text-Alumco-gray/40 uppercase tracking-tighter">{{ $user->sede->nombre ?? 'Sin Sede' }}</span>
+                        </div>
+                    </td>
+                    <td class="px-8 py-5">
+                        @if($user->certificados->isEmpty())
+                            <span class="text-xs text-gray-300 italic font-medium">Ninguno aún</span>
+                        @else
+                            <div x-data="{ open: false, x: 0, y: 0 }" 
+                                 @mouseenter="const rect = $el.getBoundingClientRect(); x = rect.left + (rect.width / 2); y = rect.top; open = true" 
+                                 @mouseleave="open = false" 
+                                 class="relative cursor-help inline-block">
+                                <span class="text-sm font-black text-Alumco-blue underline underline-offset-4 decoration-Alumco-blue/30 decoration-dotted">
+                                    {{ $user->certificados->count() }} {{ Str::plural('curso', $user->certificados->count()) }}
+                                </span>
+                                
+                                {{-- Tooltip con lista de cursos (Teleportado para evitar clipping) --}}
+                                <template x-teleport="body">
+                                    <div x-show="open" 
+                                         x-cloak
+                                         x-transition:enter="transition ease-out duration-200"
+                                         x-transition:enter-start="opacity-0 translate-y-1"
+                                         x-transition:enter-end="opacity-100 translate-y-0"
+                                         x-transition:leave="transition ease-in duration-150"
+                                         x-transition:leave-start="opacity-100 translate-y-0"
+                                         x-transition:leave-end="opacity-0 translate-y-1"
+                                         class="fixed z-[9999] w-80 bg-white border border-gray-100 text-Alumco-gray rounded-2xl p-5 shadow-[0_20px_50px_rgba(32,80,153,0.15)] pointer-events-none"
+                                         :style="`left: ${x}px; top: ${y}px; transform: translate(-50%, calc(-100% - 10px))`">
+                                        
+                                        <div class="flex items-center justify-between mb-4 pb-2 border-b border-gray-50">
+                                            <h4 class="font-display font-black uppercase tracking-widest text-[10px] text-Alumco-blue">Historial Académico</h4>
+                                            <span class="text-[9px] font-bold text-gray-300 bg-gray-50 px-2 py-0.5 rounded-full">{{ $user->certificados->count() }} total</span>
+                                        </div>
+                                        
+                                        <div class="space-y-3 max-h-56 overflow-y-auto custom-scrollbar pr-2 pointer-events-auto">
+                                            @foreach($user->certificados->sortByDesc('fecha_emision') as $cert)
+                                                <div class="flex items-start gap-3 p-2 rounded-xl transition-colors {{ in_array($cert->curso_id, $selectedCursos) ? 'bg-Alumco-blue/5 border border-Alumco-blue/10' : '' }}">
+                                                    <div class="w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 {{ in_array($cert->curso_id, $selectedCursos) ? 'bg-Alumco-blue animate-pulse' : 'bg-gray-200' }}"></div>
+                                                    <div class="flex-1 min-w-0">
+                                                        <p class="text-[11px] leading-tight {{ in_array($cert->curso_id, $selectedCursos) ? 'font-black text-Alumco-blue' : 'font-bold text-Alumco-gray' }}">
+                                                            {{ $cert->curso->titulo }}
+                                                        </p>
+                                                        <p class="text-[9px] text-Alumco-gray/40 font-medium mt-1">Aprobado el {{ $cert->fecha_emision->format('d/m/Y') }}</p>
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                        {{-- Flechita --}}
+                                        <div class="absolute top-full left-1/2 -translate-x-1/2 border-[8px] border-transparent border-t-white drop-shadow-[0_1px_0_rgba(0,0,0,0.05)]"></div>
+                                    </div>
+                                </template>
+                            </div>
+                        @endif
+                    </td>
+                    @if($cursoSeleccionado)
+                        <td class="px-8 py-5 text-right">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-lg text-xs font-bold bg-green-50 text-green-700 border border-green-100">
+                                {{ $user->certificados->where('curso_id', $cursoSeleccionado->id)->first()?->fecha_emision?->format('d/m/Y') ?? '—' }}
+                            </span>
+                        </td>
+                    @endif
+                </tr>
+                @empty
+                <tr>
+                    <td colspan="5" class="px-8 py-16 text-center text-Alumco-gray/40">
+                        <div class="flex flex-col items-center opacity-40">
+                            <svg class="w-12 h-12 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                            <p class="font-display font-bold uppercase tracking-widest text-xs">No se encontraron resultados para los filtros aplicados</p>
+                        </div>
+                    </td>
+                </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+    @if($usuarios->hasPages())
+    <div class="px-8 py-5 border-t border-gray-50 bg-gray-50/30">
         {{ $usuarios->links() }}
+    </div>
+    @endif
+</div>
+@endsection
+
+@push('styles')
+<style>
+    .custom-slider {
+        pointer-events: none;
+    }
+    .custom-slider::-webkit-slider-thumb {
+        pointer-events: auto;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: #205099;
+        cursor: pointer;
+        border: 2px solid white;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        -webkit-appearance: none;
+    }
+    .custom-slider::-moz-range-thumb {
+        pointer-events: auto;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: #205099;
+        cursor: pointer;
+        border: 2px solid white;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+</style>
+@endpush
+
+@section('modals')
+<!-- Modal Configuración Exportación -->
+<div id="export-modal-backdrop" class="fixed inset-0 bg-Alumco-gray/40 backdrop-blur-sm z-50 hidden opacity-0 pointer-events-none transition-opacity duration-300" aria-hidden="true"></div>
+<div id="export-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden opacity-0 pointer-events-none transition-all duration-300 scale-95" aria-hidden="true">
+    <div class="bg-white w-full max-w-7xl rounded-3xl shadow-xl overflow-hidden" 
+         x-data="{
+            allCols: {
+                nombre:    { label: 'Nombre completo', data: ['Juan Pérez', 'María Ignacia', 'Carlos Ruiz'] },
+                sexo:      { label: 'Sexo', data: ['Masculino', 'Femenino', 'Masculino'] },
+                edad:      { label: 'Edad', data: ['28 años', '34 años', '45 años'] },
+                email:     { label: 'Correo', data: ['j.perez@alumco.cl', 'm.ignacia@alumco.cl', 'c.ruiz@alumco.cl'] },
+                sede:      { label: 'Sede', data: ['Sede Central', 'Sede Norte', 'Sede Sur'] },
+                estamento: { label: 'Estamento', data: ['Auxiliares', 'Enfermería', 'Directivos'] },
+                cursos:    { label: 'Cursos Aprobados', data: ['Curso A (20/04)', 'Curso B (15/04)', '—'] }
+            },
+            selectedKeys: ['nombre', 'sexo', 'edad', 'email', 'sede', 'estamento', 'cursos'],
+            
+            toggleCol(key) {
+                if (this.selectedKeys.includes(key)) {
+                    this.selectedKeys = this.selectedKeys.filter(k => k !== key);
+                } else {
+                    this.selectedKeys.push(key);
+                }
+            },
+            
+            reorder(fromIdx, toIdx) {
+                const item = this.selectedKeys.splice(fromIdx, 1)[0];
+                this.selectedKeys.splice(toIdx, 0, item);
+            },
+
+            resetToDefault() {
+                this.selectedKeys = ['nombre', 'sexo', 'edad', 'email', 'sede', 'estamento', 'cursos'];
+            }
+         }"
+         @open-export-modal.window="resetToDefault()">
+        <form action="{{ route('admin.reportes.exportar') }}" method="GET">
+            {{-- Replicar filtros actuales --}}
+            @foreach(request()->except(['columnas', 'nombres']) as $key => $value)
+                @if(is_array($value))
+                    @foreach($value as $v)
+                        <input type="hidden" name="{{ $key }}[]" value="{{ $v }}">
+                    @endforeach
+                @else
+                    <input type="hidden" name="{{ $key }}" value="{{ $value }}">
+                @endif
+            @endforeach
+
+            {{-- Inputs ocultos para enviar el orden final al servidor --}}
+            <template x-for="key in selectedKeys" :key="key">
+                <input type="hidden" name="columnas[]" :value="key">
+            </template>
+
+            <div class="p-8">
+                <div class="flex items-center gap-4 mb-8">
+                    <div class="w-12 h-12 rounded-full bg-Alumco-green/10 text-Alumco-blue flex items-center justify-center">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-display font-black text-Alumco-blue">Configurar Exportación</h3>
+                    </div>
+                </div>
+
+                {{-- Paso 1: Selección de Columnas --}}
+                <div class="mb-8">
+                    <div class="flex items-center justify-between mb-4">
+                        <h4 class="text-[11px] font-black text-Alumco-blue/70 uppercase tracking-widest flex items-center gap-2">
+                            <span class="w-5 h-5 rounded-full bg-Alumco-blue text-white flex items-center justify-center text-[9px]">1</span>
+                            Seleccionar columnas a incluir
+                        </h4>
+                        <button type="button" @click="resetToDefault()" class="text-[16px] font-black uppercase text-Alumco-blue hover:text-Alumco-coral transition-colors flex items-center gap-1.5">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                            Restaurar
+                        </button>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <template x-for="(info, key) in allCols" :key="key">
+                            <button type="button" 
+                                    @click="toggleCol(key)"
+                                    :class="selectedKeys.includes(key) ? 'bg-Alumco-blue text-white border-Alumco-blue shadow-md' : 'bg-white text-Alumco-gray/40 border-gray-100 hover:border-Alumco-blue/20'"
+                                    class="px-4 py-2 rounded-xl border text-xs font-bold transition-all flex items-center gap-2 active:scale-95">
+                                <svg x-show="selectedKeys.includes(key)" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                <svg x-show="!selectedKeys.includes(key)" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                <span x-text="info.label"></span>
+                            </button>
+                        </template>
+                    </div>
+                </div>
+                
+                {{-- Paso 2: Vista Previa y Orden --}}
+                <div x-show="selectedKeys.length > 0">
+                    <h4 class="text-[11px] font-black text-Alumco-blue/70 uppercase tracking-widest mb-4 flex items-center gap-2">
+                        <span class="w-5 h-5 rounded-full bg-Alumco-blue text-white flex items-center justify-center text-[9px]">2</span>
+                        Vista previa y orden de columnas
+                    </h4>
+                    <div class="bg-white border border-gray-200 rounded-2xl overflow-x-auto shadow-inner custom-scrollbar">
+                        <div id="column-sortable-list" class="flex min-w-max bg-white">
+                            <template x-for="(key, index) in selectedKeys" :key="key">
+                                <div class="column-drag-item flex flex-col min-w-[180px] border-r border-gray-100 last:border-r-0 bg-white group transition-all" 
+                                     draggable="true" 
+                                     :data-key="key"
+                                     @dragstart.stop="$event.dataTransfer.setData('fromIdx', index); $event.target.classList.add('opacity-40')"
+                                     @dragend.stop="$event.target.classList.remove('opacity-40')"
+                                     @dragover.prevent
+                                     @drop.stop="const from = $event.dataTransfer.getData('fromIdx'); reorder(parseInt(from), index)">
+                                    
+                                    {{-- Cabecera --}}
+                                    <div class="px-5 py-4 bg-gray-50/50 border-b border-gray-100 flex items-center justify-between gap-3 relative">
+                                        <span class="text-[11px] font-display font-black text-Alumco-blue uppercase tracking-widest whitespace-nowrap" x-text="allCols[key].label"></span>
+
+                                        <div class="cursor-grab active:cursor-grabbing text-gray-300 hover:text-Alumco-blue/40 transition-colors">
+                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M7 7a2 2 0 100-4 2 2 0 000 4zm0 6a2 2 0 100-4 2 2 0 000 4zm0 6a2 2 0 100-4 2 2 0 000 4zm6-12a2 2 0 100-4 2 2 0 000 4zm0 6a2 2 0 100-4 2 2 0 000 4zm0 6a2 2 0 100-4 2 2 0 000 4z"/></svg>
+                                        </div>
+                                    </div>
+
+                                    {{-- Datos de Ejemplo --}}
+                                    <template x-for="dataText in allCols[key].data">
+                                        <div class="px-5 py-3.5 text-xs text-Alumco-gray/60 border-b border-gray-50 last:border-b-0 whitespace-nowrap overflow-hidden text-ellipsis" x-text="dataText"></div>
+                                    </template>
+                                    
+                                    {{-- Pie --}}
+                                    <div class="px-5 py-2 bg-gray-50/20 text-[9px] font-bold text-gray-300 uppercase tracking-tighter" x-text="'Columna: ' + key"></div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Empty State --}}
+                <div x-show="selectedKeys.length === 0" class="py-20 text-center border-2 border-dashed border-gray-100 rounded-3xl">
+                    <p class="text-Alumco-gray/40 font-bold uppercase tracking-widest text-xs">Selecciona al menos una columna para ver la vista previa</p>
+                </div>
+
+                <div class="mt-6 p-4 rounded-2xl bg-amber-50 border border-amber-100 flex gap-3">
+                    <svg class="w-5 h-5 text-amber-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <p class="text-[10px] text-amber-800 font-medium leading-relaxed uppercase tracking-wider">
+                        El archivo Excel final respetará exactamente el orden de izquierda a derecha configurado arriba.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="p-6 border-t border-gray-50 bg-gray-50/30 flex items-center justify-end gap-3">
+                <button type="button" onclick="closeExportModal()" class="px-6 py-2.5 text-sm font-bold text-Alumco-gray/50 hover:text-Alumco-coral transition-colors text-center font-display">Cancelar</button>
+                <button type="submit" 
+                        :disabled="selectedKeys.length === 0"
+                        class="bg-Alumco-green hover:bg-Alumco-green-vivid text-Alumco-blue font-display font-bold py-3 px-10 rounded-xl shadow-lg shadow-Alumco-green/20 transition-all active:scale-95 flex items-center gap-2 disabled:opacity-30 disabled:pointer-events-none">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    Generar Reporte Excel
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 @endsection
 
 @push('scripts')
 <script>
+    const expBackdrop = document.getElementById('export-modal-backdrop');
+    const expModal = document.getElementById('export-modal');
+    let isExpOpen = false;
+
+    function openExportModal() {
+        if (!expBackdrop || !expModal) return;
+        window.dispatchEvent(new CustomEvent('open-export-modal'));
+        expBackdrop.classList.remove('hidden');
+        expModal.classList.remove('hidden');
+        void expModal.offsetWidth;
+        expBackdrop.classList.remove('opacity-0', 'pointer-events-none');
+        expModal.classList.remove('opacity-0', 'pointer-events-none', 'scale-95');
+        expModal.classList.add('scale-100');
+        isExpOpen = true;
+    }
+
+    function closeExportModal() {
+        if (!expBackdrop || !expModal) return;
+        expBackdrop.classList.add('opacity-0', 'pointer-events-none');
+        expModal.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
+        expModal.classList.remove('scale-100');
+        setTimeout(() => {
+            if (!isExpOpen) {
+                expBackdrop.classList.add('hidden');
+                expModal.classList.add('hidden');
+            }
+        }, 300);
+        isExpOpen = false;
+    }
+
+    expBackdrop?.addEventListener('click', closeExportModal);
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && isExpOpen) closeExportModal(); });
+
     document.addEventListener('DOMContentLoaded', function () {
-        const pickerRoot = document.getElementById('course-filter-root');
-        if (pickerRoot) {
-            const trigger = document.getElementById('course-picker-trigger');
-            const panel = document.getElementById('course-picker-panel');
-            const closeBtn = document.getElementById('course-picker-close');
-            const searchInput = document.getElementById('course-search');
-            const clearBtn = document.getElementById('course-clear-btn');
-            const summary = document.getElementById('course-picker-summary');
-            const countBadge = document.getElementById('course-picker-count');
-            const chipsContainer = document.getElementById('selected-course-chips');
-            const options = Array.from(document.querySelectorAll('[data-course-option]'));
-
-            const openPanel = () => {
-                panel.classList.remove('hidden');
-                trigger.setAttribute('aria-expanded', 'true');
-                if (searchInput) searchInput.focus();
-            };
-
-            const closePanel = () => {
-                panel.classList.add('hidden');
-                trigger.setAttribute('aria-expanded', 'false');
-            };
-
-            const selectedItems = () => options.filter((option) => option.checked);
-
-            const updatePickerView = () => {
-                const selected = selectedItems();
-                const total = selected.length;
-                countBadge.textContent = String(total);
-
-                if (total === 0) {
-                    summary.textContent = 'Selecciona uno o mas cursos';
-                } else if (total === 1) {
-                    summary.textContent = selected[0].dataset.courseLabel;
-                } else {
-                    summary.textContent = total + ' cursos seleccionados';
-                }
-
-                chipsContainer.innerHTML = '';
-                selected.slice(0, 8).forEach((option) => {
-                    const chip = document.createElement('button');
-                    chip.type = 'button';
-                    chip.className = 'inline-flex items-center gap-2 rounded-full border border-Alumco-blue/30 bg-white text-Alumco-blue text-xs font-bold px-3 py-1 hover:bg-Alumco-cream';
-                    chip.innerHTML = '<span>' + option.dataset.courseLabel + '</span><span aria-hidden="true">x</span>';
-                    chip.addEventListener('click', function () {
-                        option.checked = false;
-                        updatePickerView();
-                    });
-                    chipsContainer.appendChild(chip);
-                });
-
-                if (total > 8) {
-                    const extra = document.createElement('span');
-                    extra.className = 'inline-flex items-center rounded-full bg-Alumco-gray/15 text-Alumco-gray text-xs font-bold px-3 py-1';
-                    extra.textContent = '+' + (total - 8) + ' mas';
-                    chipsContainer.appendChild(extra);
-                }
-            };
-
-            const filterCourses = () => {
-                const query = (searchInput.value || '').toLowerCase().trim();
-                const labels = Array.from(document.querySelectorAll('.course-option'));
-                labels.forEach((label) => {
-                    const title = label.dataset.courseTitle || '';
-                    label.classList.toggle('hidden', !title.includes(query));
-                });
-            };
-
-            trigger.addEventListener('click', function () {
-                if (panel.classList.contains('hidden')) openPanel(); else closePanel();
-            });
-
-            closeBtn.addEventListener('click', closePanel);
-
-            document.addEventListener('keydown', function (event) {
-                if (event.key === 'Escape') closePanel();
-            });
-
-            document.addEventListener('click', function (event) {
-                if (!pickerRoot.contains(event.target) && !panel.classList.contains('hidden')) closePanel();
-            });
-
-            options.forEach((option) => option.addEventListener('change', updatePickerView));
-            if (searchInput) searchInput.addEventListener('input', filterCourses);
-
-            clearBtn.addEventListener('click', function () {
-                options.forEach((option) => option.checked = false);
-                if (searchInput) { searchInput.value = ''; filterCourses(); }
-                updatePickerView();
-            });
-
-            updatePickerView();
-        }
-
+        // --- RANGO ETARIO ---
         const ageRoot = document.getElementById('age-filter-root');
         if (ageRoot) {
-            const toggle = document.getElementById('age-filter-toggle');
             const minSlider = document.getElementById('age-min-slider');
             const maxSlider = document.getElementById('age-max-slider');
             const minValue = document.getElementById('age-min-value');
@@ -457,52 +451,34 @@
             const fill = document.getElementById('age-range-fill');
             const minInput = document.getElementById('edad-min-input');
             const maxInput = document.getElementById('edad-max-input');
-            const wrapper = document.getElementById('age-slider-wrapper');
+            
+            const minRange = parseInt(minSlider.min);
+            const maxRange = parseInt(maxSlider.max);
 
-            const minRange = parseInt(minSlider.min, 10);
-            const maxRange = parseInt(minSlider.max, 10);
-            const totalRange = Math.max(1, maxRange - minRange);
-
-            const updateRangeFill = () => {
-                let min = parseInt(minSlider.value, 10);
-                let max = parseInt(maxSlider.value, 10);
-
-                if (min > max) {
-                    if (document.activeElement === minSlider) {
-                        max = min; maxSlider.value = String(max);
-                    } else {
-                        min = max; minSlider.value = String(min);
-                    }
+            const updateRange = () => {
+                let v1 = parseInt(minSlider.value);
+                let v2 = parseInt(maxSlider.value);
+                
+                // Asegurar que v1 sea el menor y v2 el mayor
+                if (v1 > v2) {
+                    [v1, v2] = [v2, v1];
                 }
-
-                fill.style.left = (((min - minRange) / totalRange) * 100) + '%';
-                fill.style.width = (((max - min) / totalRange) * 100) + '%';
-                minValue.textContent = String(min);
-                maxValue.textContent = String(max);
-
-                if (toggle.checked) {
-                    minInput.value = String(min);
-                    maxInput.value = String(max);
-                }
+                
+                fill.style.left = ((v1 - minRange) / (maxRange - minRange) * 100) + '%';
+                fill.style.width = ((v2 - v1) / (maxRange - minRange) * 100) + '%';
+                
+                minValue.textContent = v1;
+                maxValue.textContent = v2;
+                
+                minInput.value = v1;
+                maxInput.value = v2;
             };
 
-            const applyAgeEnabled = () => {
-                const enabled = toggle.checked;
-                wrapper.classList.toggle('range-disabled', !enabled);
-                minSlider.disabled = !enabled; maxSlider.disabled = !enabled;
-                if (enabled) {
-                    minInput.value = minSlider.value; maxInput.value = maxSlider.value;
-                } else {
-                    minInput.value = ''; maxInput.value = '';
-                }
-            };
-
-            minSlider.addEventListener('input', updateRangeFill);
-            maxSlider.addEventListener('input', updateRangeFill);
-            toggle.addEventListener('change', applyAgeEnabled);
-
-            updateRangeFill();
-            applyAgeEnabled();
+            minSlider.oninput = updateRange;
+            maxSlider.oninput = updateRange;
+            
+            // Inicializar
+            updateRange();
         }
     });
 </script>

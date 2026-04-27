@@ -1,0 +1,10 @@
+{
+    "firasans": {
+        "normal": "\/var\/www\/html\/storage\/fonts\/firasans_normal_130e6fc3161af45ca3d6f8960547fbdb",
+        "bold": "firasans_bold_686c085158cd93441947e670c3a53125"
+    },
+    "sora": {
+        "600": "\/var\/www\/html\/storage\/fonts\/sora_600_2cc9c78093287a65b88aec9374291f0c",
+        "800": "sora_800_93139b265a9eded39e96ae7ff3d6acf9"
+    }
+}

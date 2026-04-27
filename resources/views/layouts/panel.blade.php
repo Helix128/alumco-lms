@@ -5,216 +5,275 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Alumco - Panel</title>
+    <title>Alumco - @yield('title', 'Panel')</title>
+    
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;500;600;700;900&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+    
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
     <style>
-        .rounded-Alumco { border-radius: 8px; }
-
-        .focus-ring {
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(32, 80, 153, 0.25);
+        :root {
+            --sidebar-width: 260px;
+            --sidebar-collapsed-width: 80px;
         }
 
-        .filter-card {
-            border: 1px solid rgba(94, 94, 94, 0.2);
-            border-radius: 8px;
-            background: #ffffff;
-            padding: 14px;
+        .sidebar-transition {
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+        .nav-item-active {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-right: 4px solid var(--color-Alumco-cyan);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: rgba(94, 94, 94, 0.35);
+            background: rgba(94, 94, 94, 0.2);
             border-radius: 9999px;
         }
 
+        .custom-scrollbar-light::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar-light::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 9999px;
+        }
+        
         /* Context Menu Styles */
         .context-menu {
             position: fixed;
             background: white;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            border: 1px solid rgba(94, 94, 94, 0.2);
-            z-index: 50;
-            min-width: 160px;
-            padding: 4px 0;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(94, 94, 94, 0.1);
+            z-index: 100;
+            min-width: 180px;
+            padding: 6px;
             display: none;
         }
-
-        .context-menu.active {
-            display: block;
-        }
-
+        .context-menu.active { display: block; }
         .context-menu-item {
-            display: block;
+            display: flex;
+            align-items: center;
             width: 100%;
-            text-align: left;
-            padding: 8px 16px;
+            padding: 10px 12px;
             font-size: 14px;
-            color: #4a5568;
-            cursor: pointer;
+            color: #4A4A4A;
+            border-radius: 8px;
             transition: all 0.2s;
         }
-
         .context-menu-item:hover {
-            background-color: #f7fafc;
-            color: #2b6cb0;
+            background-color: #F3F4F6;
+            color: #205099;
         }
     </style>
     @stack('styles')
 </head>
 
-<body class="bg-Alumco-cream font-sans leading-normal tracking-normal text-Alumco-gray h-screen flex overflow-hidden">
+<body class="bg-Alumco-cream font-sans text-Alumco-gray h-screen flex flex-col overflow-hidden antialiased">
 
-    <!-- Sidebar -->
-    <aside class="w-20 bg-Alumco-blue flex flex-col items-center py-6 gap-8 z-10 shrink-0">
+    <!-- Topbar -->
+    <header class="bg-Alumco-blue border-b border-white/10 shadow-lg px-6 py-3 flex items-center justify-between z-30 shrink-0">
+        <div class="flex items-center gap-8">
+            <a href="{{ route('capacitador.dashboard') }}" class="flex items-center text-white">
+                <x-logo-alumco class="h-8 w-auto" />
+            </a>
+            <div class="h-6 w-px bg-white/20 hidden md:block"></div>
+            <h1 class="hidden md:block font-display font-bold text-lg text-white">
+                @yield('header_title', 'Centro de Gestión')
+            </h1>
+        </div>
 
-        {{-- Dashboard — visible para capacitadores y admins --}}
-        @if(auth()->user()->isCapacitador() || auth()->user()->hasAdminAccess())
-        <a href="{{ route('capacitador.dashboard') }}"
-           class="text-white hover:text-Alumco-cyan cursor-pointer transition-colors" title="Dashboard">
-            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-            </svg>
-        </a>
-        @endif
+        <div class="flex items-center gap-4">
+            @auth
+            @if(auth()->user()->hasAdminAccess())
+                <form action="{{ route('admin.preview.toggle') }}" method="POST">
+                    @csrf
+                    <button type="submit" 
+                            class="flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider transition-all
+                                   {{ session('preview_mode') 
+                                      ? 'bg-amber-500 text-white hover:bg-amber-600 animate-pulse' 
+                                      : 'bg-white/10 text-white/60 hover:bg-white/20 hover:text-white' }}">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                        </svg>
+                        {{ session('preview_mode') ? 'Saliendo de Vista Previa' : 'Ver como Usuario' }}
+                    </button>
+                </form>
+            @endif
 
-        {{-- Mis Cursos — visible para capacitadores y admins --}}
-        @if(auth()->user()->isCapacitador() || auth()->user()->hasAdminAccess())
-        <a href="{{ route('capacitador.cursos.index') }}"
-           class="text-white hover:text-Alumco-cyan cursor-pointer transition-colors" title="Mis cursos">
-            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-            </svg>
-        </a>
-        @endif
+            <div class="text-right hidden sm:block">
+                <p class="text-[10px] font-black text-white/40 uppercase tracking-widest">Administrador</p>
+                <p class="text-sm font-bold text-white">{{ auth()->user()->name }}</p>
+            </div>
+            @php
+                $initials = collect(explode(' ', trim(auth()->user()->name)))
+                    ->map(fn($w) => strtoupper($w[0] ?? ''))
+                    ->take(2)
+                    ->join('');
+            @endphp
+            <a href="{{ route('perfil.index') }}"
+               class="w-10 h-10 rounded-full bg-white text-Alumco-blue font-display font-black text-sm
+                      flex items-center justify-center shadow-sm hover:scale-105 transition-transform select-none">
+                {{ $initials }}
+            </a>
+            @endauth
+        </div>
+    </header>
 
-        {{-- Reportes — solo admins --}}
-        @if(auth()->user()->hasAdminAccess())
-        <a href="{{ route('admin.reportes.index') }}"
-           class="text-white hover:text-Alumco-cyan cursor-pointer transition-colors" title="Reportes">
-            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-            </svg>
-        </a>
-        @endif
+    <div class="flex-1 flex overflow-hidden">
+        
+        <!-- Expandable Sidebar -->
+        <aside id="sidebar" class="sidebar-transition w-64 bg-Alumco-blue flex flex-col z-20 shrink-0 overflow-hidden">
+            
+            <div class="flex-1 py-6 flex flex-col gap-1 overflow-y-auto custom-scrollbar border-r border-white/10">
+                
+                @if(session('preview_mode'))
+                    {{-- Opciones de Trabajador en Vista Previa --}}
+                    <h2 class="px-6 py-2 text-[10px] font-black text-amber-500 uppercase tracking-[0.2em] mb-2 select-none">Vista Previa: Trabajador</h2>
+                    
+                    <x-nav-link-admin href="{{ route('cursos.index') }}" :active="request()->routeIs('cursos.*')" title="Mis Cursos">
+                        <x-slot name="icon">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                            </svg>
+                        </x-slot>
+                        Mis Cursos
+                    </x-nav-link-admin>
 
-        {{-- Usuarios — solo admins --}}
-        @if(auth()->user()->hasAdminAccess())
-        <a href="{{ route('admin.usuarios.index') }}"
-           class="text-white hover:text-Alumco-cyan cursor-pointer transition-colors" title="Usuarios">
-            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-            </svg>
-        </a>
-        @endif
+                    <x-nav-link-admin href="{{ route('calendario.index') }}" :active="request()->routeIs('calendario.*')" title="Calendario">
+                        <x-slot name="icon">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                        </x-slot>
+                        Calendario
+                    </x-nav-link-admin>
 
-        {{-- Calendario -- visible para capacitadores y admins --}}
-        @if(auth()->user()->isCapacitador() || auth()->user()->hasAdminAccess())
-        <a href="{{ route('calendario.index') }}" 
-            class="text-white hover:text-Alumco-cyan cursor-pointer transition-colors" title="Calendario">
-            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-            </svg>
-        </a>
-        @endif
+                    <x-nav-link-admin href="{{ route('mis-certificados.index') }}" :active="request()->routeIs('mis-certificados.*')" title="Mis Certificados">
+                        <x-slot name="icon">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                            </svg>
+                        </x-slot>
+                        Mis Certificados
+                    </x-nav-link-admin>
 
-        <!-- Cerrar sesión -->
-        <form method="POST" action="{{ route('logout') }}" class="mt-auto">
-            @csrf
-            <button type="submit"
-                    class="text-white hover:text-Alumco-cyan cursor-pointer bg-transparent border-none focus-ring p-1 rounded-Alumco transition-colors"
-                    title="Cerrar sesión">
-                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
-                </svg>
-            </button>
-        </form>
-    </aside>
+                @else
+                {{-- Dashboard --}}
+                @if(auth()->user()->isCapacitador() || auth()->user()->hasAdminAccess())
+                <x-nav-link-admin href="{{ route('capacitador.dashboard') }}" :active="request()->routeIs('capacitador.dashboard')" title="Dashboard">
+                    <x-slot name="icon">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                        </svg>
+                    </x-slot>
+                    Dashboard
+                </x-nav-link-admin>
+                @endif
 
-    <!-- Main Wrapper -->
-    <div class="flex-1 flex flex-col overflow-hidden relative">
+                {{-- Mis Cursos / Gestión Contenido --}}
+                @if(auth()->user()->isCapacitador() || auth()->user()->hasAdminAccess())
+                <x-nav-link-admin href="{{ route('capacitador.cursos.index') }}" :active="request()->routeIs('capacitador.*cursos*')" title="Contenido">
+                    <x-slot name="icon">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                        </svg>
+                    </x-slot>
+                    Cursos y Material
+                </x-nav-link-admin>
+                @endif
 
-        <!-- Header -->
-        <header class="bg-Alumco-blue text-white py-4 px-8 shadow-sm flex justify-between items-center z-10 relative">
-            <h1 class="text-2xl font-bold">@yield('title', 'Panel')</h1>
-            <div class="text-sm">
-                Hola, <span class="font-bold">{{ auth()->user()->name }}</span>
+                {{-- Reportes --}}
                 @if(auth()->user()->hasAdminAccess())
-                    <span class="ml-2 opacity-70 text-xs">&middot; Admin</span>
-                @elseif(auth()->user()->isCapacitadorInterno())
-                    <span class="ml-2 opacity-70 text-xs">&middot; {{ auth()->user()->sexo === 'F' ? 'Interna' : 'Interno' }}</span>
-                @elseif(auth()->user()->isCapacitadorExterno())
-                    <span class="ml-2 opacity-70 text-xs">&middot; {{ auth()->user()->sexo === 'F' ? 'Externa' : 'Externo' }}</span>
+                <x-nav-link-admin href="{{ route('admin.reportes.index') }}" :active="request()->routeIs('admin.reportes.*')" title="Reportes">
+                    <x-slot name="icon">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                        </svg>
+                    </x-slot>
+                    Reportes Académicos
+                </x-nav-link-admin>
+                @endif
+
+                {{-- Usuarios --}}
+                @if(auth()->user()->hasAdminAccess())
+                <x-nav-link-admin href="{{ route('admin.usuarios.index') }}" :active="request()->routeIs('admin.usuarios.*')" title="Usuarios">
+                    <x-slot name="icon">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                        </svg>
+                    </x-slot>
+                    Directorio de usuarios
+                </x-nav-link-admin>
+                @endif
+
+                {{-- Configuración Global (Solo Dev) --}}
+                @if(auth()->user()->isDesarrollador())
+                <x-nav-link-admin href="{{ route('dev.configuracion') }}" :active="request()->routeIs('dev.configuracion')" title="Variables">
+                    <x-slot name="icon">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                    </x-slot>
+                    Variables de Sistema
+                </x-nav-link-admin>
+                @endif
+
+                {{-- Calendario --}}
+                @if(auth()->user()->isCapacitador() || auth()->user()->hasAdminAccess())
+                <x-nav-link-admin href="{{ route('calendario.index') }}" :active="request()->routeIs('calendario.index')" title="Calendario">
+                    <x-slot name="icon">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                    </x-slot>
+                    Calendario Institucional
+                </x-nav-link-admin>
+                @endif
                 @endif
             </div>
-        </header>
+
+            <!-- Footer Sidebar: Cerrar sesión -->
+            <div class="p-4 border-t border-white/10">
+                <form method="POST" action="{{ route('logout') }}">
+                    @csrf
+                    <button type="submit"
+                            class="w-full flex items-center gap-4 px-4 py-3 text-white/70 hover:text-Alumco-coral hover:bg-Alumco-coral/10 rounded-xl transition-all duration-200 group"
+                            title="Cerrar sesión">
+                        <svg class="w-6 h-6 shrink-0 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                        </svg>
+                        <span class="font-medium whitespace-nowrap overflow-hidden text-ellipsis">Cerrar Sesión</span>
+                    </button>
+                </form>
+            </div>
+        </aside>
 
         <!-- Main Content -->
-        <main class="flex-1 overflow-auto p-8 relative pb-24 z-0">
-
-            @if(session('success'))
-                <div class="mb-6 px-4 py-3 bg-green-50 border-l-4 border-green-500 text-green-700 rounded shadow-sm flex flex-col" role="alert">
-                    <p class="font-medium">{{ session('success') }}</p>
-                </div>
-            @endif
-
-            @if(session('error'))
-                <div class="mb-6 px-4 py-3 bg-red-50 border-l-4 border-red-500 text-red-700 rounded shadow-sm flex flex-col" role="alert">
-                    <p class="font-medium">{{ session('error') }}</p>
-                </div>
-            @endif
-
-            @if($errors->any())
-                <div class="mb-6 px-4 py-3 bg-red-50 border-l-4 border-red-500 text-red-700 rounded shadow-sm" role="alert">
-                    <p class="font-bold mb-1">Por favor corrige los siguientes errores:</p>
-                    <ul class="list-disc ml-5 text-sm">
-                        @foreach($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
-
-            @yield('content')
-
-            <!-- Brand Watermark -->
-            <div class="mt-8 flex justify-end items-center pointer-events-none w-full pb-8">
-                <img src="{{ asset('images/logo/alumco-full.svg') }}" alt="Alumco" class="h-14 w-auto pointer-events-auto" dropzone="none">
+        <main class="flex-1 overflow-x-hidden overflow-y-auto p-6 lg:p-10">
+            <div class="max-w-[1600px] mx-auto">
+                @yield('content')
             </div>
-
         </main>
     </div>
 
-    <!-- Context Menu Markup -->
-    @yield('context-menu')
+    @yield('modals')
 
+    <!-- Toggle Sidebar Script -->
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const contextMenu = document.getElementById('global-context-menu');
-
-            if (!contextMenu) return;
-
-            const hideMenu = () => { contextMenu.classList.remove('active'); };
-
-            document.addEventListener('click', hideMenu);
-            document.addEventListener('keydown', (e) => { if (e.key === 'Escape') hideMenu(); });
-            contextMenu.addEventListener('click', (e) => { e.stopPropagation(); });
-        });
+        const sidebar = document.getElementById('sidebar');
+        // Por ahora lo mantendremos fijo expandido, pero preparado para colapsar
+        // window.toggleSidebar = () => { ... }
     </script>
 
-    @livewireScripts
     @stack('scripts')
 </body>
-
 </html>

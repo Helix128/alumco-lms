@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Certificado;
 use App\Models\Curso;
 use App\Models\IntentoEvaluacion;
+use App\Models\GlobalSetting;
 use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Storage;
@@ -46,9 +47,10 @@ class CertificadoService
 
         $codigo = (string) Str::uuid();
         $capacitador = $curso->capacitador;
+        $firmaRepLegal = GlobalSetting::get('firma_representante_legal', '');
 
-        $pdf = Pdf::loadView('capacitador.certificados.plantilla', compact('user', 'curso', 'codigo', 'capacitador'))
-            ->setPaper('a4', 'landscape');
+        $pdf = Pdf::loadView('capacitador.certificados.plantilla', compact('user', 'curso', 'codigo', 'capacitador', 'firmaRepLegal'))
+            ->setPaper('letter', 'landscape');
 
         $rutaRelativa = "certificados/{$codigo}.pdf";
         Storage::disk('public')->put($rutaRelativa, $pdf->output());

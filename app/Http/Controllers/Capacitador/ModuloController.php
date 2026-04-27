@@ -49,8 +49,9 @@ class ModuloController extends Controller
         $data['orden']    = ($curso->modulos()->max('orden') ?? 0) + 1;
 
         if ($request->hasFile('ruta_archivo')) {
-            $data['ruta_archivo'] = $request->file('ruta_archivo')
-                ->store("modulos/{$curso->id}", 'public');
+            $file = $request->file('ruta_archivo');
+            $data['ruta_archivo'] = $file->store("modulos/{$curso->id}", 'public');
+            $data['nombre_archivo_original'] = $file->getClientOriginalName();
         }
 
         $modulo = DB::transaction(function () use ($data, $curso) {
@@ -99,8 +100,9 @@ class ModuloController extends Controller
             if ($modulo->ruta_archivo) {
                 Storage::disk('public')->delete($modulo->ruta_archivo);
             }
-            $data['ruta_archivo'] = $request->file('ruta_archivo')
-                ->store("modulos/{$curso->id}", 'public');
+            $file = $request->file('ruta_archivo');
+            $data['ruta_archivo'] = $file->store("modulos/{$curso->id}", 'public');
+            $data['nombre_archivo_original'] = $file->getClientOriginalName();
         }
 
         $modulo->update($data);
