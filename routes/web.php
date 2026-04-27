@@ -126,5 +126,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/usuarios', function () {
             return view('admin.usuarios.index');
         })->name('usuarios.index');
+
+        // Perfil Administrativo
+        Route::get('/perfil', [PerfilController::class, 'showAdmin'])->name('perfil.index');
     });
 });

@@ -31,4 +31,11 @@ class PerfilController extends Controller
             'certificados'
         ));
     }
+
+    public function showAdmin()
+    {
+        $user = auth()->user()->load(['sede', 'estamento']);
+
+        return view('admin.perfil', compact('user'));
+    }
 }

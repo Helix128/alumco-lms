@@ -118,7 +118,7 @@
                     ->take(2)
                     ->join('');
             @endphp
-            <a href="{{ route('perfil.index') }}"
+            <a href="{{ route('admin.perfil.index') }}"
                class="w-10 h-10 rounded-full bg-white text-Alumco-blue font-display font-black text-sm
                       flex items-center justify-center shadow-sm hover:scale-105 transition-transform select-none">
                 {{ $initials }}
