@@ -23,6 +23,17 @@ class ModuloController extends Controller
         abort_unless($curso->capacitador_id === auth()->id(), 403);
     }
 
+    private function getMimeRules(string $tipoContenido): string
+    {
+        return match ($tipoContenido) {
+            'video'  => 'mimes:mp4',
+            'pdf'    => 'mimes:pdf',
+            'ppt'    => 'mimes:ppt,pptx',
+            'imagen' => 'mimes:jpeg,png,jpg,gif,webp',
+            default  => '',
+        };
+    }
+
     public function create(Curso $curso): View
     {
         $this->authorizeCurso($curso);
@@ -37,12 +48,15 @@ class ModuloController extends Controller
     {
         $this->authorizeCurso($curso);
 
+        $mimeRules = $this->getMimeRules($request->input('tipo_contenido', ''));
+        $fileRule = 'nullable|file|max:512000' . ($mimeRules ? '|' . $mimeRules : '');
+
         $data = $request->validate([
             'titulo'           => 'required|string|max:255',
             'tipo_contenido'   => 'required|in:' . implode(',', Modulo::TIPOS),
             'duracion_minutos' => 'nullable|integer|min:1',
             'contenido'        => 'nullable|string',
-            'ruta_archivo'     => 'nullable|file|max:102400',
+            'ruta_archivo'     => $fileRule,
         ]);
 
         $data['curso_id'] = $curso->id;
@@ -89,11 +103,14 @@ class ModuloController extends Controller
         $this->authorizeCurso($curso);
         abort_unless($modulo->curso_id === $curso->id, 404);
 
+        $mimeRules = $this->getMimeRules($modulo->tipo_contenido);
+        $fileRule = 'nullable|file|max:512000' . ($mimeRules ? '|' . $mimeRules : '');
+
         $data = $request->validate([
             'titulo'           => 'required|string|max:255',
             'duracion_minutos' => 'nullable|integer|min:1',
             'contenido'        => 'nullable|string',
-            'ruta_archivo'     => 'nullable|file|max:102400',
+            'ruta_archivo'     => $fileRule,
         ]);
 
         if ($request->hasFile('ruta_archivo')) {
