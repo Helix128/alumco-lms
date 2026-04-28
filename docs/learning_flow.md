@@ -14,9 +14,8 @@ Los módulos deben seguir un orden secuencial (Orden 1, 2, 3...) y pueden ser de
 
 ### Creación de Evaluaciones
 Cuando un Capacitador añade un Módulo de tipo `evaluacion`, el sistema instancia automáticamente un registro de **Evaluación**. Posteriormente, el capacitador debe ir a dicha Evaluación para:
-- Definir el *puntaje mínimo de aprobación* (Ej: 3 respuestas correctas para aprobar).
-- Definir el *límite de intentos semanales* (Ej: 2 intentos máximos por semana).
 - Crear las preguntas (`Pregunta`) y definir múltiples opciones (`Opcion`), indicando explícitamente cuál es la correcta.
+- **Nota sobre Parámetros**: El *puntaje mínimo de aprobación* y el *límite de intentos semanales* se definen ahora de manera centralizada en la configuración global del sistema (`GlobalSetting`) para mantener la consistencia institucional.
 
 ## 2. Asignación y Planificación (Habilitar el Curso)
 Para que los trabajadores vean el curso, el Capacitador o Administrador debe asociar el Curso al **Estamento** (o Estamentos) correspondientes.
@@ -25,14 +24,14 @@ Adicionalmente, se configuran fechas de disponibilidad global para evitar acceso
 ## 3. La Experiencia del Trabajador (Consumo de Contenido)
 El trabajador inicia sesión y ve en su "Salón Virtual" (`/cursos`) únicamente aquellos cursos ligados a su Estamento.
 
-- **Navegación Secuencial**: El trabajador no puede saltarse los módulos al azar si el curso restringe esto. Entra al Módulo 1 (Ej: Un Video), lo consume, y presiona un botón verde **"¡Listo! Siguiente"**.
+- **Navegación Secuencial**: El trabajador no puede saltarse los módulos al azar. Entra al Módulo 1 (Ej: Un Video), lo consume, y presiona un botón verde **"¡Listo! Siguiente"**.
 - Esto dispara un `POST` al controlador que marca un registro en `ProgresoModulo`, asegurando que ese usuario completó ese módulo específico, y desbloquea el acceso a la URL del siguiente.
 - Al acceder al siguiente módulo, la barra general de progreso sube.
 
 ### 4. Completando Evaluaciones (Livewire 4)
 Cuando el trabajador llega a un módulo que contiene una Evaluación, la experiencia cambia. En lugar del controlador normal, se carga un componente **Livewire** en la vista (`VerEvaluacion.php`).
 
-- **Bloqueo por Intentos**: Livewire inmediatamente comprueba si el usuario no ha agotado sus "intentos semanales". Si los agotó, se muestra una pantalla de bloqueo (`Límite alcanzado, regresa en X días`).
+- **Bloqueo por Intentos**: Livewire inmediatamente comprueba si el usuario no ha agotado sus "intentos semanales" definidos globalmente. Si los agotó, se muestra una pantalla de bloqueo (`Límite alcanzado, regresa en X días`).
 - **Seguridad Antifraude**: A diferencia de enviar todas las respuestas al frontend para que un script JS evalúe, Livewire mantiene todo en el servidor (PHP). El usuario pulsa una opción, el componente la almacena localmente y avanza.
 - **Veredicto**: Al enviar la última pregunta, Livewire cuenta en el servidor los aciertos. 
   - *Aprobado*: Se marca el Progreso como completado.

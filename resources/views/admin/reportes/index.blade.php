@@ -391,14 +391,19 @@
                 </div>
             </div>
             
-            <div class="p-6 border-t border-gray-50 bg-gray-50/30 flex items-center justify-end gap-3">
-                <button type="button" onclick="closeExportModal()" class="px-6 py-2.5 text-sm font-bold text-Alumco-gray/50 hover:text-Alumco-coral transition-colors text-center font-display">Cancelar</button>
-                <button type="submit" 
-                        :disabled="selectedKeys.length === 0"
-                        class="bg-Alumco-green hover:bg-Alumco-green-vivid text-Alumco-blue font-display font-bold py-3 px-10 rounded-xl shadow-lg shadow-Alumco-green/20 transition-all active:scale-95 flex items-center gap-2 disabled:opacity-30 disabled:pointer-events-none">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                    Generar Reporte Excel
-                </button>
+            <div class="p-6 border-t border-gray-50 bg-gray-50/30 flex items-center justify-between gap-3">
+                <div class="flex-1">
+                    <livewire:admin.reporte-presets />
+                </div>
+                <div class="flex items-center gap-3">
+                    <button type="button" onclick="closeExportModal()" class="px-6 py-2.5 text-sm font-bold text-Alumco-gray/50 hover:text-Alumco-coral transition-colors text-center font-display">Cancelar</button>
+                    <button type="submit" 
+                            :disabled="selectedKeys.length === 0"
+                            class="bg-Alumco-green hover:bg-Alumco-green-vivid text-Alumco-blue font-display font-bold py-3 px-10 rounded-xl shadow-lg shadow-Alumco-green/20 transition-all active:scale-95 flex items-center gap-2 disabled:opacity-30 disabled:pointer-events-none">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        Generar Reporte Excel
+                    </button>
+                </div>
             </div>
         </form>
     </div>

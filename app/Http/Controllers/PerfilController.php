@@ -9,7 +9,7 @@ class PerfilController extends Controller
         $user = auth()->user()->load(['sede', 'estamento']);
 
         $totalCursos = $user->estamento?->cursos()->count() ?? 0;
-
+ 
         $cursosCompletados = $user->certificados()->count();
 
         $cursosEnProgreso = 0;
