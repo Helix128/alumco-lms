@@ -90,6 +90,7 @@ class ParticipanteController extends Controller
                 ->first();
 
             return [
+                'RUT'               => $user->rut ?? '—',
                 'Nombre'            => $user->name,
                 'Email'             => $user->email,
                 'Estamento'         => $user->estamento?->nombre ?? '—',
