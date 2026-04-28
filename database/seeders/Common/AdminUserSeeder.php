@@ -25,6 +25,7 @@ class AdminUserSeeder extends Seeder
             [
                 'name' => 'Dev Alumco',
                 'password' => Hash::make('password'),
+                'rut' => '11.111.111-1',
                 'sede_id' => $sede->id,
                 'estamento_id' => $estamentoDirectivo?->id,
                 'activo' => true,
@@ -37,6 +38,7 @@ class AdminUserSeeder extends Seeder
             [
                 'name' => 'Admin Alumco',
                 'password' => Hash::make('password'),
+                'rut' => '22.222.222-2',
                 'sede_id' => $sede->id,
                 'estamento_id' => $estamentoDirectivo?->id,
                 'activo' => true,

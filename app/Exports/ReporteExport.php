@@ -32,11 +32,12 @@ class ReporteExport implements FromQuery, WithHeadings, WithMapping, ShouldAutoS
         
         // Claves de columnas habilitadas
         $this->columnasSeleccionadas = $request->input('columnas', [
-            'nombre', 'sexo', 'edad', 'email', 'sede', 'estamento', 'cursos'
+            'rut', 'nombre', 'sexo', 'edad', 'email', 'sede', 'estamento', 'cursos'
         ]);
 
         // Arreglo de nombres personalizados (ej: ['nombre' => 'Nombre del Trabajador'])
         $this->nombresPersonalizados = $request->input('nombres', [
+            'rut'       => 'RUT',
             'nombre'    => 'Nombre completo',
             'sexo'      => 'Sexo / Género',
             'edad'      => 'Edad actual',
@@ -119,6 +120,9 @@ class ReporteExport implements FromQuery, WithHeadings, WithMapping, ShouldAutoS
 
         foreach ($this->columnasSeleccionadas as $key) {
             switch ($key) {
+                case 'rut':
+                    $rowData[] = $user->rut ?? 'Sin RUT';
+                    break;
                 case 'nombre':
                     $rowData[] = $user->name;
                     break;

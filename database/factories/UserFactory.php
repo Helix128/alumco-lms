@@ -25,10 +25,28 @@ class UserFactory extends Factory
     public function definition(): array
     {
         $sexo = fake()->randomElement(['M', 'F']);
+        
+        // Generación de RUT chileno válido
+        $base = fake()->unique()->randomNumber(8, true);
+        $sum = 0;
+        $multiplier = 2;
+        $digits = str_split(strrev($base));
+        foreach ($digits as $digit) {
+            $sum += $digit * $multiplier;
+            $multiplier = $multiplier == 7 ? 2 : $multiplier + 1;
+        }
+        $digit = 11 - ($sum % 11);
+        $dv = match($digit) {
+            11 => '0',
+            10 => 'K',
+            default => (string)$digit,
+        };
+        $rut = number_format($base, 0, '', '.') . '-' . $dv;
 
         return [
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
+            'rut' => $rut,
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),

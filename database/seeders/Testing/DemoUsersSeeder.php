@@ -25,6 +25,7 @@ class DemoUsersSeeder extends Seeder
                 'sede_id' => $sedes->random()->id,
                 'estamento_id' => $estamentos->random()->id,
             ]);
+            $user->assignRole('Trabajador');
         });
     }
 }

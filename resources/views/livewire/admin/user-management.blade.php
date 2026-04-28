@@ -147,46 +147,57 @@
             <table class="w-full text-left border-collapse">
                 <thead>
                     <tr class="bg-gray-50/50">
-                        <th class="px-8 py-5 text-[11px] font-display font-bold uppercase tracking-widest text-gray-400 border-b border-gray-100">Colaborador</th>
-                        <th class="px-8 py-5 text-[11px] font-display font-bold uppercase tracking-widest text-gray-400 border-b border-gray-100">Rol & Sede</th>
-                        <th class="px-8 py-5 text-[11px] font-display font-bold uppercase tracking-widest text-gray-400 border-b border-gray-100 text-center">Estado</th>
-                        <th class="px-8 py-5 text-[11px] font-display font-bold uppercase tracking-widest text-gray-400 border-b border-gray-100 text-right">Acciones</th>
+                        <th class="px-6 py-5 text-[11px] font-display font-bold uppercase tracking-widest text-gray-400 border-b border-gray-100">Colaborador</th>
+                        <th class="px-6 py-5 text-[11px] font-display font-bold uppercase tracking-widest text-gray-400 border-b border-gray-100">Email</th>
+                        <th class="px-6 py-5 text-[11px] font-display font-bold uppercase tracking-widest text-gray-400 border-b border-gray-100">RUT</th>
+                        <th class="px-6 py-5 text-[11px] font-display font-bold uppercase tracking-widest text-gray-400 border-b border-gray-100">Rol</th>
+                        <th class="px-6 py-5 text-[11px] font-display font-bold uppercase tracking-widest text-gray-400 border-b border-gray-100">Estamento</th>
+                        <th class="px-6 py-5 text-[11px] font-display font-bold uppercase tracking-widest text-gray-400 border-b border-gray-100">Sede</th>
+                        <th class="px-6 py-5 text-[11px] font-display font-bold uppercase tracking-widest text-gray-400 border-b border-gray-100 text-center">Estado</th>
+                        <th class="px-6 py-5 text-[11px] font-display font-bold uppercase tracking-widest text-gray-400 border-b border-gray-100 text-right">Acciones</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-50">
                     @forelse($usuarios as $user)
                     <tr class="hover:bg-Alumco-cream/30 transition-colors user-row group cursor-default">
                         
-                        <td class="px-8 py-5">
-                            <div class="flex items-center gap-4">
-                                <div class="w-10 h-10 rounded-full bg-Alumco-blue/5 text-Alumco-blue flex items-center justify-center font-display font-bold text-sm">
+                        <td class="px-6 py-5">
+                            <div class="flex items-center gap-3">
+                                <div class="w-9 h-9 rounded-full bg-Alumco-blue/5 text-Alumco-blue flex items-center justify-center font-display font-bold text-xs shrink-0">
                                     {{ collect(explode(' ', $user->name))->map(fn($n) => $n[0])->take(2)->join('') }}
                                 </div>
-                                <div>
-                                    <p class="font-display font-bold text-Alumco-gray leading-tight">{{ $user->name }}</p>
-                                    <p class="text-xs text-Alumco-gray/50 mt-1">{{ $user->email }}</p>
-                                </div>
+                                <p class="font-display font-bold text-Alumco-gray leading-tight text-sm">{{ $user->name }}</p>
+                            </div>
+                        </td>
+
+                        <td class="px-6 py-5">
+                            <span class="text-sm text-Alumco-gray font-medium">{{ $user->email }}</span>
+                        </td>
+
+                        <td class="px-6 py-5">
+                            <span class="text-xs font-bold text-Alumco-blue/60 uppercase tracking-tight">{{ $user->rut ?? '—' }}</span>
+                        </td>
+                        
+                        <td class="px-6 py-5">
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider bg-Alumco-blue/10 text-Alumco-blue border border-Alumco-blue/5">
+                                {{ $user->roles->first()?->name ?? 'Sin Rol' }}
+                            </span>
+                        </td>
+
+                        <td class="px-6 py-5">
+                            <span class="text-sm font-bold text-Alumco-gray">
+                                {{ $user->estamento->nombre ?? '—' }}
+                            </span>
+                        </td>
+
+                        <td class="px-6 py-5">
+                            <div class="flex items-center gap-1.5 text-Alumco-gray/60">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                <span class="text-sm font-medium">{{ $user->sede->nombre ?? '—' }}</span>
                             </div>
                         </td>
                         
-                        <td class="px-8 py-5">
-                            <div class="flex flex-col gap-1.5">
-                                <span class="inline-flex w-fit items-center px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider bg-Alumco-blue/10 text-Alumco-blue">
-                                    {{ $user->roles->first()?->name ?? 'Sin Rol' }}
-                                </span>
-                                <div class="flex flex-col">
-                                    <span class="text-sm font-bold text-Alumco-gray leading-tight">
-                                        {{ $user->estamento->nombre ?? 'Sin Estamento' }}
-                                    </span>
-                                    <span class="text-[11px] text-Alumco-gray/40 flex items-center gap-1 mt-0.5">
-                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                                        {{ $user->sede->nombre ?? 'Sin Sede' }}
-                                    </span>
-                                </div>
-                            </div>
-                        </td>
-                        
-                        <td class="px-8 py-5 text-center">
+                        <td class="px-6 py-5 text-center">
                             @if($user->activo)
                                 <span class="badge-status bg-green-100 text-green-700">Activo</span>
                             @else
@@ -194,7 +205,7 @@
                             @endif
                         </td>
                         
-                        <td class="px-8 py-5 text-right relative" x-data="{ open: false }">
+                        <td class="px-6 py-5 text-right relative" x-data="{ open: false }">
                             @php
                                 $canManage = auth()->user()->canManageUser($user);
                             @endphp
@@ -298,6 +309,12 @@
                         <label for="input-email" class="drawer-field-label">Correo Electrónico <span class="text-Alumco-coral">*</span></label>
                         <input type="email" wire:model="email" id="input-email" required class="drawer-input" placeholder="usuario@alumco.cl">
                         @error('email') <span class="text-xs text-red-600 font-bold">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div class="space-y-1">
+                        <label for="input-rut" class="drawer-field-label">RUT <span class="text-Alumco-gray/40 text-[10px] font-normal tracking-normal">(Ej: 12.345.678-9)</span></label>
+                        <input type="text" wire:model="rut" id="input-rut" class="drawer-input uppercase" placeholder="12.345.678-9">
+                        @error('rut') <span class="text-xs text-red-600 font-bold">{{ $message }}</span> @enderror
                     </div>
 
                     @if(!$editingUser)

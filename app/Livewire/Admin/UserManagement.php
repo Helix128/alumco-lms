@@ -27,6 +27,7 @@ class UserManagement extends Component
     // Form fields
     public $name = '';
     public $email = '';
+    public $rut = '';
     public $role = '';
     public $estamento_id = '';
     public $sede_id = '';
@@ -59,6 +60,7 @@ class UserManagement extends Component
         $this->editingUser = $user;
         $this->name = $user->name;
         $this->email = $user->email;
+        $this->rut = $user->rut;
         $this->role = $user->roles->first()?->name;
         $this->estamento_id = $user->estamento_id;
         $this->sede_id = $user->sede_id;
@@ -90,6 +92,7 @@ class UserManagement extends Component
         $data = [
             'name' => $this->name,
             'email' => $this->email,
+            'rut' => $this->rut ?: null,
             'estamento_id' => $this->estamento_id ?: null,
             'sede_id' => $this->sede_id,
             'sexo' => $this->sexo ?: null,
@@ -161,7 +164,8 @@ class UserManagement extends Component
         if ($this->search) {
             $query->where(function($q) {
                 $q->where('name', 'like', "%{$this->search}%")
-                  ->orWhere('email', 'like', "%{$this->search}%");
+                  ->orWhere('email', 'like', "%{$this->search}%")
+                  ->orWhere('rut', 'like', "%{$this->search}%");
             });
         }
 
@@ -183,6 +187,7 @@ class UserManagement extends Component
     {
         $this->name = '';
         $this->email = '';
+        $this->rut = '';
         $this->role = '';
         $this->estamento_id = '';
         $this->sede_id = '';
@@ -198,6 +203,7 @@ class UserManagement extends Component
         return [
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
+            'rut' => ['nullable', 'string', 'max:12', 'unique:users,rut', 'regex:/^(\d{1,2}\.?\d{3}\.?\d{3}-[\dkK])$/'],
             'estamento_id' => 'nullable|exists:estamentos,id',
             'sede_id' => 'required|exists:sedes,id',
             'role' => 'required|exists:roles,name',
@@ -212,6 +218,7 @@ class UserManagement extends Component
         return [
             'name' => 'required|string|max:255',
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($this->editingUser->id)],
+            'rut' => ['nullable', 'string', 'max:12', Rule::unique('users', 'rut')->ignore($this->editingUser->id), 'regex:/^(\d{1,2}\.?\d{3}\.?\d{3}-[\dkK])$/'],
             'estamento_id' => 'nullable|exists:estamentos,id',
             'sede_id' => 'required|exists:sedes,id',
             'role' => 'required|exists:roles,name',

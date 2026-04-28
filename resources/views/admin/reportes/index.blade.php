@@ -108,44 +108,51 @@
         <table class="w-full text-left border-collapse">
             <thead>
                 <tr class="bg-gray-50/50">
-                    <th class="px-8 py-5 text-[11px] font-display font-bold uppercase tracking-widest text-gray-400 border-b border-gray-100">Colaborador</th>
-                    <th class="px-8 py-5 text-[11px] font-display font-bold uppercase tracking-widest text-gray-400 border-b border-gray-100">Perfil</th>
-                    <th class="px-8 py-5 text-[11px] font-display font-bold uppercase tracking-widest text-gray-400 border-b border-gray-100">Sede & Rol</th>
-                    <th class="px-8 py-5 text-[11px] font-display font-bold uppercase tracking-widest text-gray-400 border-b border-gray-100">Cursos Aprobados</th>
+                    <th class="px-6 py-5 text-[11px] font-display font-bold uppercase tracking-widest text-gray-400 border-b border-gray-100">Colaborador</th>
+                    <th class="px-6 py-5 text-[11px] font-display font-bold uppercase tracking-widest text-gray-400 border-b border-gray-100">Email</th>
+                    <th class="px-6 py-5 text-[11px] font-display font-bold uppercase tracking-widest text-gray-400 border-b border-gray-100">RUT</th>
+                    <th class="px-6 py-5 text-[11px] font-display font-bold uppercase tracking-widest text-gray-400 border-b border-gray-100">Sexo</th>
+                    <th class="px-6 py-5 text-[11px] font-display font-bold uppercase tracking-widest text-gray-400 border-b border-gray-100">Edad</th>
+                    <th class="px-6 py-5 text-[11px] font-display font-bold uppercase tracking-widest text-gray-400 border-b border-gray-100">Estamento</th>
+                    <th class="px-6 py-5 text-[11px] font-display font-bold uppercase tracking-widest text-gray-400 border-b border-gray-100">Sede</th>
+                    <th class="px-6 py-5 text-[11px] font-display font-bold uppercase tracking-widest text-gray-400 border-b border-gray-100">Cursos</th>
                     @if($cursoSeleccionado)
-                        <th class="px-8 py-5 text-[11px] font-display font-bold uppercase tracking-widest text-gray-400 border-b border-gray-100 text-right">Fecha Aprobación</th>
+                        <th class="px-6 py-5 text-[11px] font-display font-bold uppercase tracking-widest text-gray-400 border-b border-gray-100 text-right">Aprobación</th>
                     @endif
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-50">
                 @forelse ($usuarios as $user)
                 <tr class="hover:bg-Alumco-cream/30 transition-colors group cursor-default">
-                    <td class="px-8 py-5">
-                        <div class="flex items-center gap-4">
-                            <div class="w-10 h-10 rounded-full bg-Alumco-blue/5 text-Alumco-blue flex items-center justify-center font-display font-bold text-sm">
+                    <td class="px-6 py-5">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-full bg-Alumco-blue/5 text-Alumco-blue flex items-center justify-center font-display font-bold text-xs shrink-0">
                                 {{ collect(explode(' ', $user->name))->map(fn($n) => $n[0])->take(2)->join('') }}
                             </div>
-                            <div>
-                                <p class="font-display font-bold text-Alumco-gray leading-tight">{{ $user->name }}</p>
-                                <p class="text-xs text-Alumco-gray/50 mt-1">{{ $user->email }}</p>
-                            </div>
+                            <p class="font-display font-bold text-Alumco-gray leading-tight text-sm">{{ $user->name }}</p>
                         </div>
                     </td>
-                    <td class="px-8 py-5">
-                        <div class="flex flex-col">
-                            <span class="text-sm font-bold text-Alumco-gray capitalize">{{ $user->sexo === 'F' ? 'Femenino' : ($user->sexo === 'M' ? 'Masculino' : 'Otro') }}</span>
-                            <span class="text-[11px] text-Alumco-gray/40">{{ $user->fecha_nacimiento ? \Carbon\Carbon::parse($user->fecha_nacimiento)->age . ' años' : 'Sin edad' }}</span>
-                        </div>
+                    <td class="px-6 py-5">
+                        <span class="text-sm text-Alumco-gray font-medium">{{ $user->email }}</span>
                     </td>
-                    <td class="px-8 py-5">
-                        <div class="flex flex-col">
-                            <span class="text-sm font-bold text-Alumco-gray">{{ $user->estamento->nombre ?? 'Sin Estamento' }}</span>
-                            <span class="text-[11px] text-Alumco-gray/40 uppercase tracking-tighter">{{ $user->sede->nombre ?? 'Sin Sede' }}</span>
-                        </div>
+                    <td class="px-6 py-5">
+                        <span class="text-xs font-bold text-Alumco-blue/60 uppercase tracking-tight">{{ $user->rut ?? '—' }}</span>
                     </td>
-                    <td class="px-8 py-5">
+                    <td class="px-6 py-5">
+                        <span class="text-sm font-bold text-Alumco-gray capitalize">{{ $user->sexo === 'F' ? 'Femenino' : ($user->sexo === 'M' ? 'Masculino' : 'Otro') }}</span>
+                    </td>
+                    <td class="px-6 py-5">
+                        <span class="text-sm font-bold text-Alumco-gray/60">{{ $user->fecha_nacimiento ? \Carbon\Carbon::parse($user->fecha_nacimiento)->age . ' años' : '—' }}</span>
+                    </td>
+                    <td class="px-6 py-5">
+                        <span class="text-sm font-bold text-Alumco-gray">{{ $user->estamento->nombre ?? '—' }}</span>
+                    </td>
+                    <td class="px-6 py-5">
+                        <span class="text-[11px] font-black text-Alumco-blue/40 uppercase tracking-tighter">{{ $user->sede->nombre ?? '—' }}</span>
+                    </td>
+                    <td class="px-6 py-5">
                         @if($user->certificados->isEmpty())
-                            <span class="text-xs text-gray-300 italic font-medium">Ninguno aún</span>
+                            <span class="text-xs text-gray-300 italic font-medium">Ninguno</span>
                         @else
                             <div x-data="{ open: false, x: 0, y: 0 }" 
                                  @mouseenter="const rect = $el.getBoundingClientRect(); x = rect.left + (rect.width / 2); y = rect.top; open = true" 
@@ -258,6 +265,7 @@
     <div class="bg-white w-full max-w-7xl rounded-3xl shadow-xl overflow-hidden" 
          x-data="{
             allCols: {
+                rut:       { label: 'RUT', data: ['12.345.678-9', '18.765.432-K', '21.098.765-4'] },
                 nombre:    { label: 'Nombre completo', data: ['Juan Pérez', 'María Ignacia', 'Carlos Ruiz'] },
                 sexo:      { label: 'Sexo', data: ['Masculino', 'Femenino', 'Masculino'] },
                 edad:      { label: 'Edad', data: ['28 años', '34 años', '45 años'] },
@@ -266,7 +274,7 @@
                 estamento: { label: 'Estamento', data: ['Auxiliares', 'Enfermería', 'Directivos'] },
                 cursos:    { label: 'Cursos Aprobados', data: ['Curso A (20/04)', 'Curso B (15/04)', '—'] }
             },
-            selectedKeys: ['nombre', 'sexo', 'edad', 'email', 'sede', 'estamento', 'cursos'],
+            selectedKeys: ['rut', 'nombre', 'sexo', 'edad', 'email', 'sede', 'estamento', 'cursos'],
             
             toggleCol(key) {
                 if (this.selectedKeys.includes(key)) {
@@ -282,7 +290,7 @@
             },
 
             resetToDefault() {
-                this.selectedKeys = ['nombre', 'sexo', 'edad', 'email', 'sede', 'estamento', 'cursos'];
+                this.selectedKeys = ['rut', 'nombre', 'sexo', 'edad', 'email', 'sede', 'estamento', 'cursos'];
             }
          }"
          @open-export-modal.window="resetToDefault()">
