@@ -3,7 +3,7 @@
 Sistema de gestión de aprendizaje centralizado para la ONG [Alumco](https://ongalumco.cl/). 
 Diseñado para organizar estamentos, sedes y distribuir contenidos de formación o capacitaciones mediante cápsulas secuenciales y evaluaciones integradas.
 
-## 📚 Documentación Técnica
+## Documentación Técnica
 
 Para un entendimiento profundo del sistema, por favor consulta la documentación oficial ubicada en el directorio `docs/`:
 
@@ -13,7 +13,7 @@ Para un entendimiento profundo del sistema, por favor consulta la documentación
 
 ---
 
-## 🚀 Tecnologías utilizadas
+## Tecnologías utilizadas
 
 ### Backend
 - **PHP** `8.3`
@@ -36,7 +36,7 @@ Para un entendimiento profundo del sistema, por favor consulta la documentación
 
 ---
 
-## ⚙️ Configuración del proyecto y Desarrollo Local
+## Configuración del proyecto y Desarrollo Local
 
 Todo el desarrollo, migraciones y dependencias deben manejarse obligatoriamente a través del contenedor de **Laravel Sail** para garantizar que se usa la versión correcta de PHP (8.3) y los servicios de caché y base de datos nativos de la plataforma. **No asumas el uso de PHP nativo en la máquina host**.
 
@@ -78,7 +78,7 @@ Debido al uso de Tailwind V4 y Vite, todos los cambios a archivos `.blade.php` o
 ./vendor/bin/sail npm run build
 ```
 
-## 🛠️ Reglas Básicas de Contribución
+## Reglas Básicas de Contribución
 1. **Respeta Laravel Sail**: Si hay que ejecutar un comando, utilízalo mediante `./vendor/bin/sail <comando>`.
 2. **Prioriza Livewire**: Para comportamiento dinámico en el Frontend, utiliza componentes Livewire antes que acumular scripts de JS tradicional.
 3. **No subas el `public/storage`**: Los archivos multimedia locales deben estar en `storage/app/public` de forma segura.
