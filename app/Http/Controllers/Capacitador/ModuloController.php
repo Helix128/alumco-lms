@@ -62,6 +62,10 @@ class ModuloController extends Controller
         $data['curso_id'] = $curso->id;
         $data['orden']    = ($curso->modulos()->max('orden') ?? 0) + 1;
 
+        if (isset($data['contenido'])) {
+            $data['contenido'] = clean($data['contenido']);
+        }
+
         if ($request->hasFile('ruta_archivo')) {
             $file = $request->file('ruta_archivo');
             $data['ruta_archivo'] = $file->store("modulos/{$curso->id}", 'public');
@@ -112,6 +116,10 @@ class ModuloController extends Controller
             'contenido'        => 'nullable|string',
             'ruta_archivo'     => $fileRule,
         ]);
+
+        if (isset($data['contenido'])) {
+            $data['contenido'] = clean($data['contenido']);
+        }
 
         if ($request->hasFile('ruta_archivo')) {
             if ($modulo->ruta_archivo) {
