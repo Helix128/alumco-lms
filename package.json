@@ -13,5 +13,11 @@
         "laravel-vite-plugin": "^3.0.0",
         "tailwindcss": "^4.0.0",
         "vite": "^8.0.0"
+    },
+    "dependencies": {
+        "@fontsource/fira-sans": "^5.2.7",
+        "@fontsource/sora": "^5.2.8",
+        "@fontsource/ubuntu": "^5.2.8",
+        "chart.js": "^4.5.1"
     }
 }

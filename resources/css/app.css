@@ -1,4 +1,7 @@
 @import 'tailwindcss';
+@import "@fontsource/fira-sans";
+@import "@fontsource/sora";
+@import "@fontsource/ubuntu";
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
