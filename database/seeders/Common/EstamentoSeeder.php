@@ -15,7 +15,7 @@ class EstamentoSeeder extends Seeder
             'Técnicos',
             'Administrativos',
             'Operarios',
-            'Auxiliares de servicio'
+            'Auxiliares de servicio',
         ];
 
         foreach ($estamentos as $nombre) {

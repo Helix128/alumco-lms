@@ -11,7 +11,7 @@ class Certificado extends Model
         'curso_id',
         'codigo_verificacion',
         'ruta_pdf',
-        'fecha_emision'
+        'fecha_emision',
     ];
 
     protected $casts = [
@@ -22,6 +22,7 @@ class Certificado extends Model
     {
         return $this->belongsTo(User::class);
     }
+
     public function curso()
     {
         return $this->belongsTo(Curso::class);

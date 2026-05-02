@@ -25,7 +25,7 @@ class MisCertificadosController extends Controller
 
         return response()->streamDownload(
             fn () => print $service->output($certificado),
-            'certificado_'.$certificado->codigo_verificacion.'.pdf',
+            $service->downloadFileName($certificado),
             ['Content-Type' => 'application/pdf']
         );
     }

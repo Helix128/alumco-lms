@@ -2,19 +2,23 @@
 
 namespace App\Livewire;
 
-use Livewire\Component;
-use Livewire\WithFileUploads;
 use App\Models\GlobalSetting;
 use Illuminate\Support\Facades\Storage;
+use Livewire\Component;
+use Livewire\WithFileUploads;
 
 class DevConfig extends Component
 {
     use WithFileUploads;
 
     public $puntos_aprobacion;
+
     public $max_intentos_semanales;
+
     public $firma_rep_legal; // Nueva propiedad para el archivo
+
     public $firma_actual;    // Ruta de la firma guardada
+
     public $mensaje;
 
     public function mount()

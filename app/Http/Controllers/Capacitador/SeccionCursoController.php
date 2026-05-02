@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Capacitador;
 use App\Http\Controllers\Controller;
 use App\Models\Curso;
 use App\Models\SeccionCurso;
-use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 
 class SeccionCursoController extends Controller
 {
@@ -80,7 +80,7 @@ class SeccionCursoController extends Controller
                 $nuevaSeccion = SeccionCurso::create([
                     'curso_id' => $curso->id,
                     'titulo' => 'Nueva Sección',
-                    'orden' => $index + 1
+                    'orden' => $index + 1,
                 ]);
                 $seccionId = $nuevaSeccion->id;
             } else {
@@ -93,7 +93,7 @@ class SeccionCursoController extends Controller
             foreach ($secData['modulos'] as $modIndex => $moduloId) {
                 $curso->modulos()->where('id', $moduloId)->update([
                     'seccion_id' => $seccionId,
-                    'orden' => $modIndex + 1
+                    'orden' => $modIndex + 1,
                 ]);
             }
         }
@@ -102,7 +102,7 @@ class SeccionCursoController extends Controller
         foreach ($estructura['modulos_sueltos'] as $modIndex => $moduloId) {
             $curso->modulos()->where('id', $moduloId)->update([
                 'seccion_id' => null,
-                'orden' => $modIndex + 1
+                'orden' => $modIndex + 1,
             ]);
         }
 

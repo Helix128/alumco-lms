@@ -83,7 +83,7 @@
 <body class="admin-shell bg-Alumco-cream font-sans text-Alumco-gray h-screen flex flex-col overflow-hidden antialiased">
 
     <!-- Topbar -->
-    <header class="bg-Alumco-blue border-b border-white/10 shadow-lg px-6 py-3 flex items-center justify-between z-30 shrink-0 admin-topbar-persistent">
+    <header class="bg-Alumco-blue border-b border-white/10 shadow-md px-6 py-3 flex items-center justify-between z-30 shrink-0 admin-topbar-persistent">
         <div class="flex items-center gap-8">
             <a href="{{ route('capacitador.dashboard') }}" wire:navigate class="flex items-center text-white">
                 <x-logo-alumco class="h-8 w-auto" width="120" height="32" />
@@ -104,7 +104,7 @@
                 <form action="{{ route('admin.preview.toggle') }}" method="POST">
                     @csrf
                     <button type="submit" 
-                            class="flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider transition-all
+                            class="flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider transition-all duration-200 active:scale-95
                                    {{ session('preview_mode') 
                                       ? 'bg-amber-500 text-white hover:bg-amber-600 animate-pulse' 
                                       : 'bg-white/10 text-white/60 hover:bg-white/20 hover:text-white' }}">
@@ -118,8 +118,8 @@
             @endif
 
             <div class="text-right hidden sm:block">
-                <p class="text-[10px] font-black text-white/40 uppercase tracking-widest">Administrador</p>
-                <p class="text-sm font-bold text-white">{{ auth()->user()->name }}</p>
+                <p class="text-[10px] font-black text-white/40 uppercase tracking-widest leading-none mb-0.5">Administrador</p>
+                <p class="text-sm font-bold text-white leading-none">{{ auth()->user()->name }}</p>
             </div>
             @php
                 $initials = collect(explode(' ', trim(auth()->user()->name)))
@@ -130,7 +130,7 @@
             <a href="{{ route('admin.perfil.index') }}"
                wire:navigate
                class="w-10 h-10 rounded-full bg-white text-Alumco-blue font-display font-black text-sm
-                      flex items-center justify-center shadow-sm hover:scale-105 transition-transform select-none">
+                      flex items-center justify-center shadow-none hover:shadow-lg hover:shadow-white/10 hover:scale-105 active:scale-95 transition-all select-none">
                 {{ $initials }}
             </a>
             <div class="sm:hidden">
@@ -163,7 +163,7 @@
                         Mis Cursos
                     </x-nav-link-admin>
 
-                    <x-nav-link-admin href="{{ route('calendario.index') }}" :active="request()->routeIs('calendario.*')" title="Calendario">
+                    <x-nav-link-admin href="{{ route('calendario-cursos.index') }}" :active="request()->routeIs('calendario-cursos.*')" title="Calendario">
                         <x-slot name="icon">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
@@ -245,7 +245,7 @@
 
                 {{-- Calendario --}}
                 @if(auth()->user()->isCapacitador() || auth()->user()->hasAdminAccess())
-                <x-nav-link-admin href="{{ route('calendario.index') }}" :active="request()->routeIs('calendario.index')" title="Calendario">
+                <x-nav-link-admin href="{{ route('capacitador.calendario.index') }}" :active="request()->routeIs('capacitador.calendario.*')" title="Calendario">
                     <x-slot name="icon">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>

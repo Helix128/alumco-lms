@@ -5,16 +5,16 @@ namespace Tests\Feature\Admin;
 use App\Models\Estamento;
 use App\Models\Sede;
 use App\Models\User;
+use Carbon\Carbon;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Maatwebsite\Excel\Facades\Excel;
 use Tests\TestCase;
 use Tests\Traits\CreatesUsers;
-use Carbon\Carbon;
 
 class ReportsTest extends TestCase
 {
-    use RefreshDatabase, CreatesUsers;
+    use CreatesUsers, RefreshDatabase;
 
     protected function setUp(): void
     {
@@ -66,13 +66,13 @@ class ReportsTest extends TestCase
         // Usuario de 25 años
         User::factory()->create([
             'estamento_id' => $estamento->id,
-            'fecha_nacimiento' => Carbon::now()->subYears(25)->format('Y-m-d')
+            'fecha_nacimiento' => Carbon::now()->subYears(25)->format('Y-m-d'),
         ]);
 
         // Usuario de 50 años
         User::factory()->create([
             'estamento_id' => $estamento->id,
-            'fecha_nacimiento' => Carbon::now()->subYears(50)->format('Y-m-d')
+            'fecha_nacimiento' => Carbon::now()->subYears(50)->format('Y-m-d'),
         ]);
 
         // Filtrar rango 20-30
@@ -93,13 +93,13 @@ class ReportsTest extends TestCase
         $admin = $this->createAdmin();
         $sede = Sede::create(['nombre' => 'Sede Especial']);
         $estamento = Estamento::create(['nombre' => 'Estamento Especial']);
-        
+
         User::factory()->create([
             'name' => 'Juan Reporte',
             'email' => 'juan@reporte.cl',
             'sede_id' => $sede->id,
             'estamento_id' => $estamento->id,
-            'fecha_nacimiento' => '1990-01-01'
+            'fecha_nacimiento' => '1990-01-01',
         ]);
 
         // Usamos la configuración de columnas del request para el test
@@ -108,19 +108,19 @@ class ReportsTest extends TestCase
             'nombres' => [
                 'nombre' => 'Columna Nombre',
                 'email' => 'Columna Email',
-                'sede' => 'Columna Sede'
-            ]
+                'sede' => 'Columna Sede',
+            ],
         ];
 
         $response = $this->actingAs($admin)->get(route('admin.reportes.exportar', $params));
-        
+
         $response->assertStatus(200);
         $response->assertHeader('content-disposition', 'attachment; filename=reporte_capacitaciones.xlsx');
 
         // Para inspeccionar el contenido, necesitamos usar el facade Excel en modo real (no fake)
         // y leer el archivo temporal generado por la respuesta de Laravel
         $filePath = $response->getFile()->getPathname();
-        
+
         $data = Excel::toArray(new \stdClass, $filePath);
         $rows = $data[0]; // Primera hoja
 

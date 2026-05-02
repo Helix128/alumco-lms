@@ -76,7 +76,7 @@ class CursoController extends Controller
             'secciones' => fn ($q) => $q->orderBy('orden'),
             'secciones.modulos' => fn ($q) => $q->orderBy('orden'),
             'modulos' => fn ($q) => $q->whereNull('seccion_id')->orderBy('orden'),
-            'modulos.evaluacion'
+            'modulos.evaluacion',
         ]);
 
         // Sanar módulos huérfanos: evaluacion creada pero sin registro en DB

@@ -1,8 +1,9 @@
 <div class="worker-calendar min-h-screen bg-Alumco-cream">
 
-    {{-- ── Cabecera ──────────────────────────────────────────────────────── --}}
-    <div class="bg-white border-b border-gray-200 px-4 py-5 sm:px-6">
-        <div class="max-w-4xl mx-auto flex items-center justify-between gap-4">
+    <div class="max-w-4xl mx-auto px-4 py-6 sm:px-6 space-y-8">
+
+        {{-- ── Cabecera ──────────────────────────────────────────────────────── --}}
+        <div class="worker-soft-panel px-4 py-5 sm:px-6 flex items-center justify-between gap-4">
 
             {{-- Navegación mes --}}
             <button
@@ -43,9 +44,6 @@
             </button>
 
         </div>
-    </div>
-
-    <div class="max-w-4xl mx-auto px-4 py-6 sm:px-6 space-y-8">
 
         {{-- ── Grid mensual ─────────────────────────────────────────────── --}}
         <div class="bg-white rounded-2xl shadow-sm overflow-hidden">

@@ -47,6 +47,7 @@ class EstadisticasDashboard extends Component
                 ->count();
 
             $porcentaje = (int) round(($completaron / $usuariosTotal) * 100);
+
             return ['label' => $curso->titulo, 'value' => $porcentaje];
         })->toArray();
     }

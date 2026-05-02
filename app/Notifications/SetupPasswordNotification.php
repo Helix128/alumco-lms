@@ -26,8 +26,8 @@ class SetupPasswordNotification extends Notification
         ]);
 
         return (new MailMessage)
-            ->subject('Configura tu cuenta en ' . config('app.name'))
-            ->greeting('Bienvenido/a, ' . $notifiable->name . '!')
+            ->subject('Configura tu cuenta en '.config('app.name'))
+            ->greeting('Bienvenido/a, '.$notifiable->name.'!')
             ->line('Se ha creado una cuenta para ti en la plataforma de capacitaciones de Alumco.')
             ->line('Para comenzar, haz clic en el siguiente enlace y configura tu contraseña:')
             ->action('Configurar mi contraseña', $url)

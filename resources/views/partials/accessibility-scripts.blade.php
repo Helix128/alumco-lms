@@ -5,14 +5,14 @@
 
 <script>
     (function () {
-        var levels = [14, 16, 18, 20];
+        var levels = [18, 20, 22];
 
         function normalize(preferences) {
             preferences = preferences || {};
-            var fontLevel = parseInt(preferences.fontLevel == null ? 1 : preferences.fontLevel, 10);
+            var fontLevel = parseInt(preferences.fontLevel == null ? 0 : preferences.fontLevel, 10);
 
-            if (!Number.isInteger(fontLevel) || fontLevel < 0 || fontLevel > 3) {
-                fontLevel = 1;
+            if (!Number.isInteger(fontLevel) || fontLevel < 0 || fontLevel > 2) {
+                fontLevel = 0;
             }
 
             return {

@@ -2,38 +2,49 @@
 
 namespace App\Livewire\Admin;
 
-use App\Models\User;
 use App\Models\Estamento;
 use App\Models\Sede;
+use App\Models\User;
 use App\Notifications\SetupPasswordNotification;
-use Spatie\Permission\Models\Role;
-use Livewire\Component;
-use Livewire\WithPagination;
-use Livewire\WithFileUploads;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Livewire\Component;
+use Livewire\WithFileUploads;
+use Livewire\WithPagination;
+use Spatie\Permission\Models\Role;
 
 class UserManagement extends Component
 {
-    use WithPagination, WithFileUploads;
+    use WithFileUploads, WithPagination;
 
     public $search = '';
+
     public $showDrawer = false;
+
     public $editingUser = null;
 
     // Form fields
     public $name = '';
+
     public $email = '';
+
     public $rut = '';
+
     public $role = '';
+
     public $estamento_id = '';
+
     public $sede_id = '';
+
     public $sexo = '';
+
     public $fecha_nacimiento = '';
+
     public $firma_digital;
+
     public $firma_digital_url;
 
     protected $queryString = [
@@ -56,7 +67,7 @@ class UserManagement extends Component
     public function edit(User $user)
     {
         $this->abortIfUnauthorizedToManage($user);
-        
+
         $this->editingUser = $user;
         $this->name = $user->name;
         $this->email = $user->email;
@@ -82,10 +93,10 @@ class UserManagement extends Component
         }
 
         // Protección de Jerarquía: No puedes asignar un rol igual o superior al tuyo (salvo si eres Dev)
-        if (!auth()->user()->isDesarrollador()) {
+        if (! auth()->user()->isDesarrollador()) {
             $roleToAssignRank = ($this->role === 'Desarrollador') ? 3 : (($this->role === 'Administrador') ? 2 : 1);
             if ($roleToAssignRank >= auth()->user()->getHierarchyRank()) {
-                abort(403, 'No tienes permisos para asignar el rol: ' . $this->role);
+                abort(403, 'No tienes permisos para asignar el rol: '.$this->role);
             }
         }
 
@@ -113,11 +124,11 @@ class UserManagement extends Component
         } else {
             $data['password'] = Hash::make(Str::random(64));
             $data['activo'] = true;
-            
+
             $user = User::create($data);
             $user->assignRole($this->role ?: 'Trabajador');
-            $user->notify(new SetupPasswordNotification());
-            
+            $user->notify(new SetupPasswordNotification);
+
             session()->flash('success', 'Usuario creado. Se envió un correo para que configure su contraseña.');
         }
 
@@ -129,7 +140,7 @@ class UserManagement extends Component
     {
         $this->abortIfUnauthorizedToManage($user);
 
-        $user->activo = !$user->activo;
+        $user->activo = ! $user->activo;
         $user->save();
 
         session()->flash('success', 'Estado del usuario actualizado.');
@@ -144,7 +155,7 @@ class UserManagement extends Component
         if ($status !== Password::RESET_LINK_SENT) {
             session()->flash('error', 'No se pudo enviar el correo de recuperación.');
         } else {
-            session()->flash('success', 'Correo de recuperación enviado a ' . $user->email);
+            session()->flash('success', 'Correo de recuperación enviado a '.$user->email);
         }
     }
 
@@ -162,15 +173,15 @@ class UserManagement extends Component
         $query = User::with(['estamento', 'sede', 'roles']);
 
         if ($this->search) {
-            $query->where(function($q) {
+            $query->where(function ($q) {
                 $q->where('name', 'like', "%{$this->search}%")
-                  ->orWhere('email', 'like', "%{$this->search}%")
-                  ->orWhere('rut', 'like', "%{$this->search}%");
+                    ->orWhere('email', 'like', "%{$this->search}%")
+                    ->orWhere('rut', 'like', "%{$this->search}%");
             });
         }
 
         $rolesQuery = Role::query();
-        if (!auth()->user()->isDesarrollador()) {
+        if (! auth()->user()->isDesarrollador()) {
             $rolesQuery->whereNotIn('name', ['Desarrollador', 'Administrador']);
         }
         $roles = $rolesQuery->get();
@@ -230,7 +241,7 @@ class UserManagement extends Component
 
     private function abortIfUnauthorizedToManage(User $user): void
     {
-        if (!auth()->user()->canManageUser($user)) {
+        if (! auth()->user()->canManageUser($user)) {
             abort(403, 'No tienes permisos suficientes para realizar esta acción.');
         }
     }

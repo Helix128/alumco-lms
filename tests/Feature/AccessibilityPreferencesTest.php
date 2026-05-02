@@ -76,7 +76,7 @@ class AccessibilityPreferencesTest extends TestCase
             ->assertSee('data-motion="reduced"', false)
             ->assertDontSee('data-background=', false)
             ->assertDontSee('data-cards=', false)
-            ->assertSee('--font-base: 18px', false);
+            ->assertSee('--font-base: 22px', false);
     }
 
     public function test_admin_panel_renders_accessibility_options(): void
@@ -100,6 +100,7 @@ class AccessibilityPreferencesTest extends TestCase
             ->test(AccessibilityPreferences::class)
             ->set('highContrast', true)
             ->set('reducedMotion', true)
+            ->call('increaseFont')
             ->call('increaseFont')
             ->assertSet('fontLevel', 2)
             ->assertDispatched('accessibility-preferences-updated')

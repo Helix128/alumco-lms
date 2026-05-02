@@ -8,6 +8,7 @@ use Livewire\Component;
 class ReportePresets extends Component
 {
     public $presets;
+
     public $nuevoNombre = '';
 
     public function mount()
@@ -26,18 +27,18 @@ class ReportePresets extends Component
             'nuevoNombre' => 'required|string|max:50|unique:reporte_presets,nombre',
         ], [
             'nuevoNombre.required' => 'Debes asignar un nombre al formato.',
-            'nuevoNombre.unique'   => 'Ya existe un formato con este nombre.',
-            'nuevoNombre.max'      => 'El nombre es muy largo (máx 50 carac.).',
+            'nuevoNombre.unique' => 'Ya existe un formato con este nombre.',
+            'nuevoNombre.max' => 'El nombre es muy largo (máx 50 carac.).',
         ]);
 
         ReportePreset::create([
-            'nombre'   => $this->nuevoNombre,
+            'nombre' => $this->nuevoNombre,
             'columnas' => $columnas,
         ]);
 
         $this->nuevoNombre = '';
         $this->cargarPresets();
-        
+
         $this->dispatch('preset-guardado');
     }
 

@@ -19,7 +19,7 @@ class PlanificacionCurso extends Model
 
     protected $casts = [
         'fecha_inicio' => 'date',
-        'fecha_fin'    => 'date',
+        'fecha_fin' => 'date',
     ];
 
     // --- RELACIONES ---
@@ -39,6 +39,7 @@ class PlanificacionCurso extends Model
     public function estaActivo(): bool
     {
         $hoy = now()->startOfDay();
+
         return $this->fecha_inicio->lte($hoy) && $this->fecha_fin->gte($hoy);
     }
 }

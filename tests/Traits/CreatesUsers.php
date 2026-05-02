@@ -3,7 +3,6 @@
 namespace Tests\Traits;
 
 use App\Models\User;
-use Spatie\Permission\Models\Role;
 
 trait CreatesUsers
 {
@@ -11,6 +10,7 @@ trait CreatesUsers
     {
         $user = User::factory()->create();
         $user->assignRole('Desarrollador');
+
         return $user;
     }
 
@@ -18,6 +18,7 @@ trait CreatesUsers
     {
         $user = User::factory()->create();
         $user->assignRole('Administrador');
+
         return $user;
     }
 
@@ -25,6 +26,7 @@ trait CreatesUsers
     {
         $user = User::factory()->create();
         $user->assignRole('Trabajador');
+
         return $user;
     }
 }

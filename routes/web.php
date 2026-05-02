@@ -13,10 +13,16 @@ use App\Http\Controllers\MisCertificadosController;
 use App\Http\Controllers\ModuloController;
 use App\Http\Controllers\PerfilController;
 use App\Http\Controllers\ReporteController;
+use App\Http\Controllers\VerificarCertificadoController;
 use App\Livewire\CalendarioUsuario;
 use App\Livewire\Capacitador\CalendarioCapacitaciones;
 use App\Support\UserAreaRedirector;
 use Illuminate\Support\Facades\Route;
+
+Route::middleware('throttle:30,1')->group(function () {
+    Route::get('/certificados/verificar', [VerificarCertificadoController::class, 'index'])->name('certificados.verificar.index');
+    Route::get('/certificados/verificar/{codigo}', [VerificarCertificadoController::class, 'show'])->name('certificados.verificar.show');
+});
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
@@ -45,7 +51,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/cursos/{curso}/modulos/{modulo}/archivo', [ModuloController::class, 'verArchivo'])->name('modulos.archivo');
         Route::get('/cursos/{curso}/modulos/{modulo}/descargar', [ModuloController::class, 'descargarArchivo'])->name('modulos.descargar');
         Route::post('/cursos/{curso}/modulos/{modulo}/completar', [ModuloController::class, 'completar'])->name('modulos.completar');
-        Route::get('/calendario', CalendarioCapacitaciones::class)->name('calendario.index');
         Route::get('/calendario-cursos', CalendarioUsuario::class)->name('calendario-cursos.index');
 
         // Perfil del colaborador
@@ -116,6 +121,9 @@ Route::middleware('auth')->group(function () {
         // Certificados
         Route::post('/cursos/{curso}/certificados/{user}', [CapacitadorCertificado::class, 'generar'])->name('certificados.generar');
         Route::get('/certificados/{certificado}/descargar', [CapacitadorCertificado::class, 'descargar'])->name('certificados.descargar');
+
+        // Calendario Institucional
+        Route::get('/calendario', CalendarioCapacitaciones::class)->name('calendario.index');
 
         // Solo Capacitador Interno
         Route::middleware(['capacitador.interno'])->group(function () {

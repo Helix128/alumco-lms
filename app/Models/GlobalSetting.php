@@ -17,6 +17,7 @@ class GlobalSetting extends Model
     {
         return Cache::rememberForever("global_setting_{$key}", function () use ($key, $default) {
             $setting = self::where('key', $key)->first();
+
             return $setting ? $setting->value : $default;
         });
     }

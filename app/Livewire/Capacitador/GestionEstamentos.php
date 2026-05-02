@@ -10,21 +10,23 @@ use Livewire\Component;
 class GestionEstamentos extends Component
 {
     public Curso $curso;
+
     public array $seleccionados = [];
+
     public Collection $todos;
 
     public function mount(Curso $curso): void
     {
         $this->curso = $curso;
         $this->todos = Estamento::orderBy('nombre')->get();
-        $this->seleccionados = $curso->estamentos->pluck('id')->map(fn($id) => (int) $id)->toArray();
+        $this->seleccionados = $curso->estamentos->pluck('id')->map(fn ($id) => (int) $id)->toArray();
     }
 
     public function toggleEstamento(int $estamentoId): void
     {
         if (in_array($estamentoId, $this->seleccionados)) {
             $this->seleccionados = array_values(
-                array_filter($this->seleccionados, fn($id) => $id !== $estamentoId)
+                array_filter($this->seleccionados, fn ($id) => $id !== $estamentoId)
             );
         } else {
             $this->seleccionados[] = $estamentoId;

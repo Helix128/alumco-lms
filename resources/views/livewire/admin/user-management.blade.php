@@ -142,7 +142,7 @@
     @endif
 
     <!-- Tabla Card-Style -->
-    <div class="bg-white rounded-[24px] shadow-sm border border-gray-100 overflow-hidden">
+    <div class="bg-white rounded-[24px] border border-gray-200 shadow-none overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
                 <thead>
@@ -157,9 +157,9 @@
                         <th class="px-6 py-5 text-[11px] font-display font-bold uppercase tracking-widest text-gray-400 border-b border-gray-100 text-right">Acciones</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-50">
+                <tbody class="divide-y divide-gray-100">
                     @forelse($usuarios as $user)
-                    <tr class="hover:bg-Alumco-cream/30 transition-colors user-row group cursor-default">
+                    <tr class="hover:bg-gray-50/50 transition-colors user-row group cursor-default">
                         
                         <td class="px-6 py-5">
                             <div class="flex items-center gap-3">

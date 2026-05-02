@@ -15,7 +15,7 @@ class AccessibilityPreferences extends Component
 
     public ?string $description = null;
 
-    public int $fontLevel = 1;
+    public int $fontLevel = 0;
 
     public bool $highContrast = false;
 
@@ -35,9 +35,15 @@ class AccessibilityPreferences extends Component
         $this->reducedMotion = $preferences['reducedMotion'];
     }
 
+    public function setFontLevel(int $level): void
+    {
+        $this->fontLevel = max(0, min(2, $level));
+        $this->save();
+    }
+
     public function increaseFont(): void
     {
-        $this->fontLevel = min(3, $this->fontLevel + 1);
+        $this->fontLevel = min(2, $this->fontLevel + 1);
         $this->save();
     }
 
@@ -50,7 +56,7 @@ class AccessibilityPreferences extends Component
     public function save(): void
     {
         $this->validate([
-            'fontLevel' => ['required', 'integer', 'min:0', 'max:3'],
+            'fontLevel' => ['required', 'integer', 'min:0', 'max:2'],
             'highContrast' => ['boolean'],
             'reducedMotion' => ['boolean'],
         ]);

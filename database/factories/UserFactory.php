@@ -25,7 +25,7 @@ class UserFactory extends Factory
     public function definition(): array
     {
         $sexo = fake()->randomElement(['M', 'F']);
-        
+
         // Generación de RUT chileno válido
         $base = fake()->unique()->randomNumber(8, true);
         $sum = 0;
@@ -36,12 +36,12 @@ class UserFactory extends Factory
             $multiplier = $multiplier == 7 ? 2 : $multiplier + 1;
         }
         $digit = 11 - ($sum % 11);
-        $dv = match($digit) {
+        $dv = match ($digit) {
             11 => '0',
             10 => 'K',
-            default => (string)$digit,
+            default => (string) $digit,
         };
-        $rut = number_format($base, 0, '', '.') . '-' . $dv;
+        $rut = number_format($base, 0, '', '.').'-'.$dv;
 
         return [
             'name' => fake()->name(),

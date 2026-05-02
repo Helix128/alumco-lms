@@ -12,11 +12,11 @@ class Modulo extends Model
     const TIPOS = ['video', 'pdf', 'ppt', 'texto', 'imagen', 'evaluacion'];
 
     const TIPO_LABELS = [
-        'video'      => 'video',
-        'pdf'        => 'documento',
-        'ppt'        => 'presentación',
-        'texto'      => 'texto',
-        'imagen'     => 'imagen',
+        'video' => 'video',
+        'pdf' => 'documento',
+        'ppt' => 'presentación',
+        'texto' => 'texto',
+        'imagen' => 'imagen',
         'evaluacion' => 'evaluación',
     ];
 
@@ -82,7 +82,7 @@ class Modulo extends Model
         // Buscar el módulo anterior basado en el orden global del curso
         $anterior = $curso->modulos->where('orden', '<', $this->orden)->last();
 
-        if (!$anterior) {
+        if (! $anterior) {
             return true;
         }
 

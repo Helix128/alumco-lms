@@ -9,16 +9,16 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-   public function up(): void
-   {
-    Schema::create('evento_calendarios', function (Blueprint $table) {
-        $table->id(); // La llave primaria automática
-        $table->string('titulo'); // Ej: "Prueba RCP"
-        $table->date('fecha'); // El día en el calendario
-        $table->time('hora')->nullable(); // Hora (opcional)
-        $table->text('descripcion')->nullable(); // Detalles extra (opcional)
-        $table->timestamps(); // Guarda automáticamente cuándo se creó y actualizó
-    });
+    public function up(): void
+    {
+        Schema::create('evento_calendarios', function (Blueprint $table) {
+            $table->id(); // La llave primaria automática
+            $table->string('titulo'); // Ej: "Prueba RCP"
+            $table->date('fecha'); // El día en el calendario
+            $table->time('hora')->nullable(); // Hora (opcional)
+            $table->text('descripcion')->nullable(); // Detalles extra (opcional)
+            $table->timestamps(); // Guarda automáticamente cuándo se creó y actualizó
+        });
     }
 
     /**

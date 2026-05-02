@@ -10,9 +10,7 @@ class ResetPasswordNotification extends Notification
 {
     use Queueable;
 
-    public function __construct(public string $token)
-    {
-    }
+    public function __construct(public string $token) {}
 
     public function via(object $notifiable): array
     {
@@ -27,8 +25,8 @@ class ResetPasswordNotification extends Notification
         ]);
 
         return (new MailMessage)
-            ->subject('Restablecer contraseña - ' . config('app.name'))
-            ->greeting('Hola, ' . $notifiable->name . '!')
+            ->subject('Restablecer contraseña - '.config('app.name'))
+            ->greeting('Hola, '.$notifiable->name.'!')
             ->line('Recibimos una solicitud para restablecer la contraseña de tu cuenta.')
             ->line('Haz clic en el siguiente enlace para elegir una nueva contraseña:')
             ->action('Restablecer contraseña', $url)

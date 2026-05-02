@@ -14,18 +14,25 @@ use Livewire\Component;
 class VerEvaluacion extends Component
 {
     public Modulo $modulo;
+
     public Curso $curso;
 
     public Collection $preguntas;
+
     public int $indiceActual = 0;
+
     public array $respuestasSeleccionadas = []; // [pregunta_id => opcion_id]
 
     public bool $finalizada = false;
+
     public int $puntaje = 0;
+
     public bool $aprobado = false;
 
     public bool $bloqueada = false;
+
     public int $intentosRestantes = 2;
+
     public bool $certificadoGenerado = false;
 
     public function mount(Modulo $modulo, Curso $curso): void
@@ -37,6 +44,7 @@ class VerEvaluacion extends Component
             $this->bloqueada = true;
             $this->intentosRestantes = 0;
             $this->preguntas = collect();
+
             return;
         }
 
@@ -52,7 +60,7 @@ class VerEvaluacion extends Component
             ->count();
 
         $max = $modulo->evaluacion->max_intentos_semanales ?? 2;
-        $this->bloqueada        = $intentosEstaSemana >= $max;
+        $this->bloqueada = $intentosEstaSemana >= $max;
         $this->intentosRestantes = max(0, $max - $intentosEstaSemana);
     }
 
@@ -65,7 +73,7 @@ class VerEvaluacion extends Component
     {
         $preguntaId = $this->preguntas[$this->indiceActual]->id;
 
-        if (!isset($this->respuestasSeleccionadas[$preguntaId])) {
+        if (! isset($this->respuestasSeleccionadas[$preguntaId])) {
             return;
         }
 
@@ -98,23 +106,23 @@ class VerEvaluacion extends Component
             }
         }
 
-        $total    = $this->preguntas->count();
+        $total = $this->preguntas->count();
         $aprobado = $puntaje >= $this->modulo->evaluacion->puntos_aprobacion;
 
         // Persistir el intento
         $intento = IntentoEvaluacion::create([
-            'user_id'         => auth()->id(),
-            'evaluacion_id'   => $this->modulo->evaluacion->id,
-            'puntaje'         => $puntaje,
+            'user_id' => auth()->id(),
+            'evaluacion_id' => $this->modulo->evaluacion->id,
+            'puntaje' => $puntaje,
             'total_preguntas' => $total,
-            'aprobado'        => $aprobado,
+            'aprobado' => $aprobado,
         ]);
 
         foreach ($this->respuestasSeleccionadas as $preguntaId => $opcionId) {
             RespuestaEvaluacion::create([
-                'intento_id'  => $intento->id,
+                'intento_id' => $intento->id,
                 'pregunta_id' => $preguntaId,
-                'opcion_id'   => $opcionId,
+                'opcion_id' => $opcionId,
             ]);
         }
 
@@ -126,7 +134,7 @@ class VerEvaluacion extends Component
             );
 
             // Auto-generar certificado si el curso está 100% completo
-            $this->curso->load(['modulos.progresos' => fn($q) => $q->where('user_id', auth()->id())]);
+            $this->curso->load(['modulos.progresos' => fn ($q) => $q->where('user_id', auth()->id())]);
             if ($this->curso->progresoParaUsuario(auth()->user()) === 100) {
                 try {
                     app(CertificadoService::class)->generarParaUsuario(auth()->user(), $this->curso);
@@ -137,7 +145,7 @@ class VerEvaluacion extends Component
             }
         }
 
-        $this->puntaje  = $puntaje;
+        $this->puntaje = $puntaje;
         $this->aprobado = $aprobado;
         $this->finalizada = true;
     }

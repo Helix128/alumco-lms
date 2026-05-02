@@ -3,7 +3,7 @@
 namespace Tests\Feature\Admin;
 
 use App\Livewire\Admin\UserManagement;
-use App\Models\User;
+use App\Models\Sede;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -12,7 +12,7 @@ use Tests\Traits\CreatesUsers;
 
 class UserHierarchyTest extends TestCase
 {
-    use RefreshDatabase, CreatesUsers;
+    use CreatesUsers, RefreshDatabase;
 
     protected function setUp(): void
     {
@@ -56,7 +56,7 @@ class UserHierarchyTest extends TestCase
     {
         $admin = $this->createAdmin();
         $trabajador = $this->createTrabajador();
-        $sede = \App\Models\Sede::create(['nombre' => 'Sede Test']);
+        $sede = Sede::create(['nombre' => 'Sede Test']);
 
         Livewire::actingAs($admin)
             ->test(UserManagement::class)

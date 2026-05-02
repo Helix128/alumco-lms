@@ -10,7 +10,7 @@ final class AccessibilityPreferences
     public static function defaults(): array
     {
         return [
-            'fontLevel' => 1,
+            'fontLevel' => 0,
             'highContrast' => false,
             'reducedMotion' => false,
         ];
@@ -26,7 +26,7 @@ final class AccessibilityPreferences
         $fontLevel = (int) $preferences['fontLevel'];
 
         return [
-            'fontLevel' => max(0, min(3, $fontLevel)),
+            'fontLevel' => max(0, min(2, $fontLevel)),
             'highContrast' => (bool) $preferences['highContrast'],
             'reducedMotion' => (bool) $preferences['reducedMotion'],
         ];
@@ -34,6 +34,6 @@ final class AccessibilityPreferences
 
     public static function fontSizeFor(int $fontLevel): int
     {
-        return [14, 16, 18, 20][max(0, min(3, $fontLevel))];
+        return [18, 20, 22][max(0, min(2, $fontLevel))];
     }
 }

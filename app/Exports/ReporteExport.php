@@ -6,20 +6,26 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Concerns\FromQuery;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
-use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 
-class ReporteExport implements FromQuery, WithHeadings, WithMapping, ShouldAutoSize
+class ReporteExport implements FromQuery, ShouldAutoSize, WithHeadings, WithMapping
 {
     protected $request;
+
     private array $selectedSedeIds;
+
     private array $selectedEstamentoIds;
+
     private array $selectedCourseIds;
+
     private ?int $edadMin;
+
     private ?int $edadMax;
-    
+
     private array $columnasSeleccionadas;
+
     private array $nombresPersonalizados;
 
     public function __construct(Request $request)
@@ -29,43 +35,52 @@ class ReporteExport implements FromQuery, WithHeadings, WithMapping, ShouldAutoS
         $this->selectedEstamentoIds = $this->sanitizeEstamentoIds($request);
         $this->selectedCourseIds = $this->sanitizeCourseIds($request);
         [$this->edadMin, $this->edadMax] = $this->sanitizeAgeRange($request);
-        
+
         // Claves de columnas habilitadas
         $this->columnasSeleccionadas = $request->input('columnas', [
-            'rut', 'nombre', 'sexo', 'edad', 'email', 'sede', 'estamento', 'cursos'
+            'rut', 'nombre', 'sexo', 'edad', 'email', 'sede', 'estamento', 'cursos',
         ]);
 
         // Arreglo de nombres personalizados (ej: ['nombre' => 'Nombre del Trabajador'])
         $this->nombresPersonalizados = $request->input('nombres', [
-            'rut'       => 'RUT',
-            'nombre'    => 'Nombre completo',
-            'sexo'      => 'Sexo / Género',
-            'edad'      => 'Edad actual',
-            'email'     => 'Correo electrónico',
-            'sede'      => 'Sede asignada',
+            'rut' => 'RUT',
+            'nombre' => 'Nombre completo',
+            'sexo' => 'Sexo / Género',
+            'edad' => 'Edad actual',
+            'email' => 'Correo electrónico',
+            'sede' => 'Sede asignada',
             'estamento' => 'Estamento / Rol',
-            'cursos'    => 'Cursos aprobados'
+            'cursos' => 'Cursos aprobados',
         ]);
     }
 
     private function sanitizeSedeIds(Request $request): array
     {
         $rawIds = $request->input('sede_id', []);
-        if (!is_array($rawIds)) $rawIds = [$rawIds];
+        if (! is_array($rawIds)) {
+            $rawIds = [$rawIds];
+        }
+
         return array_values(array_unique(array_filter(array_map('intval', $rawIds), fn ($id) => $id > 0)));
     }
 
     private function sanitizeEstamentoIds(Request $request): array
     {
         $rawIds = $request->input('estamento_id', []);
-        if (!is_array($rawIds)) $rawIds = [$rawIds];
+        if (! is_array($rawIds)) {
+            $rawIds = [$rawIds];
+        }
+
         return array_values(array_unique(array_filter(array_map('intval', $rawIds), fn ($id) => $id > 0)));
     }
 
     private function sanitizeCourseIds(Request $request): array
     {
         $rawIds = $request->input('curso_id', []);
-        if (!is_array($rawIds)) $rawIds = [$rawIds];
+        if (! is_array($rawIds)) {
+            $rawIds = [$rawIds];
+        }
+
         return array_values(array_unique(array_filter(array_map('intval', $rawIds), fn ($id) => $id > 0)));
     }
 
@@ -73,7 +88,10 @@ class ReporteExport implements FromQuery, WithHeadings, WithMapping, ShouldAutoS
     {
         $edadMin = is_numeric($request->input('edad_min')) ? max((int) $request->input('edad_min'), 0) : null;
         $edadMax = is_numeric($request->input('edad_max')) ? max((int) $request->input('edad_max'), 0) : null;
-        if ($edadMin !== null && $edadMax !== null && $edadMin > $edadMax) [$edadMin, $edadMax] = [$edadMax, $edadMin];
+        if ($edadMin !== null && $edadMax !== null && $edadMin > $edadMax) {
+            [$edadMin, $edadMax] = [$edadMax, $edadMin];
+        }
+
         return [$edadMin, $edadMax];
     }
 
@@ -82,15 +100,23 @@ class ReporteExport implements FromQuery, WithHeadings, WithMapping, ShouldAutoS
         $query = User::with(['estamento', 'sede', 'certificados.curso'])
             ->whereNotNull('estamento_id');
 
-        if ($this->edadMin !== null) $query->where('fecha_nacimiento', '<=', Carbon::now()->subYears($this->edadMin)->format('Y-m-d'));
-        if ($this->edadMax !== null) $query->where('fecha_nacimiento', '>=', Carbon::now()->subYears($this->edadMax + 1)->addDay()->format('Y-m-d'));
+        if ($this->edadMin !== null) {
+            $query->where('fecha_nacimiento', '<=', Carbon::now()->subYears($this->edadMin)->format('Y-m-d'));
+        }
+        if ($this->edadMax !== null) {
+            $query->where('fecha_nacimiento', '>=', Carbon::now()->subYears($this->edadMax + 1)->addDay()->format('Y-m-d'));
+        }
 
-        if (!empty($this->selectedEstamentoIds)) $query->whereIn('estamento_id', $this->selectedEstamentoIds);
-        if (!empty($this->selectedSedeIds)) $query->whereIn('sede_id', $this->selectedSedeIds);
+        if (! empty($this->selectedEstamentoIds)) {
+            $query->whereIn('estamento_id', $this->selectedEstamentoIds);
+        }
+        if (! empty($this->selectedSedeIds)) {
+            $query->whereIn('sede_id', $this->selectedSedeIds);
+        }
 
-        if (!empty($this->selectedCourseIds) || ($this->request->filled('fecha_inicio') && $this->request->filled('fecha_fin'))) {
+        if (! empty($this->selectedCourseIds) || ($this->request->filled('fecha_inicio') && $this->request->filled('fecha_fin'))) {
             $query->whereHas('certificados', function ($q) {
-                if (!empty($this->selectedCourseIds)) {
+                if (! empty($this->selectedCourseIds)) {
                     $q->whereIn('curso_id', $this->selectedCourseIds)
                         ->select('user_id')
                         ->groupBy('user_id')
@@ -111,6 +137,7 @@ class ReporteExport implements FromQuery, WithHeadings, WithMapping, ShouldAutoS
         foreach ($this->columnasSeleccionadas as $key) {
             $headers[] = $this->nombresPersonalizados[$key] ?? $key;
         }
+
         return $headers;
     }
 
@@ -143,7 +170,7 @@ class ReporteExport implements FromQuery, WithHeadings, WithMapping, ShouldAutoS
                     $rowData[] = $user->estamento->nombre ?? 'N/A';
                     break;
                 case 'cursos':
-                    $rowData[] = $user->certificados->map(fn($c) => $c->curso->titulo . ' (' . $c->fecha_emision->format('d/m/Y') . ')')->implode(', ') ?: 'Sin cursos aprobados';
+                    $rowData[] = $user->certificados->map(fn ($c) => $c->curso->titulo.' ('.$c->fecha_emision->format('d/m/Y').')')->implode(', ') ?: 'Sin cursos aprobados';
                     break;
             }
         }

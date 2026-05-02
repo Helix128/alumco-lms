@@ -25,16 +25,16 @@ class DashboardController extends Controller
 
         // Participantes únicos con algún progreso en los cursos del capacitador
         $cursoIds = $cursos->pluck('id');
-        $totalParticipantes = ProgresoModulo::whereHas('modulo', fn($q) => $q->whereIn('curso_id', $cursoIds))
+        $totalParticipantes = ProgresoModulo::whereHas('modulo', fn ($q) => $q->whereIn('curso_id', $cursoIds))
             ->distinct('user_id')
             ->count('user_id');
 
         $totalCertificados = Certificado::whereIn('curso_id', $cursoIds)->count();
 
         $stats = [
-            'cursos'          => $cursos->count(),
-            'participantes'   => $totalParticipantes,
-            'certificados'    => $totalCertificados,
+            'cursos' => $cursos->count(),
+            'participantes' => $totalParticipantes,
+            'certificados' => $totalCertificados,
         ];
 
         $ultimosCursos = $cursos->take(5);

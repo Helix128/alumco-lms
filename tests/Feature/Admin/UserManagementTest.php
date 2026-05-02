@@ -3,7 +3,6 @@
 namespace Tests\Feature\Admin;
 
 use App\Livewire\Admin\UserManagement;
-use App\Models\Estamento;
 use App\Models\Sede;
 use App\Models\User;
 use Database\Seeders\RolesAndPermissionsSeeder;
@@ -16,7 +15,7 @@ use Tests\Traits\CreatesUsers;
 
 class UserManagementTest extends TestCase
 {
-    use RefreshDatabase, CreatesUsers;
+    use CreatesUsers, RefreshDatabase;
 
     protected function setUp(): void
     {

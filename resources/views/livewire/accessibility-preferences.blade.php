@@ -6,25 +6,38 @@
         @endif
     </div>
 
-    <div class="accessibility-toggle">
+    <div class="accessibility-toggle flex-col !items-stretch gap-3">
         <div>
             <p class="accessibility-toggle-title">Tamaño de texto</p>
             <p class="accessibility-toggle-help">Actual: {{ $this->fontLabel() }}</p>
         </div>
-        <div class="flex items-center gap-2">
+        <div class="grid grid-cols-3 gap-1 bg-gray-100 p-1 rounded-2xl">
             <button type="button"
-                    wire:click="decreaseFont"
-                    @disabled($fontLevel === 0)
-                    class="worker-focus flex h-10 min-w-10 items-center justify-center rounded-xl border border-gray-200 bg-white px-3 text-sm font-black text-Alumco-gray shadow-sm hover:border-Alumco-blue/30 hover:text-Alumco-blue disabled:cursor-not-allowed disabled:opacity-30"
-                    aria-label="Reducir tamaño de texto">
-                A-
+                    wire:click="setFontLevel(0)"
+                    @class([
+                        'flex items-center justify-center py-2.5 rounded-xl text-sm font-black transition-all',
+                        'bg-white text-Alumco-blue shadow-sm ring-1 ring-black/5' => $fontLevel === 0,
+                        'text-gray-500 hover:text-Alumco-gray' => $fontLevel !== 0,
+                    ])>
+                Normal
             </button>
             <button type="button"
-                    wire:click="increaseFont"
-                    @disabled($fontLevel === 3)
-                    class="worker-focus flex h-10 min-w-10 items-center justify-center rounded-xl border border-gray-200 bg-white px-3 text-base font-black text-Alumco-gray shadow-sm hover:border-Alumco-blue/30 hover:text-Alumco-blue disabled:cursor-not-allowed disabled:opacity-30"
-                    aria-label="Aumentar tamaño de texto">
-                A+
+                    wire:click="setFontLevel(1)"
+                    @class([
+                        'flex items-center justify-center py-2.5 rounded-xl text-sm font-black transition-all',
+                        'bg-white text-Alumco-blue shadow-sm ring-1 ring-black/5' => $fontLevel === 1,
+                        'text-gray-500 hover:text-Alumco-gray' => $fontLevel !== 1,
+                    ])>
+                Grande
+            </button>
+            <button type="button"
+                    wire:click="setFontLevel(2)"
+                    @class([
+                        'flex items-center justify-center py-2.5 rounded-xl text-sm font-black transition-all',
+                        'bg-white text-Alumco-blue shadow-sm ring-1 ring-black/5' => $fontLevel === 2,
+                        'text-gray-500 hover:text-Alumco-gray' => $fontLevel !== 2,
+                    ])>
+                Extra
             </button>
         </div>
     </div>

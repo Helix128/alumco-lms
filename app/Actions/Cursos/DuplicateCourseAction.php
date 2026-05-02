@@ -3,10 +3,7 @@
 namespace App\Actions\Cursos;
 
 use App\Models\Curso;
-use App\Models\Evaluacion;
-use App\Models\Modulo;
 use App\Models\Pregunta;
-use App\Models\Opcion;
 use Illuminate\Support\Facades\DB;
 
 class DuplicateCourseAction
@@ -32,7 +29,7 @@ class DuplicateCourseAction
                 // 3. Si el módulo tiene una evaluación, clonarla profundamente
                 if ($moduloOriginal->tipo_contenido === 'evaluacion' && $moduloOriginal->evaluacion) {
                     $evaluacionOriginal = $moduloOriginal->evaluacion;
-                    
+
                     $nuevaEvaluacion = $evaluacionOriginal->replicate();
                     $nuevaEvaluacion->modulo_id = $nuevoModulo->id;
                     $nuevaEvaluacion->save();

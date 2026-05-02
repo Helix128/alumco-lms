@@ -1,11 +1,8 @@
 <?php
 
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use App\Models\User;
-use Spatie\Permission\Models\Role;
 use Database\Seeders\RolesAndPermissionsSeeder;
+use Illuminate\Database\Migrations\Migration;
 
 return new class extends Migration
 {
@@ -15,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         // 1. Garantizar que los roles existan
-        $seeder = new RolesAndPermissionsSeeder();
+        $seeder = new RolesAndPermissionsSeeder;
         $seeder->run();
 
         // 2. Fix para usuarios administradores y desarrolladores por email (seeders antiguos)
@@ -33,16 +30,16 @@ return new class extends Migration
 
         // 3. Fix para cualquier usuario que tenga estamento de sistema (legado)
         // Buscamos estamentos con nombres de roles
-        $usersWithSystemEstamento = User::whereHas('estamento', function($q) {
+        $usersWithSystemEstamento = User::whereHas('estamento', function ($q) {
             $q->whereIn('nombre', ['Desarrollador', 'Administrador', 'Capacitador Interno', 'Capacitador Externo']);
         })->with('estamento')->get();
 
         foreach ($usersWithSystemEstamento as $user) {
             $roleName = $user->estamento->nombre;
-            if (!$user->hasRole($roleName)) {
+            if (! $user->hasRole($roleName)) {
                 $user->assignRole($roleName);
             }
-            
+
             // Opcional: Limpiar el estamento_id si coincide con el rol de sistema
             // $user->update(['estamento_id' => null]);
         }

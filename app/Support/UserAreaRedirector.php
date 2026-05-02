@@ -130,7 +130,6 @@ class UserAreaRedirector
     {
         return $path === '/cursos'
             || Str::is('/cursos/*', $path)
-            || $path === '/calendario'
             || $path === '/calendario-cursos'
             || $path === '/perfil'
             || $path === '/mis-certificados'

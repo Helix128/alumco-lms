@@ -270,18 +270,56 @@
             right: 0;
             bottom: 0;
             width: auto;
+            height: 28mm;
             z-index: 4;
         }
 
+        .footer-table {
+            width: 100%;
+            height: 28mm;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        .footer-date-cell {
+            width: 88mm;
+            vertical-align: bottom;
+        }
+
+        .footer-verification-cell {
+            width: 91.9mm;
+            text-align: right;
+            vertical-align: bottom;
+        }
+
         .issued-date {
-            float: left;
             font-size: 9pt;
             color: #6B7280;
         }
 
-        .verification {
-            float: right;
+        .verification-layout {
+            width: 84mm;
+            margin-left: auto;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        .code-cell {
+            width: 58mm;
+            padding-right: 4mm;
             text-align: right;
+            vertical-align: bottom;
+        }
+
+        .qr-cell {
+            width: 22mm;
+            text-align: right;
+            vertical-align: bottom;
+        }
+
+        .verification-qr {
+            width: 22mm;
+            height: 22mm;
         }
 
         .verification-label {
@@ -294,8 +332,9 @@
 
         .verification-code {
             font-family: 'Courier New', monospace;
-            font-size: 8pt;
+            font-size: 7.2pt;
             color: #4A4A4A;
+            line-height: 1.3;
         }
     </style>
 </head>
@@ -358,16 +397,33 @@
                 </div>
 
                 <div class="footer">
-                    <div class="issued-date">
-                        Emitido el {{ now()->format('d') }} de {{ \Carbon\Carbon::now()->locale('es')->isoFormat('MMMM') }} de {{ now()->format('Y') }}
-                    </div>
-
-                    <div class="verification">
-                        <div class="verification-label">Código de verificación</div>
-                        <div class="verification-code">{{ strtoupper(substr($codigo, 0, 8)) }}</div>
-                    </div>
-
-                    <div class="clear"></div>
+                    <table class="footer-table">
+                        <tr>
+                            <td class="footer-date-cell">
+                                <div class="issued-date">
+                                    Emitido el {{ $fechaEmision?->format('d') }} de {{ $fechaEmision?->copy()->locale('es')->isoFormat('MMMM') }} de {{ $fechaEmision?->format('Y') }}
+                                </div>
+                            </td>
+                            <td class="footer-verification-cell">
+                                <table class="verification-layout">
+                                    <tr>
+                                        <td class="code-cell">
+                                            <div class="verification-label">Escanea para verificar</div>
+                                            <div class="verification-label">Código de verificación</div>
+                                            <div class="verification-code">
+                                                @foreach ($codigoDisplayLines as $codigoDisplayLine)
+                                                    {{ $codigoDisplayLine }}<br>
+                                                @endforeach
+                                            </div>
+                                        </td>
+                                        <td class="qr-cell">
+                                            <img class="verification-qr" src="{{ $qrCodeDataUri }}" alt="Código QR de verificación">
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
                 </div>
             </div>
         </div>

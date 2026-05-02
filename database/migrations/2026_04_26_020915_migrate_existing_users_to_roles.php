@@ -1,9 +1,7 @@
 <?php
 
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use App\Models\User;
+use Illuminate\Database\Migrations\Migration;
 use Spatie\Permission\Models\Role;
 
 return new class extends Migration
@@ -19,7 +17,7 @@ return new class extends Migration
             'Administrador',
             'Capacitador Interno',
             'Capacitador Externo',
-            'Trabajador'
+            'Trabajador',
         ];
 
         foreach ($roles as $roleName) {
@@ -30,8 +28,9 @@ return new class extends Migration
         $users = User::with('estamento')->get();
 
         foreach ($users as $user) {
-            if (!$user->estamento) {
+            if (! $user->estamento) {
                 $user->assignRole('Trabajador');
+
                 continue;
             }
 

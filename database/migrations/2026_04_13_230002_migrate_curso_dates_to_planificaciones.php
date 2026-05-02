@@ -15,12 +15,12 @@ return new class extends Migration
             ->orderBy('id')
             ->each(function ($curso) {
                 DB::table('planificaciones_cursos')->insert([
-                    'curso_id'    => $curso->id,
+                    'curso_id' => $curso->id,
                     'fecha_inicio' => $curso->fecha_inicio,
-                    'fecha_fin'   => $curso->fecha_fin,
-                    'notas'       => null,
-                    'created_at'  => now(),
-                    'updated_at'  => now(),
+                    'fecha_fin' => $curso->fecha_fin,
+                    'notas' => null,
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ]);
             });
 
@@ -42,7 +42,7 @@ return new class extends Migration
         foreach ($planificaciones as $p) {
             DB::table('cursos')->where('id', $p->curso_id)->update([
                 'fecha_inicio' => $p->fecha_inicio,
-                'fecha_fin'   => $p->fecha_fin,
+                'fecha_fin' => $p->fecha_fin,
             ]);
         }
 

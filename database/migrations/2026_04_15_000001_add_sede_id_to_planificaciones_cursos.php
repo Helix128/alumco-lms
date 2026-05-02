@@ -10,10 +10,10 @@ return new class extends Migration
     {
         Schema::table('planificaciones_cursos', function (Blueprint $table) {
             $table->foreignId('sede_id')
-                  ->nullable()
-                  ->after('curso_id')
-                  ->constrained('sedes')
-                  ->nullOnDelete();
+                ->nullable()
+                ->after('curso_id')
+                ->constrained('sedes')
+                ->nullOnDelete();
         });
     }
 

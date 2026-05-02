@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers\Capacitador;
 
+use App\Exports\ParticipantesCursoExport;
 use App\Http\Controllers\Controller;
 use App\Models\Certificado;
 use App\Models\Curso;
 use App\Models\Estamento;
+use App\Models\ProgresoModulo;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -30,14 +32,14 @@ class ParticipanteController extends Controller
 
         // Recopilar todos los usuarios de los estamentos asignados
         $usuarios = $curso->estamentos
-            ->flatMap(fn($e) => $e->users)
+            ->flatMap(fn ($e) => $e->users)
             ->unique('id');
 
         // Para cada usuario calcular progreso y estado de certificado
         $moduloIds = $curso->modulos->pluck('id');
 
         $usuarios = $usuarios->map(function (User $user) use ($curso, $moduloIds) {
-            $completados = \App\Models\ProgresoModulo::where('user_id', $user->id)
+            $completados = ProgresoModulo::where('user_id', $user->id)
                 ->whereIn('modulo_id', $moduloIds)
                 ->where('completado', true)
                 ->count();
@@ -75,10 +77,10 @@ class ParticipanteController extends Controller
         $curso->load(['modulos', 'estamentos.users.estamento', 'estamentos.users.sede']);
 
         $moduloIds = $curso->modulos->pluck('id');
-        $usuarios = $curso->estamentos->flatMap(fn($e) => $e->users)->unique('id');
+        $usuarios = $curso->estamentos->flatMap(fn ($e) => $e->users)->unique('id');
 
         $rows = $usuarios->map(function (User $user) use ($curso, $moduloIds) {
-            $completados = \App\Models\ProgresoModulo::where('user_id', $user->id)
+            $completados = ProgresoModulo::where('user_id', $user->id)
                 ->whereIn('modulo_id', $moduloIds)
                 ->where('completado', true)
                 ->count();
@@ -90,16 +92,16 @@ class ParticipanteController extends Controller
                 ->first();
 
             return [
-                'RUT'               => $user->rut ?? '—',
-                'Nombre'            => $user->name,
-                'Email'             => $user->email,
-                'Estamento'         => $user->estamento?->nombre ?? '—',
-                'Sede'              => $user->sede?->nombre ?? '—',
-                'Progreso (%)'      => $progreso,
+                'RUT' => $user->rut ?? '—',
+                'Nombre' => $user->name,
+                'Email' => $user->email,
+                'Estamento' => $user->estamento?->nombre ?? '—',
+                'Sede' => $user->sede?->nombre ?? '—',
+                'Progreso (%)' => $progreso,
                 'Fecha Certificado' => $cert?->fecha_emision?->format('d/m/Y') ?? '—',
             ];
         })->values()->toArray();
 
-        return Excel::download(new \App\Exports\ParticipantesCursoExport($rows), "participantes_{$curso->id}.xlsx");
+        return Excel::download(new ParticipantesCursoExport($rows), "participantes_{$curso->id}.xlsx");
     }
 }

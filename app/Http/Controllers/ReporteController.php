@@ -18,10 +18,11 @@ class ReporteController extends Controller
         $rawIds = $request->input('sede_id', []);
         if (is_string($rawIds) && str_contains($rawIds, ',')) {
             $rawIds = explode(',', $rawIds);
-        } elseif (!is_array($rawIds)) {
+        } elseif (! is_array($rawIds)) {
             $rawIds = [$rawIds];
         }
-        return array_values(array_unique(array_filter(array_map('intval', $rawIds), fn($id) => $id > 0)));
+
+        return array_values(array_unique(array_filter(array_map('intval', $rawIds), fn ($id) => $id > 0)));
     }
 
     private function sanitizeEstamentoIds(Request $request): array
@@ -29,10 +30,11 @@ class ReporteController extends Controller
         $rawIds = $request->input('estamento_id', []);
         if (is_string($rawIds) && str_contains($rawIds, ',')) {
             $rawIds = explode(',', $rawIds);
-        } elseif (!is_array($rawIds)) {
+        } elseif (! is_array($rawIds)) {
             $rawIds = [$rawIds];
         }
-        return array_values(array_unique(array_filter(array_map('intval', $rawIds), fn($id) => $id > 0)));
+
+        return array_values(array_unique(array_filter(array_map('intval', $rawIds), fn ($id) => $id > 0)));
     }
 
     private function sanitizeCourseIds(Request $request): array
@@ -40,10 +42,11 @@ class ReporteController extends Controller
         $rawIds = $request->input('curso_id', []);
         if (is_string($rawIds) && str_contains($rawIds, ',')) {
             $rawIds = explode(',', $rawIds);
-        } elseif (!is_array($rawIds)) {
+        } elseif (! is_array($rawIds)) {
             $rawIds = [$rawIds];
         }
-        return array_values(array_unique(array_filter(array_map('intval', $rawIds), fn($id) => $id > 0)));
+
+        return array_values(array_unique(array_filter(array_map('intval', $rawIds), fn ($id) => $id > 0)));
     }
 
     public function index(Request $request)
@@ -57,7 +60,7 @@ class ReporteController extends Controller
         $selectedSedes = $this->sanitizeSedeIds($request);
         $selectedEstamentos = $this->sanitizeEstamentoIds($request);
         $selectedCursos = $this->sanitizeCourseIds($request);
-        
+
         $edadMinReq = $request->input('edad_min');
         $edadMaxReq = $request->input('edad_max');
 
@@ -75,24 +78,24 @@ class ReporteController extends Controller
 
         // El filtro de edad ahora siempre se considera activo y usa los límites de la BD por defecto
         $edadActiva = true;
-        $edadMin = is_numeric($edadMinReq) ? (int)$edadMinReq : $ageBounds['min'];
-        $edadMax = is_numeric($edadMaxReq) ? (int)$edadMaxReq : $ageBounds['max'];
+        $edadMin = is_numeric($edadMinReq) ? (int) $edadMinReq : $ageBounds['min'];
+        $edadMax = is_numeric($edadMaxReq) ? (int) $edadMaxReq : $ageBounds['max'];
 
         $query = User::with(['estamento', 'sede', 'certificados.curso'])
             ->whereNotNull('estamento_id');
 
         // 1. Filtro por Estamento
-        if (!empty($selectedEstamentos)) {
+        if (! empty($selectedEstamentos)) {
             $query->whereIn('estamento_id', $selectedEstamentos);
         }
 
-        // 2. Filtro por Sede 
-        if (!empty($selectedSedes)) {
+        // 2. Filtro por Sede
+        if (! empty($selectedSedes)) {
             $query->whereIn('sede_id', $selectedSedes);
         }
 
         // 3. Filtro por Curso
-        if (!empty($selectedCursos)) {
+        if (! empty($selectedCursos)) {
             foreach ($selectedCursos as $id) {
                 $query->whereHas('certificados', function ($q) use ($id) {
                     $q->where('curso_id', $id);
@@ -107,7 +110,7 @@ class ReporteController extends Controller
                             $q->whereHas('modulo', function ($q2) use ($cursoSeleccionado) {
                                 $q2->where('curso_id', $cursoSeleccionado->id);
                             })->where('completado', true);
-                        }
+                        },
                     ]);
                 }
             } else {
@@ -124,7 +127,7 @@ class ReporteController extends Controller
             $query->whereHas('certificados', function ($q) use ($request) {
                 $q->whereBetween('fecha_emision', [$request->fecha_inicio, $request->fecha_fin]);
                 $cursoIds = $this->sanitizeCourseIds($request);
-                if (!empty($cursoIds)) {
+                if (! empty($cursoIds)) {
                     $q->whereIn('curso_id', $cursoIds);
                 }
             });
@@ -133,7 +136,7 @@ class ReporteController extends Controller
         $usuarios = $query->paginate(15)->withQueryString();
 
         return view('admin.reportes.index', compact(
-            'usuarios', 'estamentos', 'cursos', 'sedes', 
+            'usuarios', 'estamentos', 'cursos', 'sedes',
             'cursoSeleccionado', 'ageBounds',
             'selectedSedes', 'selectedEstamentos', 'selectedCursos', 'edadActiva'
         ));

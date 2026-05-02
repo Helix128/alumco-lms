@@ -1,7 +1,11 @@
 @import 'tailwindcss';
 @import "@fontsource/fira-sans";
-@import "@fontsource/sora";
-@import "@fontsource/ubuntu";
+@import "@fontsource/sora/400.css";
+@import "@fontsource/sora/700.css";
+@import "@fontsource/sora/800.css";
+@import "@fontsource/ubuntu/400.css";
+@import "@fontsource/ubuntu/500.css";
+@import "@fontsource/ubuntu/700.css";
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
@@ -37,7 +41,7 @@
 
 /* Ajustador de tamaño de fuente accesible (RNF-02) */
 html {
-    font-size: var(--font-base, 16px);
+    font-size: var(--font-base, 16px) !important;
 }
 
 [x-cloak] { display: none !important; }
@@ -46,9 +50,7 @@ html {
 .worker-shell {
     background:
         radial-gradient(circle, rgba(32, 80, 153, 0.055) 1px, transparent 1.4px) 0 0 / 24px 24px,
-        linear-gradient(135deg, rgba(255, 255, 255, 0.32) 25%, transparent 25%) 0 0 / 18px 18px,
-        radial-gradient(circle at top left, rgba(175, 221, 131, 0.18), transparent 34rem),
-        linear-gradient(180deg, #fffdf8 0%, #f7faff 46%, #fdf9f3 100%);
+        var(--color-Alumco-cream);
 }
 
 .worker-topbar {
@@ -764,12 +766,20 @@ html {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════ */
-/*  Transiciones Universales (Chrome, Firefox, Safari)                        */
+/* Transiciones Universales (Chrome, Firefox, Safari)                        */
 /* ═══════════════════════════════════════════════════════════════════════════ */
+
+.transition-polish {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.active-press:active {
+    transform: scale(0.98);
+}
 
 /* Animación de entrada estándar que funciona en TODOS los navegadores */
 .animate-page-entry {
-    animation: page-fade-in 0.3s ease-out both;
+    animation: page-fade-in 0.4s cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 
 @keyframes page-fade-in {
