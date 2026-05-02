@@ -1,8 +1,0 @@
-[mcp_servers.laravel-boost]
-command = "/home/diego/Proyectos/Code/PHP/alumco-lms/vendor/bin/sail"
-cwd = "/home/diego/Proyectos/Code/PHP/alumco-lms"
-args = ["artisan", "boost:mcp"]
-
-[mcp_servers.laravel-boost.tools.search-docs]
-approval_mode = "approve"
-
