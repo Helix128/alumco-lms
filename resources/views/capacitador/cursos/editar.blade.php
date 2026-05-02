@@ -66,6 +66,37 @@
                     </div>
                 </div>
 
+                {{-- Color del Curso --}}
+                <div class="space-y-3" x-data="{ autoColor: {{ $curso->color_promedio ? 'false' : 'true' }} }">
+                    <label class="block text-sm font-black text-Alumco-blue/40 uppercase tracking-widest">Estética del Curso</label>
+                    
+                    <div class="flex flex-col gap-4 p-5 bg-Alumco-cream/20 rounded-2xl border border-gray-100">
+                        <label class="flex items-center gap-3 cursor-pointer group">
+                            <div class="relative flex items-center">
+                                <input type="checkbox" name="auto_color" value="1" x-model="autoColor" 
+                                       class="w-5 h-5 rounded text-Alumco-blue border-gray-300 focus:ring-Alumco-blue transition-all">
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-sm font-bold text-Alumco-gray group-hover:text-Alumco-blue transition-colors">Extraer color automáticamente</p>
+                                <p class="text-[10px] text-Alumco-gray/50 uppercase font-black tracking-widest mt-0.5">Sobrescribe el color al subir una imagen</p>
+                            </div>
+                        </label>
+
+                        <div x-show="!autoColor" x-transition.opacity class="pt-4 border-t border-gray-100/50 flex items-center gap-6">
+                            <div class="shrink-0">
+                                <input type="color" name="color_promedio" value="{{ old('color_promedio', $curso->color_promedio ?? '#1a3a5a') }}"
+                                       class="h-14 w-20 cursor-pointer rounded-xl border-4 border-white shadow-sm p-0 overflow-hidden">
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-xs font-bold text-Alumco-gray">Color personalizado</p>
+                                <p class="text-[10px] text-Alumco-gray/40 leading-relaxed mt-1">
+                                    Se mantendrá fijo a menos que vuelvas a marcar la opción automática.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
 
 
 

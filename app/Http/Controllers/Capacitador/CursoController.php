@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers\Capacitador;
 
+use App\Actions\Cursos\DuplicateCourseAction;
 use App\Http\Controllers\Controller;
 use App\Models\Curso;
 use App\Models\Evaluacion;
-use App\Actions\Cursos\DuplicateCourseAction;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -44,9 +44,11 @@ class CursoController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'titulo'         => 'required|string|max:255',
-            'descripcion'    => 'nullable|string',
+            'titulo' => 'required|string|max:255',
+            'descripcion' => 'nullable|string',
             'imagen_portada' => 'nullable|image|max:4096',
+            'color_promedio' => 'nullable|string|max:7',
+            'auto_color' => 'nullable|boolean',
         ]);
 
         $data['capacitador_id'] = auth()->id();
@@ -54,6 +56,10 @@ class CursoController extends Controller
         if ($request->hasFile('imagen_portada')) {
             $data['imagen_portada'] = $request->file('imagen_portada')
                 ->store('portadas', 'public');
+        }
+
+        if ($request->boolean('auto_color')) {
+            $data['color_promedio'] = null;
         }
 
         $curso = Curso::create($data);
@@ -66,15 +72,18 @@ class CursoController extends Controller
     {
         $this->authorizeCurso($curso);
 
-        $curso->load(['modulos' => fn($q) => $q->orderBy('orden'), 'modulos.evaluacion']);
+        $curso->load([
+            'secciones' => fn ($q) => $q->orderBy('orden'),
+            'secciones.modulos' => fn ($q) => $q->orderBy('orden'),
+            'modulos' => fn ($q) => $q->whereNull('seccion_id')->orderBy('orden'),
+            'modulos.evaluacion'
+        ]);
 
         // Sanar módulos huérfanos: evaluacion creada pero sin registro en DB
         foreach ($curso->modulos as $modulo) {
             if ($modulo->tipo_contenido === 'evaluacion' && ! $modulo->evaluacion) {
                 $evaluacion = Evaluacion::create([
-                    'modulo_id'              => $modulo->id,
-                    'puntos_aprobacion'      => 0,
-                    'max_intentos_semanales' => 2,
+                    'modulo_id' => $modulo->id,
                 ]);
                 $modulo->setRelation('evaluacion', $evaluacion);
             }
@@ -95,9 +104,11 @@ class CursoController extends Controller
         $this->authorizeCurso($curso);
 
         $data = $request->validate([
-            'titulo'         => 'required|string|max:255',
-            'descripcion'    => 'nullable|string',
+            'titulo' => 'required|string|max:255',
+            'descripcion' => 'nullable|string',
             'imagen_portada' => 'nullable|image|max:4096',
+            'color_promedio' => 'nullable|string|max:7',
+            'auto_color' => 'nullable|boolean',
         ]);
 
         if ($request->hasFile('imagen_portada')) {
@@ -106,6 +117,10 @@ class CursoController extends Controller
             }
             $data['imagen_portada'] = $request->file('imagen_portada')
                 ->store('portadas', 'public');
+        }
+
+        if ($request->boolean('auto_color')) {
+            $data['color_promedio'] = null;
         }
 
         $curso->update($data);

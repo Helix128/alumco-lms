@@ -4,18 +4,29 @@ namespace App\Livewire\Capacitador;
 
 use App\Models\Curso;
 use App\Models\Evaluacion;
+use App\Models\GlobalSetting;
 use App\Models\Opcion;
 use App\Models\Pregunta;
+use Livewire\Attributes\Computed;
 use Livewire\Component;
 
 class EditarEvaluacion extends Component
 {
     public Evaluacion $evaluacion;
+
     public Curso $curso;
 
     public array $preguntas = [];
+
     public string $nuevaPreguntaEnunciado = '';
+
     public string $flashMensaje = '';
+
+    public ?int $deletingPreguntaId = null;
+
+    public ?int $deletingOpcionId = null;
+
+    public string $deletingType = '';
 
     public function mount(Evaluacion $evaluacion, Curso $curso): void
     {
@@ -29,19 +40,39 @@ class EditarEvaluacion extends Component
         $this->preguntas = $this->evaluacion->preguntas()
             ->with('opciones')
             ->get()
-            ->map(fn($p) => [
-                'id'       => $p->id,
+            ->map(fn ($p) => [
+                'id' => $p->id,
                 'enunciado' => $p->enunciado,
-                'orden'    => $p->orden,
-                'opciones' => $p->opciones->map(fn($o) => [
-                    'id'         => $o->id,
-                    'texto'      => $o->texto,
+                'orden' => $p->orden,
+                'opciones' => $p->opciones->map(fn ($o) => [
+                    'id' => $o->id,
+                    'texto' => $o->texto,
                     'es_correcta' => (bool) $o->es_correcta,
-                    'orden'      => $o->orden,
+                    'orden' => $o->orden,
                 ])->values()->toArray(),
             ])
             ->values()
             ->toArray();
+    }
+
+    #[Computed]
+    public function resumen(): array
+    {
+        $total = count($this->preguntas);
+        $porcentaje = (int) GlobalSetting::get('evaluacion_puntos_aprobacion', 70);
+        $puntosNecesarios = $total > 0 ? max(1, (int) ceil($total * ($porcentaje / 100))) : 0;
+        $preguntasSinOpciones = 0;
+        $preguntasSinCorrecta = 0;
+
+        foreach ($this->preguntas as $p) {
+            if (count($p['opciones']) === 0) {
+                $preguntasSinOpciones++;
+            } elseif (! collect($p['opciones'])->contains('es_correcta', true)) {
+                $preguntasSinCorrecta++;
+            }
+        }
+
+        return compact('total', 'puntosNecesarios', 'porcentaje', 'preguntasSinOpciones', 'preguntasSinCorrecta');
     }
 
     public function agregarPregunta(): void
@@ -50,15 +81,15 @@ class EditarEvaluacion extends Component
 
         $pregunta = Pregunta::create([
             'evaluacion_id' => $this->evaluacion->id,
-            'enunciado'     => $this->nuevaPreguntaEnunciado,
-            'orden'         => count($this->preguntas) + 1,
+            'enunciado' => $this->nuevaPreguntaEnunciado,
+            'orden' => count($this->preguntas) + 1,
         ]);
 
         $this->preguntas[] = [
-            'id'        => $pregunta->id,
+            'id' => $pregunta->id,
             'enunciado' => $pregunta->enunciado,
-            'orden'     => $pregunta->orden,
-            'opciones'  => [],
+            'orden' => $pregunta->orden,
+            'opciones' => [],
         ];
 
         $this->nuevaPreguntaEnunciado = '';
@@ -69,10 +100,9 @@ class EditarEvaluacion extends Component
         Pregunta::destroy($preguntaId);
 
         $this->preguntas = array_values(
-            array_filter($this->preguntas, fn($p) => $p['id'] !== $preguntaId)
+            array_filter($this->preguntas, fn ($p) => $p['id'] !== $preguntaId)
         );
 
-        // Reindexar orden
         foreach ($this->preguntas as $i => &$p) {
             $p['orden'] = $i + 1;
         }
@@ -80,24 +110,34 @@ class EditarEvaluacion extends Component
 
     public function agregarOpcion(int $preguntaId): void
     {
+        $newOrden = 1;
+        foreach ($this->preguntas as $p) {
+            if ($p['id'] === $preguntaId) {
+                $newOrden = count($p['opciones']) + 1;
+                break;
+            }
+        }
+
         $opcion = Opcion::create([
             'pregunta_id' => $preguntaId,
-            'texto'       => '',
+            'texto' => '',
             'es_correcta' => false,
-            'orden'       => 1,
+            'orden' => $newOrden,
         ]);
 
         foreach ($this->preguntas as &$p) {
             if ($p['id'] === $preguntaId) {
                 $p['opciones'][] = [
-                    'id'         => $opcion->id,
-                    'texto'      => '',
+                    'id' => $opcion->id,
+                    'texto' => '',
                     'es_correcta' => false,
-                    'orden'      => count($p['opciones']) + 1,
+                    'orden' => $newOrden,
                 ];
                 break;
             }
         }
+
+        $this->dispatch('opcion-agregada', preguntaId: $preguntaId);
     }
 
     public function eliminarOpcion(int $opcionId): void
@@ -106,18 +146,16 @@ class EditarEvaluacion extends Component
 
         foreach ($this->preguntas as &$p) {
             $p['opciones'] = array_values(
-                array_filter($p['opciones'], fn($o) => $o['id'] !== $opcionId)
+                array_filter($p['opciones'], fn ($o) => $o['id'] !== $opcionId)
             );
         }
     }
 
     public function toggleCorrecta(int $opcionId): void
     {
-        // Buscar a qué pregunta pertenece la opción
         foreach ($this->preguntas as &$p) {
             foreach ($p['opciones'] as $o) {
                 if ($o['id'] === $opcionId) {
-                    // Poner todas las opciones de esta pregunta en false
                     foreach ($p['opciones'] as &$op) {
                         $op['es_correcta'] = ($op['id'] === $opcionId);
                         Opcion::where('id', $op['id'])->update(['es_correcta' => $op['es_correcta']]);
@@ -128,25 +166,102 @@ class EditarEvaluacion extends Component
         }
     }
 
-    public function guardarTextos(): void
+    public function guardarEnunciado(int $preguntaId): void
+    {
+        $index = $this->indexFor($preguntaId);
+        $this->validate(["preguntas.{$index}.enunciado" => 'required|string|min:3']);
+
+        Pregunta::where('id', $preguntaId)->update([
+            'enunciado' => $this->preguntas[$index]['enunciado'],
+        ]);
+
+        $this->flash('Pregunta guardada.');
+    }
+
+    public function guardarTextoOpcion(int $opcionId): void
     {
         foreach ($this->preguntas as $p) {
-            Pregunta::where('id', $p['id'])->update([
-                'enunciado' => $p['enunciado'],
-                'orden'     => $p['orden'],
-            ]);
-
             foreach ($p['opciones'] as $o) {
-                Opcion::where('id', $o['id'])->update([
-                    'texto'      => $o['texto'],
-                    'es_correcta' => $o['es_correcta'],
-                    'orden'      => $o['orden'],
-                ]);
+                if ($o['id'] === $opcionId) {
+                    Opcion::where('id', $opcionId)->update(['texto' => $o['texto']]);
+
+                    return;
+                }
+            }
+        }
+    }
+
+    public function reordenarPreguntas(array $orden): void
+    {
+        foreach ($orden as $index => $preguntaId) {
+            Pregunta::where('id', $preguntaId)
+                ->where('evaluacion_id', $this->evaluacion->id)
+                ->update(['orden' => $index + 1]);
+        }
+
+        $indexed = collect($this->preguntas)->keyBy('id');
+        $this->preguntas = collect($orden)
+            ->map(fn ($id) => $indexed[$id] ?? null)
+            ->filter()
+            ->values()
+            ->map(function ($p, $i) {
+                $p['orden'] = $i + 1;
+
+                return $p;
+            })
+            ->toArray();
+    }
+
+    private function indexFor(int $preguntaId): int
+    {
+        foreach ($this->preguntas as $i => $p) {
+            if ($p['id'] === $preguntaId) {
+                return $i;
             }
         }
 
-        $this->flashMensaje = 'Cambios guardados correctamente.';
-        $this->dispatch('evaluacion-guardada');
+        return 0;
+    }
+
+    private function flash(string $mensaje): void
+    {
+        $this->flashMensaje = $mensaje;
+        $this->dispatch('flash-guardado');
+    }
+
+    public function iniciarEliminarPregunta(int $preguntaId): void
+    {
+        $this->deletingPreguntaId = $preguntaId;
+        $this->deletingType = 'pregunta';
+    }
+
+    public function iniciarEliminarOpcion(int $opcionId): void
+    {
+        $this->deletingOpcionId = $opcionId;
+        $this->deletingType = 'opcion';
+    }
+
+    public function confirmarEliminarPregunta(): void
+    {
+        if ($this->deletingPreguntaId) {
+            $this->eliminarPregunta($this->deletingPreguntaId);
+            $this->cancelarEliminar();
+        }
+    }
+
+    public function confirmarEliminarOpcion(): void
+    {
+        if ($this->deletingOpcionId) {
+            $this->eliminarOpcion($this->deletingOpcionId);
+            $this->cancelarEliminar();
+        }
+    }
+
+    public function cancelarEliminar(): void
+    {
+        $this->deletingPreguntaId = null;
+        $this->deletingOpcionId = null;
+        $this->deletingType = '';
     }
 
     public function render()

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-label="Portada de curso sobre derechos del paciente">
+  <rect width="1200" height="675" fill="#dbeafe"/>
+  <rect x="0" y="438" width="1200" height="237" fill="#1d4ed8"/>
+  <rect x="264" y="112" width="420" height="298" rx="28" fill="#ffffff"/>
+  <rect x="326" y="174" width="296" height="24" rx="12" fill="#93c5fd"/>
+  <rect x="326" y="238" width="238" height="24" rx="12" fill="#93c5fd"/>
+  <rect x="326" y="302" width="270" height="24" rx="12" fill="#93c5fd"/>
+  <circle cx="824" cy="244" r="116" fill="#60a5fa"/>
+  <path d="M824 150l86 42v62c0 69-45 111-86 132-41-21-86-63-86-132v-62z" fill="#ffffff"/>
+  <path d="M780 250l34 34 62-76" fill="none" stroke="#1d4ed8" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="84" y="545" fill="#ffffff" font-family="Arial, sans-serif" font-size="54" font-weight="700">Derechos del Paciente</text>
+  <text x="86" y="600" fill="#dbeafe" font-family="Arial, sans-serif" font-size="30">Trato digno, información y confidencialidad</text>
+</svg>

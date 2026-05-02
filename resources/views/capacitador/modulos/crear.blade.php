@@ -57,17 +57,17 @@
                 </div>
 
                 {{-- Sección dinámica: archivo --}}
-                <div id="campo-archivo" class="hidden space-y-3">
+                <div id="campo-archivo" class="hidden space-y-4">
                     <label class="block text-sm font-black text-Alumco-blue/40 uppercase tracking-widest">Archivo del módulo</label>
                     <div class="group relative">
                         <input type="file" name="ruta_archivo"
                                class="w-full bg-Alumco-cream/30 border border-dashed border-gray-200 rounded-xl px-4 py-8 text-sm file:hidden cursor-pointer hover:bg-Alumco-blue/5 transition-all text-center font-bold text-Alumco-gray/40">
                         <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none gap-2">
                             <svg class="w-8 h-8 text-Alumco-blue/20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
-                            <span class="text-xs uppercase tracking-widest font-display">Subir material (Video, PDF, PPT)</span>
+                            <span class="text-xs uppercase tracking-widest font-display">Subir material (Video, PDF, PPT, Imagen)</span>
                         </div>
                     </div>
-                    <p class="text-[10px] text-Alumco-gray/40 font-bold uppercase tracking-wider text-center">Máximo 100 MB.</p>
+                    <p class="text-[10px] text-Alumco-gray/40 font-bold uppercase tracking-wider text-center">Formatos soportados: MP4, PDF, PPT, PPTX, JPEG, PNG, WEBP. Máximo 100 MB.</p>
                 </div>
 
                 {{-- Sección dinámica: texto --}}

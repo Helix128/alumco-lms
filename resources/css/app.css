@@ -1,4 +1,7 @@
 @import 'tailwindcss';
+@import "@fontsource/fira-sans";
+@import "@fontsource/sora";
+@import "@fontsource/ubuntu";
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
@@ -14,6 +17,9 @@
     --color-Alumco-gray: #4A4A4A;
     --color-Alumco-cream: #FDF9F3;
     --color-Alumco-green-vivid: #4CAF50;
+    --color-Alumco-green-accessible: #2E7D32;
+    --color-Alumco-gold-accessible: #7A5200;
+    --color-Alumco-coral-accessible: #B3261E;
 
     --font-sans: 'Ubuntu', sans-serif;
     --font-display: 'Sora', sans-serif;
@@ -29,12 +35,280 @@
     }
 }
 
+/* Ajustador de tamaño de fuente accesible (RNF-02) */
+html {
+    font-size: var(--font-base, 16px);
+}
+
 [x-cloak] { display: none !important; }
+
+/* Trabajador: layout accesible y consistente */
+.worker-shell {
+    background:
+        radial-gradient(circle, rgba(32, 80, 153, 0.055) 1px, transparent 1.4px) 0 0 / 24px 24px,
+        linear-gradient(135deg, rgba(255, 255, 255, 0.32) 25%, transparent 25%) 0 0 / 18px 18px,
+        radial-gradient(circle at top left, rgba(175, 221, 131, 0.18), transparent 34rem),
+        linear-gradient(180deg, #fffdf8 0%, #f7faff 46%, #fdf9f3 100%);
+}
+
+.worker-topbar {
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(12px);
+}
+
+.worker-page {
+    width: 100%;
+}
+
+.worker-card {
+    border: 1px solid rgba(226, 232, 240, 0.86);
+    border-radius: 22px;
+    background: #fff;
+    box-shadow: 0 18px 42px rgba(32, 80, 153, 0.08);
+}
+
+.worker-card,
+.worker-course-tile {
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.worker-course-tile:hover {
+    transform: translateY(-1px);
+}
+
+.worker-course-tile:focus-visible {
+    transform: translateY(-1px);
+}
+
+.worker-soft-panel {
+    border-radius: 26px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(253, 249, 243, 0.86));
+    box-shadow: 0 20px 46px rgba(32, 80, 153, 0.08);
+}
+
+.worker-pill {
+    border-radius: 999px;
+}
+
+.worker-focus {
+    outline: 2px solid transparent;
+    outline-offset: 3px;
+}
+
+.worker-focus:focus-visible {
+    outline-color: var(--color-Alumco-yellow);
+    box-shadow: 0 0 0 5px rgba(248, 182, 6, 0.25);
+}
+
+.accessibility-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    border: 1px solid #edf2f7;
+    border-radius: 1rem;
+    background: #fff;
+    padding: 0.9rem 1rem;
+    box-shadow: 0 8px 22px rgba(32, 80, 153, 0.04);
+}
+
+.accessibility-toggle-title,
+.accessibility-toggle-help {
+    display: block;
+}
+
+.accessibility-toggle-title {
+    font-size: 0.95rem;
+    font-weight: 900;
+    color: var(--color-Alumco-gray);
+}
+
+.accessibility-toggle-help {
+    margin-top: 0.15rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    line-height: 1.35;
+    color: color-mix(in srgb, var(--color-Alumco-gray) 66%, transparent);
+}
+
+.worker-sidebar-link {
+    border-radius: 18px;
+    transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.worker-sidebar-link:hover {
+    background-color: rgba(255, 255, 255, 0.12);
+    color: #fff;
+    transform: translateY(-1px);
+}
+
+.worker-sidebar-link-active {
+    background-color: rgba(255, 255, 255, 0.14);
+    color: #fff;
+}
+
+.worker-course-card {
+    position: relative;
+    overflow: hidden;
+    border-left: 0;
+}
+
+.worker-course-card::before {
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 100%;
+    pointer-events: none;
+    background: linear-gradient(90deg, color-mix(in srgb, var(--course-accent, var(--color-Alumco-blue)) 10%, transparent), transparent 45%);
+    opacity: 0.8;
+}
+
+.worker-course-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 1.25rem;
+    right: 1.25rem;
+    height: 6px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--course-accent, var(--color-Alumco-blue)) 72%, white);
+    opacity: 0.9;
+}
+
+.worker-course-card > * {
+    position: relative;
+}
+
+.worker-course-thumb {
+    border-radius: 18px;
+    background:
+        linear-gradient(135deg, color-mix(in srgb, var(--course-accent, var(--color-Alumco-blue)) 14%, white), #f2f6fb);
+}
+
+.worker-action {
+    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+
+.worker-action:hover {
+    transform: translateY(-1px);
+}
+
+.worker-action:active {
+    transform: translateY(0);
+}
+
+.worker-status-available {
+    border-color: rgba(32, 80, 153, 0.22);
+    background: linear-gradient(135deg, #fff, rgba(32, 80, 153, 0.03));
+}
+
+.worker-status-completed {
+    border-color: rgba(76, 175, 80, 0.35);
+    background: linear-gradient(135deg, color-mix(in srgb, var(--color-Alumco-green-accessible) 8%, white), #fff);
+}
+
+.worker-status-locked {
+    border-color: #e5e7eb;
+    background: #f8fafc;
+}
+
+@media (min-width: 1024px) {
+    .worker-sidebar-link-active {
+        background-color: var(--color-Alumco-blue);
+        box-shadow: 0 10px 18px rgba(32, 80, 153, 0.18);
+    }
+
+    .worker-sidebar-link:hover {
+        background-color: rgba(32, 80, 153, 0.07);
+        color: var(--color-Alumco-blue);
+    }
+
+    .worker-sidebar-link-active:hover {
+        background-color: var(--color-Alumco-blue);
+        color: #fff;
+    }
+}
+
+[data-contrast="high"] .worker-shell {
+    background: #fff;
+}
+
+[data-contrast="high"] .worker-topbar,
+[data-contrast="high"] .admin-shell header,
+[data-contrast="high"] .admin-shell aside,
+[data-contrast="high"] .worker-card,
+[data-contrast="high"] .worker-soft-panel,
+[data-contrast="high"] .worker-course-tile,
+[data-contrast="high"] .accessibility-toggle {
+    border-color: #111827;
+    box-shadow: none;
+}
+
+[data-contrast="high"] .admin-shell,
+[data-contrast="high"] .worker-shell {
+    color: #111827;
+}
+
+[data-contrast="high"] .text-Alumco-gray\/60,
+[data-contrast="high"] .text-Alumco-gray\/65,
+[data-contrast="high"] .text-Alumco-gray\/70,
+[data-contrast="high"] .text-Alumco-gray\/75,
+[data-contrast="high"] .text-Alumco-gray\/40,
+[data-contrast="high"] .text-Alumco-gray\/50,
+[data-contrast="high"] .text-gray-300,
+[data-contrast="high"] .text-gray-400,
+[data-contrast="high"] .text-gray-500,
+[data-contrast="high"] .text-gray-600 {
+    color: #1f2937;
+}
+
+[data-contrast="high"] .ring-gray-100\/80,
+[data-contrast="high"] .ring-Alumco-blue\/10,
+[data-contrast="high"] .border-gray-100,
+[data-contrast="high"] .border-gray-200,
+[data-contrast="high"] .border-white\/70 {
+    border-color: #111827;
+    --tw-ring-color: #111827;
+}
+
+[data-contrast="high"] .worker-focus:focus-visible {
+    outline-color: #111827;
+    box-shadow: 0 0 0 5px #f8b606;
+}
+
+[data-motion="reduced"] *,
+[data-motion="reduced"] *::before,
+[data-motion="reduced"] *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.001ms !important;
+}
+
+[data-motion="reduced"] ::view-transition-old(root),
+[data-motion="reduced"] ::view-transition-new(root) {
+    animation: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0.001ms !important;
+    }
+}
 
 /* Tarjeta navegable (cursos, módulos) */
 .card-link {
     display: block;
-    transition: transform 0.15s ease;
+    transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.card-link:hover {
+    border-color: color-mix(in srgb, var(--color-Alumco-blue) 24%, #e5e7eb);
+    box-shadow: 0 22px 48px rgba(32, 80, 153, 0.12);
 }
 .card-link:active {
     transform: scale(0.98);
@@ -76,7 +350,7 @@
     transition: background-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
 }
 .btn-logout:hover {
-    background-color: var(--color-Alumco-coral);
+    background-color: var(--color-Alumco-coral-accessible);
     color: #fff;
 }
 .btn-logout:active {
@@ -151,10 +425,13 @@
 
 /* Opciones de evaluación */
 .eval-option {
-    transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+    transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
 }
 .eval-option:not(.selected):hover {
     border-color: color-mix(in srgb, var(--color-Alumco-blue) 40%, transparent);
+}
+.eval-option.selected {
+    transform: scale(1.01);
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════ */
@@ -456,4 +733,78 @@
 .cal-view-tab-active {
     background: var(--color-Alumco-blue);
     color: white;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════ */
+/*  Sidebar Acogedor y Sensato (UX 50+)                                       */
+/* ═══════════════════════════════════════════════════════════════════════════ */
+
+.sidebar-cozy-btn {
+    transition: all 0.2s ease-out;
+    background-color: white;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.sidebar-cozy-btn-active {
+    border-color: var(--color-Alumco-blue) !important;
+    border-width: 2px !important;
+    color: var(--color-Alumco-blue) !important;
+    box-shadow: 0 4px 14px rgba(32, 80, 153, 0.12);
+}
+
+.sidebar-cozy-btn-inactive {
+    color: var(--color-Alumco-gray);
+}
+
+.sidebar-cozy-btn-inactive:hover {
+    border-color: rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+    color: var(--color-Alumco-blue);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════ */
+/*  Transiciones Universales (Chrome, Firefox, Safari)                        */
+/* ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Animación de entrada estándar que funciona en TODOS los navegadores */
+.animate-page-entry {
+    animation: page-fade-in 0.3s ease-out both;
+}
+
+@keyframes page-fade-in {
+    from { 
+        opacity: 0; 
+        transform: translateY(8px); 
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0); 
+    }
+}
+
+/* Soporte nativo para View Transitions API (Chrome/Edge) */
+@view-transition {
+    navigation: auto;
+}
+
+::view-transition-old(root) {
+    animation: 100ms ease-in both fade-out;
+}
+
+::view-transition-new(root) {
+    animation: 300ms ease-out both page-fade-in;
+}
+
+@keyframes fade-out {
+    to { opacity: 0; }
+}
+
+/* Elementos persistentes que no deben parpadear */
+.worker-topbar, .admin-topbar-persistent {
+    view-transition-name: topbar;
+}
+
+#app-bottom-nav, #sidebar {
+    view-transition-name: bottom-nav;
 }

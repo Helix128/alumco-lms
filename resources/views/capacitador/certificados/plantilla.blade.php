@@ -1,10 +1,14 @@
 @php
-    $fontDir          = storage_path('fonts');
-    $logoPath         = public_path('images/logo/alumco-full.svg');
-    $logoBase64       = base64_encode(file_get_contents($logoPath));
-    $labelCapacitador = ($capacitador->sexo ?? 'M') === 'F' ? 'Capacitadora' : 'Capacitador';
+    $logoPath = public_path('images/logo/alumco-full.svg');
 
-    // Preparar firmas en Base64
+    $cloudTopPath = public_path('images/undraw/clouds_top.svg');
+    $cloudBottomPath = public_path('images/undraw/clouds_bottom.svg');
+
+    $logoBase64 = file_exists($logoPath) ? base64_encode(file_get_contents($logoPath)) : null;
+
+    $cloudTopBase64 = file_exists($cloudTopPath) ? base64_encode(file_get_contents($cloudTopPath)) : null;
+    $cloudBottomBase64 = file_exists($cloudBottomPath) ? base64_encode(file_get_contents($cloudBottomPath)) : null;
+
     $firmaCapBase64 = null;
     if ($capacitador->firma_digital && Storage::disk('public')->exists($capacitador->firma_digital)) {
         $firmaCapBase64 = base64_encode(Storage::disk('public')->get($capacitador->firma_digital));
@@ -14,238 +18,19 @@
     if ($firmaRepLegal && Storage::disk('public')->exists($firmaRepLegal)) {
         $firmaRepBase64 = base64_encode(Storage::disk('public')->get($firmaRepLegal));
     }
-@endphp
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <style>
-        @font-face {
-            font-family: 'Fira Sans';
-            font-weight: 400;
-            src: url('{{ storage_path('fonts/FiraSans-Regular.ttf') }}') format('truetype');
-        }
-        @font-face {
-            font-family: 'Fira Sans';
-            font-weight: 700;
-            src: url('{{ storage_path('fonts/FiraSans-Bold.ttf') }}') format('truetype');
-        }
-        @font-face {
-            font-family: 'Fira Sans';
-            font-weight: 900;
-            src: url('{{ storage_path('fonts/FiraSans-Black.ttf') }}') format('truetype');
-        }
-        @font-face {
-            font-family: 'Sora';
-            font-weight: 700;
-            src: url('{{ storage_path('fonts/Sora-Bold.ttf') }}') format('truetype');
-        }
-        @font-face {
-            font-family: 'Sora';
-            font-weight: 800;
-            src: url('{{ storage_path('fonts/Sora-ExtraBold.ttf') }}') format('truetype');
-        }
 
-        @page {
-            size: letter landscape;
-            margin: 0;
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
-            font-family: 'Fira Sans', sans-serif;
-            background: #ffffff;
-            width: 100%;
-            height: 100%;
-        }
-
-        .borde-izq {
-            position: absolute;
-            left: 0; top: 0; bottom: 0;
-            width: 14mm;
-            background: #205099;
-        }
-
-        .borde-der {
-            position: absolute;
-            right: 0; top: 0; bottom: 0;
-            width: 14mm;
-            background: #205099;
-        }
-
-        .contenedor {
-            padding: 15mm 25mm;
-            height: 100%;
-            border-top: 6px solid #AFDD83;
-            border-bottom: 6px solid #AFDD83;
-            margin-left: 14mm;
-            margin-right: 14mm;
-            position: relative;
-        }
-
-        .encabezado {
-            width: 100%;
-            margin-bottom: 20mm;
-        }
-
-        .logo-img {
-            height: 36px;
-            width: auto;
-            float: left;
-        }
-
-        .titulo-cert {
-            font-family: 'Sora', sans-serif;
-            font-size: 11pt;
-            font-weight: 700;
-            color: #4A4A4A;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            float: right;
-            text-align: right;
-        }
-
-        .clear { clear: both; }
-
-        .cuerpo {
-            text-align: center;
-            margin-bottom: 25mm;
-        }
-
-        .prezenta {
-            font-family: 'FiraSans', Arial, sans-serif;
-            font-size: 10pt;
-            color: #6B7280;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            margin-bottom: 12px;
-        }
-
-        .nombre-alumno {
-            font-family: 'Sora', Arial, sans-serif;
-            font-weight: 800;
-            font-size: 36pt;
-            color: #205099;
-            margin-bottom: 15px;
-            line-height: 1.1;
-        }
-
-        .texto-completado {
-            font-family: 'FiraSans', Arial, sans-serif;
-            font-size: 11pt;
-            color: #4A4A4A;
-            margin-bottom: 10px;
-        }
-
-        .nombre-curso {
-            font-family: 'Sora', Arial, sans-serif;
-            font-weight: 600;
-            font-size: 18pt;
-            color: #205099;
-            font-style: italic;
-        }
-
-        .firmas-container {
-            width: 100%;
-            margin-top: 30mm;
-        }
-
-        .firma-box {
-            width: 45%;
-            float: left;
-            text-align: center;
-        }
-
-        .firma-box-right {
-            width: 45%;
-            float: right;
-            text-align: center;
-        }
-
-        .firma-img-wrapper {
-            height: 22mm;
-            margin-bottom: 2mm;
-            display: block;
-        }
-
-        .firma-img {
-            height: 100%;
-            width: auto;
-            max-width: 50mm;
-            mix-blend-multiply;
-        }
-
-        .linea-firma {
-            border-bottom: 1.5px solid #205099;
-            margin-bottom: 4px;
-            width: 60mm;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .firma-nombre {
-            font-family: 'Sora', Arial, sans-serif;
-            font-weight: 600;
-            font-size: 11pt;
-            color: #205099;
-        }
-
-        .firma-label {
-            font-family: 'FiraSans', Arial, sans-serif;
-            font-size: 8pt;
-            color: #6B7280;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .footer-info {
-            position: absolute;
-            bottom: 15mm;
-            left: 25mm;
-            right: 25mm;
-            width: auto;
-        }
-
-        .fecha-bloque {
-            font-family: 'FiraSans', Arial, sans-serif;
-            font-size: 9pt;
-            color: #6B7280;
-            float: left;
-        }
-
-        .codigo-bloque {
-            float: right;
-            text-align: right;
-        }
-
-        .codigo-label {
-            font-size: 7pt;
-            color: #4A4A4A;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 3px;
-        }
-
-        .codigo-valor {
-            font-family: 'Courier New', monospace;
-            font-size: 8pt;
-            color: #4A4A4A;
-        }
-    </style>
-</head>
-@php
     $sexoUsuario = strtolower(trim((string) ($user->sexo ?? '')));
     if (in_array($sexoUsuario, ['m', 'masculino', 'hombre'], true)) {
-        $articulo    = 'el';
+        $articulo = 'el';
         $colaborador = 'colaborador';
     } elseif (in_array($sexoUsuario, ['f', 'femenino', 'mujer'], true)) {
-        $articulo    = 'la';
+        $articulo = 'la';
         $colaborador = 'colaboradora';
     } else {
-        $articulo    = '';
+        $articulo = '';
         $colaborador = 'colaborador/a';
     }
+
     $presentacion = trim('Se certifica que ' . $articulo . ' ' . $colaborador);
 
     $sexoCapacitador = strtolower(trim((string) ($capacitador->sexo ?? '')));
@@ -257,65 +42,334 @@
         $labelCapacitador = 'Capacitador/a';
     }
 @endphp
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @font-face {
+            font-family: 'Fira Sans';
+            font-weight: 400;
+            src: url('{{ storage_path('fonts/FiraSans-Regular.ttf') }}') format('truetype');
+        }
+
+        @font-face {
+            font-family: 'Fira Sans';
+            font-weight: 700;
+            src: url('{{ storage_path('fonts/FiraSans-Bold.ttf') }}') format('truetype');
+        }
+
+        @font-face {
+            font-family: 'Fira Sans';
+            font-weight: 900;
+            src: url('{{ storage_path('fonts/FiraSans-Black.ttf') }}') format('truetype');
+        }
+
+        @font-face {
+            font-family: 'Sora';
+            font-weight: 700;
+            src: url('{{ storage_path('fonts/Sora-Bold.ttf') }}') format('truetype');
+        }
+
+        @font-face {
+            font-family: 'Sora';
+            font-weight: 800;
+            src: url('{{ storage_path('fonts/Sora-ExtraBold.ttf') }}') format('truetype');
+        }
+
+        @page {
+            size: 8.5in 11in;
+            margin: 0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            width: 8.5in;
+            height: 11in;
+            font-family: 'Fira Sans', sans-serif;
+            background: #ffffff;
+            color: #4A4A4A;
+            overflow: hidden;
+        }
+
+        .page {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 8.5in;
+            height: 11in;
+            overflow: hidden;
+            background: #ffffff;
+        }
+
+        .cloud {
+            position: absolute;
+            opacity: 0.28;
+            z-index: 1;
+        }
+
+        .cloud-top {
+            top: 0;
+            left: 0;
+            width: 8.5in;
+            height: 30mm;
+        }
+
+        .cloud-bottom {
+            left: 0;
+            width: 8.5in;
+            bottom: 0;
+            height: 26mm;
+        }
+
+        .frame {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 2;
+            width: 8.5in;
+            height: 11in;
+            background: transparent;
+        }
+
+        .frame::before {
+            content: none;
+        }
+
+        .content {
+            position: absolute;
+            top: 22mm;
+            left: 18mm;
+            z-index: 3;
+            width: 179.9mm;
+            height: 235mm;
+        }
+
+        .header {
+            width: 100%;
+            margin-bottom: 24mm;
+        }
+
+        .logo {
+            float: left;
+            height: 42px;
+            width: auto;
+        }
+
+        .title {
+            float: right;
+            text-align: right;
+            font-family: 'Sora', sans-serif;
+            font-size: 11pt;
+            font-weight: 700;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            color: #4A4A4A;
+            line-height: 1.35;
+        }
+
+        .clear {
+            clear: both;
+        }
+
+        .body {
+            text-align: center;
+            margin-bottom: 25mm;
+        }
+
+        .prelude {
+            font-size: 10pt;
+            color: #6B7280;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+
+        .student-name {
+            font-family: 'Sora', sans-serif;
+            font-size: 35pt;
+            font-weight: 800;
+            color: #205099;
+            line-height: 1.12;
+            margin-bottom: 12px;
+        }
+
+        .completion-text {
+            font-size: 11pt;
+            color: #4A4A4A;
+            margin-bottom: 9px;
+        }
+
+        .course-name {
+            font-family: 'Sora', sans-serif;
+            font-size: 18pt;
+            font-weight: 700;
+            color: #205099;
+            font-style: italic;
+            line-height: 1.3;
+        }
+
+        .signatures {
+            width: 100%;
+            margin-top: 0;
+        }
+
+        .signature-box {
+            width: 45%;
+            text-align: center;
+            float: left;
+        }
+
+        .signature-box-right {
+            width: 45%;
+            text-align: center;
+            float: right;
+        }
+
+        .signature-image-wrapper {
+            height: 19mm;
+            margin-bottom: 2mm;
+        }
+
+        .signature-image {
+            max-height: 100%;
+            max-width: 52mm;
+            width: auto;
+        }
+
+        .signature-line {
+            width: 62mm;
+            margin: 0 auto 4px;
+            border-bottom: 1.4px solid #205099;
+        }
+
+        .signature-name {
+            font-family: 'Sora', sans-serif;
+            font-size: 10.5pt;
+            font-weight: 700;
+            color: #205099;
+        }
+
+        .signature-role {
+            font-size: 8pt;
+            color: #6B7280;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .footer {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: auto;
+            z-index: 4;
+        }
+
+        .issued-date {
+            float: left;
+            font-size: 9pt;
+            color: #6B7280;
+        }
+
+        .verification {
+            float: right;
+            text-align: right;
+        }
+
+        .verification-label {
+            font-size: 7pt;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #4A4A4A;
+            margin-bottom: 3px;
+        }
+
+        .verification-code {
+            font-family: 'Courier New', monospace;
+            font-size: 8pt;
+            color: #4A4A4A;
+        }
+    </style>
+</head>
 <body>
-    <div class="borde-izq"></div>
-    <div class="borde-der"></div>
+    <div class="page">
+        @if ($cloudTopBase64)
+            <img class="cloud cloud-top" src="data:image/svg+xml;base64,{{ $cloudTopBase64 }}" alt="Nubes decorativas superiores">
+        @endif
 
-    <div class="contenedor">
-        <div class="encabezado">
-            <div>
-                <img src="{{ public_path('images/logo/alumco-full.svg') }}" class="logo-img" alt="Alumco">
-            </div>
-            <div class="titulo-cert">
-                Certificado<br>de Completado
-            </div>
-            <div class="clear"></div>
-        </div>
+        @if ($cloudBottomBase64)
+            <img class="cloud cloud-bottom" src="data:image/svg+xml;base64,{{ $cloudBottomBase64 }}" alt="Nubes decorativas inferiores">
+        @endif
 
-        <div class="cuerpo">
-            <p class="prezenta">{{ $presentacion }}</p>
-            <p class="nombre-alumno">{{ $user->name }}</p>
-            <p class="texto-completado">ha completado satisfactoriamente el curso</p>
-            <p class="nombre-curso">"{{ $curso->titulo }}"</p>
-        </div>
-
-        <div class="firmas-container">
-            {{-- Firma del Capacitador --}}
-            <div class="firma-box">
-                <div class="firma-img-wrapper">
-                    @if($firmaCapBase64)
-                        <img src="data:image/png;base64,{{ $firmaCapBase64 }}" class="firma-img">
+        <div class="frame">
+            <div class="content">
+                <div class="header">
+                    @if ($logoBase64)
+                        <img class="logo" src="data:image/svg+xml;base64,{{ $logoBase64 }}" alt="Alumco">
                     @endif
+
+                    <div class="title">
+                        Certificado<br>
+                        de Completado
+                    </div>
+
+                    <div class="clear"></div>
                 </div>
-                <div class="linea-firma"></div>
-                <div class="firma-nombre">{{ $capacitador->name }}</div>
-                <div class="firma-label">{{ $labelCapacitador }}</div>
-            </div>
 
-            {{-- Firma del Representante Legal --}}
-            <div class="firma-box-right">
-                <div class="firma-img-wrapper">
-                    @if($firmaRepBase64)
-                        <img src="data:image/png;base64,{{ $firmaRepBase64 }}" class="firma-img">
-                    @endif
+                <div class="body">
+                    <p class="prelude">{{ $presentacion }}</p>
+                    <p class="student-name">{{ $user->name }}</p>
+                    <p class="completion-text">ha completado satisfactoriamente el curso</p>
+                    <p class="course-name">"{{ $curso->titulo }}"</p>
                 </div>
-                <div class="linea-firma"></div>
-                <div class="firma-nombre">Representante Legal</div>
-                <div class="firma-label">Fundación Alumco</div>
-            </div>
-            <div class="clear"></div>
-        </div>
 
-        <div class="footer-info">
-            <div class="fecha-bloque">
-                Emitido el {{ now()->format('d') }} de {{ \Carbon\Carbon::now()->locale('es')->isoFormat('MMMM') }} de {{ now()->format('Y') }}
-            </div>
+                <div class="signatures">
+                    <div class="signature-box">
+                        <div class="signature-image-wrapper">
+                            @if ($firmaCapBase64)
+                                <img class="signature-image" src="data:image/png;base64,{{ $firmaCapBase64 }}" alt="Firma de {{ $capacitador->name }}">
+                            @endif
+                        </div>
+                        <div class="signature-line"></div>
+                        <div class="signature-name">{{ $capacitador->name }}</div>
+                        <div class="signature-role">{{ $labelCapacitador }}</div>
+                    </div>
 
-            <div class="codigo-bloque">
-                <div class="codigo-label">Código de verificación</div>
-                <div class="codigo-valor">{{ strtoupper(substr($codigo, 0, 8)) }}</div>
+                    <div class="signature-box-right">
+                        <div class="signature-image-wrapper">
+                            @if ($firmaRepBase64)
+                                <img class="signature-image" src="data:image/png;base64,{{ $firmaRepBase64 }}" alt="Firma del representante legal">
+                            @endif
+                        </div>
+                        <div class="signature-line"></div>
+                        <div class="signature-name">Representante Legal</div>
+                        <div class="signature-role">Fundación Alumco</div>
+                    </div>
+
+                    <div class="clear"></div>
+                </div>
+
+                <div class="footer">
+                    <div class="issued-date">
+                        Emitido el {{ now()->format('d') }} de {{ \Carbon\Carbon::now()->locale('es')->isoFormat('MMMM') }} de {{ now()->format('Y') }}
+                    </div>
+
+                    <div class="verification">
+                        <div class="verification-label">Código de verificación</div>
+                        <div class="verification-code">{{ strtoupper(substr($codigo, 0, 8)) }}</div>
+                    </div>
+
+                    <div class="clear"></div>
+                </div>
             </div>
-            <div class="clear"></div>
         </div>
     </div>
 </body>

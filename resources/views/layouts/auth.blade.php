@@ -4,10 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Alumco')</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;500;600;700;900&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
         html, body {
@@ -16,9 +13,20 @@
             padding: 0;
             overflow: hidden;
         }
+
+        .auth-shell :focus-visible {
+            outline: 3px solid var(--color-Alumco-yellow);
+            outline-offset: 3px;
+            box-shadow: 0 0 0 6px rgba(248, 182, 6, 0.25);
+        }
+
+        .auth-shell .text-Alumco-gray\/40,
+        .auth-shell .text-Alumco-gray\/50 {
+            color: color-mix(in srgb, var(--color-Alumco-gray) 78%, white);
+        }
     </style>
 </head>
-<body class="bg-Alumco-cream font-sans text-Alumco-gray antialiased">
+<body class="auth-shell bg-Alumco-cream font-sans text-Alumco-gray antialiased">
     <div class="relative flex h-screen w-full flex-col overflow-hidden isolate">
         <!-- Nubes Superiores -->
         <div class="pointer-events-none absolute top-0 -right-10 z-0 select-none">

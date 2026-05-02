@@ -26,11 +26,11 @@ class ModuloController extends Controller
     private function getMimeRules(string $tipoContenido): string
     {
         return match ($tipoContenido) {
-            'video'  => 'mimes:mp4',
-            'pdf'    => 'mimes:pdf',
-            'ppt'    => 'mimes:ppt,pptx',
+            'video' => 'mimes:mp4',
+            'pdf' => 'mimes:pdf',
+            'ppt' => 'mimes:ppt,pptx',
             'imagen' => 'mimes:jpeg,png,jpg,gif,webp',
-            default  => '',
+            default => '',
         };
     }
 
@@ -39,8 +39,8 @@ class ModuloController extends Controller
         $this->authorizeCurso($curso);
 
         return view('capacitador.modulos.crear', [
-            'curso'      => $curso,
-            'tipos'      => Modulo::TIPO_LABELS,
+            'curso' => $curso,
+            'tipos' => Modulo::TIPO_LABELS,
         ]);
     }
 
@@ -49,18 +49,18 @@ class ModuloController extends Controller
         $this->authorizeCurso($curso);
 
         $mimeRules = $this->getMimeRules($request->input('tipo_contenido', ''));
-        $fileRule = 'nullable|file|max:512000' . ($mimeRules ? '|' . $mimeRules : '');
+        $fileRule = 'nullable|file|max:512000'.($mimeRules ? '|'.$mimeRules : '');
 
         $data = $request->validate([
-            'titulo'           => 'required|string|max:255',
-            'tipo_contenido'   => 'required|in:' . implode(',', Modulo::TIPOS),
+            'titulo' => 'required|string|max:255',
+            'tipo_contenido' => 'required|in:'.implode(',', Modulo::TIPOS),
             'duracion_minutos' => 'nullable|integer|min:1',
-            'contenido'        => 'nullable|string',
-            'ruta_archivo'     => $fileRule,
+            'contenido' => 'nullable|string',
+            'ruta_archivo' => $fileRule,
         ]);
 
         $data['curso_id'] = $curso->id;
-        $data['orden']    = ($curso->modulos()->max('orden') ?? 0) + 1;
+        $data['orden'] = ($curso->modulos()->max('orden') ?? 0) + 1;
 
         if (isset($data['contenido'])) {
             $data['contenido'] = clean($data['contenido']);
@@ -72,14 +72,12 @@ class ModuloController extends Controller
             $data['nombre_archivo_original'] = $file->getClientOriginalName();
         }
 
-        $modulo = DB::transaction(function () use ($data, $curso) {
+        $modulo = DB::transaction(function () use ($data) {
             $modulo = Modulo::create($data);
 
             if ($modulo->tipo_contenido === 'evaluacion') {
                 Evaluacion::create([
-                    'modulo_id'              => $modulo->id,
-                    'puntos_aprobacion'      => 0,
-                    'max_intentos_semanales' => 2,
+                    'modulo_id' => $modulo->id,
                 ]);
             }
 
@@ -96,9 +94,9 @@ class ModuloController extends Controller
         abort_unless($modulo->curso_id === $curso->id, 404);
 
         return view('capacitador.modulos.editar', [
-            'curso'  => $curso,
+            'curso' => $curso,
             'modulo' => $modulo,
-            'tipos'  => Modulo::TIPO_LABELS,
+            'tipos' => Modulo::TIPO_LABELS,
         ]);
     }
 
@@ -108,13 +106,13 @@ class ModuloController extends Controller
         abort_unless($modulo->curso_id === $curso->id, 404);
 
         $mimeRules = $this->getMimeRules($modulo->tipo_contenido);
-        $fileRule = 'nullable|file|max:512000' . ($mimeRules ? '|' . $mimeRules : '');
+        $fileRule = 'nullable|file|max:512000'.($mimeRules ? '|'.$mimeRules : '');
 
         $data = $request->validate([
-            'titulo'           => 'required|string|max:255',
+            'titulo' => 'required|string|max:255',
             'duracion_minutos' => 'nullable|integer|min:1',
-            'contenido'        => 'nullable|string',
-            'ruta_archivo'     => $fileRule,
+            'contenido' => 'nullable|string',
+            'ruta_archivo' => $fileRule,
         ]);
 
         if (isset($data['contenido'])) {
@@ -170,7 +168,7 @@ class ModuloController extends Controller
         abort_unless($modulo->evaluacion !== null, 404);
 
         return view('capacitador.modulos.evaluacion', [
-            'curso'  => $curso,
+            'curso' => $curso,
             'modulo' => $modulo,
         ]);
     }

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-label="Portada de curso sobre higiene de manos">
+  <rect width="1200" height="675" fill="#e0f2fe"/>
+  <rect x="0" y="438" width="1200" height="237" fill="#0369a1"/>
+  <path d="M360 390c-70-8-126-65-126-139 0-78 64-142 142-142 42 0 80 18 106 48 26-30 64-48 106-48 78 0 142 64 142 142 0 74-56 131-126 139z" fill="#38bdf8"/>
+  <path d="M402 394V218c0-20 16-36 36-36s36 16 36 36v176M474 394V182c0-20 16-36 36-36s36 16 36 36v212M546 394V226c0-20 16-36 36-36s36 16 36 36v168" fill="none" stroke="#ffffff" stroke-width="32" stroke-linecap="round"/>
+  <circle cx="792" cy="152" r="42" fill="#7dd3fc"/>
+  <circle cx="870" cy="236" r="28" fill="#0284c7"/>
+  <circle cx="796" cy="322" r="24" fill="#7dd3fc"/>
+  <text x="84" y="545" fill="#ffffff" font-family="Arial, sans-serif" font-size="58" font-weight="700">Higiene de Manos</text>
+  <text x="86" y="600" fill="#e0f2fe" font-family="Arial, sans-serif" font-size="30">Cinco momentos y técnica correcta</text>
+</svg>

@@ -3,7 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Certificado;
-use Illuminate\Support\Facades\Storage;
+use App\Services\CertificadoService;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class MisCertificadosController extends Controller
 {
@@ -18,14 +19,14 @@ class MisCertificadosController extends Controller
         return view('mis-certificados.index', compact('certificados'));
     }
 
-    public function descargar(Certificado $certificado)
+    public function descargar(Certificado $certificado, CertificadoService $service): StreamedResponse
     {
         abort_unless($certificado->user_id === auth()->id(), 403);
-        abort_unless(Storage::disk('public')->exists($certificado->ruta_pdf), 404);
 
-        return Storage::disk('public')->download(
-            $certificado->ruta_pdf,
-            'certificado_' . $certificado->codigo_verificacion . '.pdf'
+        return response()->streamDownload(
+            fn () => print $service->output($certificado),
+            'certificado_'.$certificado->codigo_verificacion.'.pdf',
+            ['Content-Type' => 'application/pdf']
         );
     }
 }
