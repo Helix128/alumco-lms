@@ -6,9 +6,9 @@ Este documento explica el recorrido funcional completo desde que un Capacitador 
 El Capacitador ingresa a su panel y crea un nuevo **Curso**. 
 Al curso se le asignan un título, descripción, y una imagen de portada.
 
-### Estructuración de Módulos
-Una vez el Curso existe, el capacitador comienza a inyectarle **Módulos**. 
-Los módulos deben seguir un orden secuencial (Orden 1, 2, 3...) y pueden ser de distintas naturalezas:
+### Estructuración de Módulos y Secciones
+Una vez el Curso existe, el capacitador puede crear **Secciones** (opcional, pero recomendado para mejor organización) y luego inyectarle **Módulos** a cada sección. 
+Los módulos deben seguir un orden secuencial dentro de su sección (Orden 1, 2, 3...) y pueden ser de distintas naturalezas:
 - **Teórico/Práctico:** Se sube un archivo (MP4 para `video`, PDF para `pdf`, JPG/PNG para `imagen`) o se inserta un link embebido (Youtube). Si es `texto`, se digita mediante un editor WYSIWYG en HTML. 
 - **Evaluación:** Módulo especial que representa un Quiz o Test de validación de conocimientos.
 
@@ -42,5 +42,14 @@ En el instante preciso en que el trabajador oprime el botón para marcar como co
 
 - Automáticamente, se toma la vista de PDF estipulada y se compila utilizando el motor **dompdf** (`barryvdh/laravel-dompdf`).
 - Este documento lleva el nombre del usuario, RUT (si estuviese presente), el nombre del curso, la fecha y se adhiere la *firma digital* en PNG del Administrador/Director previamente subida en los Settings Globales.
-- El PDF físico se inyecta en el Storage de Laravel (`public/certificados/XX.pdf`) y se crea una entrada en la base de datos `Certificado`.
+- El PDF físico se inyecta en el Storage de Laravel (`public/certificados/XX.pdf`) y se crea una entrada en la base de datos `Certificado` con un código de verificación único.
 - El trabajador es notificado y puede ver/descargar su certificado desde la sección **Mis Logros** para toda la posteridad.
+
+## 6. Preferencias de Accesibilidad
+Los usuarios pueden configurar preferencias de accesibilidad almacenadas en un campo JSON (`users.accessibility_preferences`). Esto incluye:
+- Tamaño de fuente (pequeño, normal, grande)
+- Contraste (normal, alto)
+- Velocidad de animaciones
+- Otras configuraciones de interfaz
+
+Estas preferencias son aplicadas a nivel de frontend y persisten en la base de datos.
