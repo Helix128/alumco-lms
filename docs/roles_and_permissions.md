@@ -30,11 +30,13 @@ Existen 5 grandes roles principales en el sistema. Todo modelo `User` en la plat
 ## 5. Trabajador (`Trabajador`)
 - Usuario final del sistema, empleado de la ONG Alumco.
 - **Competencias**:
-  - Entrar al panel de `Mis Cursos`. Sólo visualiza los Cursos que le han sido asignados explícitamente a su **Estamento** respectivo (mediante la tabla pivote de Planificaciones/Asignaciones).
-  - Explorar el contenido multimedia del curso (Video, PDF, Imágenes).
-  - Realizar Evaluaciones con intentos limitados.
+  - Entrar al panel de `Mis Cursos`. Sólo visualiza los Cursos que le han sido asignados explícitamente a su **Estamento** respectivo (mediante la tabla pivote `curso_estamento`).
+  - Explorar el contenido multimedia del curso (Video, PDF, Imágenes, Texto) organizados en secciones y módulos.
+  - Realizar Evaluaciones con intentos limitados (parámetro configurable globalmente en `GlobalSetting`).
   - Generar automáticamente y descargar **Certificados de Aprobación** cuando finaliza y aprueba un curso.
-  - Ver el módulo de `Mis Logros` donde reposan todos sus certificados.
+  - Ver el módulo de `Mis Logros` donde reposan todos sus certificados descargables.
+  - Configurar **Preferencias de Accesibilidad** (tamaño de fuente, contraste, velocidad de animaciones, etc.) que se persisten en el perfil.
+  - Visualizar un **Calendario de Eventos** con capacitaciones programadas.
 
 ## Gestión en el Código
 
