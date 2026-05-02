@@ -19,6 +19,7 @@ Este proyecto **usa Docker con Laravel Sail**.
 - **No asumir PHP "pelado" en la máquina host**.
 - **No usar comandos como `php`, `composer`, o `npm` directamente** salvo que el usuario lo pida de forma explícita.
 - Para tareas del proyecto, preferir siempre Laravel Sail. sail *comandos* → `./vendor/bin/sail *comando*`
+- **Always** run `sail` commands with elevated permissions. Otherwise, Docker on the host machine won't be accessible.
 
 ## Comandos preferidos
 Usar estos patrones:

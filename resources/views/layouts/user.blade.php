@@ -1,33 +1,22 @@
+@php
+    $accessibilityPreferences = \App\Support\AccessibilityPreferences::normalize(auth()->user()?->accessibility_preferences);
+    $accessibilityFontSize = \App\Support\AccessibilityPreferences::fontSizeFor($accessibilityPreferences['fontLevel']);
+@endphp
+
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es"
+      style="scrollbar-gutter: stable; --font-base: {{ $accessibilityFontSize }}px;"
+      data-contrast="{{ $accessibilityPreferences['highContrast'] ? 'high' : 'default' }}"
+      data-motion="{{ $accessibilityPreferences['reducedMotion'] ? 'reduced' : 'default' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Alumco')</title>
     <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @livewireStyles
+    @stack('css')
     @stack('styles')
-    {{-- Anti-flash: aplica preferencias guardadas antes de renderizar --}}
-    <script>
-        (function () {
-            var fl = localStorage.getItem('alumco-font-level');
-            if (fl !== null) {
-                var px = [14, 16, 18, 20][parseInt(fl, 10)] || 16;
-                document.documentElement.style.setProperty('--font-base', px + 'px');
-            }
-
-            var prefs = {};
-            try {
-                prefs = JSON.parse(localStorage.getItem('alumco-accessibility') || '{}');
-            } catch (error) {
-                prefs = {};
-            }
-            document.documentElement.dataset.contrast = prefs.highContrast ? 'high' : 'default';
-            document.documentElement.dataset.motion = prefs.reducedMotion ? 'reduced' : 'default';
-            document.documentElement.dataset.background = prefs.simpleBackground ? 'simple' : 'textured';
-            document.documentElement.dataset.cards = prefs.compactCards ? 'compact' : 'comfortable';
-        })();
-    </script>
 </head>
 <body class="worker-shell font-sans text-Alumco-gray antialiased min-h-screen flex flex-col">
 
@@ -59,9 +48,11 @@
     {{-- HEADER: Logo + identidad del trabajador --}}
     <header class="worker-topbar sticky top-0 z-40 border-b border-white/70 py-3 shrink-0">
         <div class="max-w-2xl mx-auto px-5 flex items-center justify-between gap-4 lg:max-w-[90rem] lg:px-8">
-            <a href="{{ route('cursos.index') }}" class="worker-focus worker-pill inline-flex items-center gap-3">
+            <a href="{{ route('cursos.index') }}" wire:navigate class="worker-focus worker-pill inline-flex items-center gap-3">
                 <img src="{{ asset('images/logo/alumco-full.svg') }}"
                      alt="Logo Alumco"
+                     width="120"
+                     height="32"
                      class="h-8 w-auto">
             </a>
 
@@ -72,66 +63,46 @@
                     ->take(2)
                     ->join('');
             @endphp
-            <div class="relative hidden lg:block" x-data="{ open: false }" x-on:keydown.escape.window="open = false">
-                <button type="button"
-                        x-on:click="open = !open"
-                        x-on:click.outside="open = false"
-                        class="worker-focus worker-pill flex items-center gap-3 bg-white/90 px-3 py-2 shadow-sm ring-1 ring-Alumco-blue/10 hover:bg-white"
-                        :aria-expanded="open.toString()"
-                        aria-haspopup="menu">
+            <div class="hidden lg:flex lg:items-center lg:gap-3">
+                {{-- Link Directo al Perfil (PC) --}}
+                <a href="{{ route('perfil.index') }}"
+                   wire:navigate
+                   class="worker-focus worker-pill group flex items-center gap-3 bg-white/90 px-3 py-2 shadow-sm ring-1 ring-Alumco-blue/10 transition-all hover:bg-white hover:ring-Alumco-blue/30 hover:shadow-md"
+                   title="Ver mi perfil">
                     <span class="min-w-0 text-right">
-                        <span class="block max-w-64 truncate text-sm font-bold leading-tight text-Alumco-gray">{{ auth()->user()->name }}</span>
-                        <span class="block text-xs font-medium leading-tight text-Alumco-gray/60">Mi cuenta</span>
+                        <span class="block max-w-64 truncate text-sm font-bold leading-tight text-Alumco-gray group-hover:text-Alumco-blue transition-colors">{{ auth()->user()->name }}</span>
                     </span>
-                    <span class="avatar-btn flex h-11 w-11 items-center justify-center rounded-full bg-Alumco-blue text-sm font-black text-white shadow-sm select-none">
+                    <span class="avatar-btn flex h-11 w-11 items-center justify-center rounded-full bg-Alumco-blue text-sm font-black text-white shadow-sm select-none transition-transform group-hover:scale-105">
                         {{ $initials }}
                     </span>
-                    <svg class="h-4 w-4 text-Alumco-blue transition-transform" :class="{ 'rotate-180': open }" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.4" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6"/>
-                    </svg>
-                </button>
+                </a>
 
-                <div x-cloak
-                     x-show="open"
-                     x-transition
-                     class="absolute right-0 mt-3 w-64 rounded-3xl bg-white p-3 shadow-2xl ring-1 ring-Alumco-blue/10"
-                     role="menu">
-                    <a href="{{ route('perfil.index') }}"
-                       class="worker-focus flex items-center gap-3 rounded-2xl px-4 py-3 text-base font-bold text-Alumco-gray hover:bg-Alumco-blue/5"
-                       role="menuitem">
-                        <span class="flex h-10 w-10 items-center justify-center rounded-full bg-Alumco-blue/10 text-Alumco-blue">
-                            <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                <path d="M12 12a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9Zm0 2c-4.42 0-8 2.24-8 5v1.5h16V19c0-2.76-3.58-5-8-5Z"/>
-                            </svg>
-                        </span>
-                        Ver mi perfil
-                    </a>
-                    <form action="{{ route('logout') }}" method="POST" class="mt-1">
-                        @csrf
-                        <button type="submit"
-                                class="worker-focus flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-base font-bold text-Alumco-coral-accessible hover:bg-Alumco-coral/10"
-                                role="menuitem">
-                            <span class="flex h-10 w-10 items-center justify-center rounded-full bg-Alumco-coral/10 text-Alumco-coral-accessible">
-                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6A2.25 2.25 0 0 0 5.25 5.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3-3h-9m9 0-3-3m3 3-3 3"/>
-                                </svg>
-                            </span>
-                            Cerrar sesión
-                        </button>
-                    </form>
-                </div>
+                {{-- Botón Salir Directo (PC) --}}
+                <form action="{{ route('logout') }}" method="POST" class="shrink-0">
+                    @csrf
+                    <button type="submit"
+                            title="Cerrar sesión"
+                            class="worker-focus flex h-11 items-center gap-2 rounded-2xl border border-Alumco-coral-accessible/20 bg-white px-5 text-sm font-black text-Alumco-coral-accessible shadow-sm transition-all hover:bg-Alumco-coral-accessible hover:text-white hover:shadow-lg hover:shadow-Alumco-coral/20 active:scale-95">
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6A2.25 2.25 0 0 0 5.25 5.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3-3h-9m9 0-3-3m3 3-3 3"/>
+                        </svg>
+                        <span>Salir</span>
+                    </button>
+                </form>
             </div>
-            <a href="{{ route('perfil.index') }}"
-               class="avatar-btn worker-focus w-10 h-10 rounded-full bg-Alumco-blue text-white font-display font-black text-sm
-                      flex items-center justify-center shadow-sm select-none lg:hidden"
-               aria-label="Ir a mi perfil">
-                {{ $initials }}
-            </a>
+            <div class="flex items-center gap-2 lg:hidden">
+                <a href="{{ route('perfil.index') }}"
+                   class="avatar-btn worker-focus w-10 h-10 rounded-full bg-Alumco-blue text-white font-display font-black text-sm
+                          flex items-center justify-center shadow-sm select-none"
+                   aria-label="Ir a mi perfil">
+                    {{ $initials }}
+                </a>
+            </div>
             @endauth
         </div>
     </header>
 
-    <div class="worker-page flex-1 lg:flex lg:flex-row lg:gap-[36px] lg:max-w-[1440px] lg:mx-auto lg:px-[36px] lg:items-start">
+    <div class="worker-page flex-1 lg:flex lg:flex-row lg:gap-8 lg:max-w-[90rem] lg:mx-auto lg:px-8 lg:items-start">
         {{-- SIDEBAR EN PC / BOTTOM EN MOVIL --}}
         @hasSection('bottom-nav')
             @yield('bottom-nav')
@@ -143,11 +114,14 @@
 
         {{-- CONTENIDO PRINCIPAL --}}
         <main class="flex-1 pb-28 w-full max-w-2xl mx-auto lg:max-w-none lg:pb-12 lg:px-0">
-            {{-- BANNER CONTEXTUAL (cada vista inyecta el suyo) --}}
-            @yield('course-banner')
+            {{-- El ID dinámico fuerza a Firefox/Safari a re-ejecutar la animación CSS en cada navegación --}}
+            <div id="page-content-{{ md5(request()->fullUrl()) }}" class="animate-page-entry">
+                {{-- BANNER CONTEXTUAL (cada vista inyecta el suyo) --}}
+                @yield('course-banner')
 
-            <div class="px-4 py-6 lg:pt-8 lg:px-0">
-                @yield('content')
+                <div class="px-4 py-6 lg:pt-8 lg:px-0">
+                    @yield('content')
+                </div>
             </div>
         </main>
     </div>
@@ -209,74 +183,6 @@
 
     @livewireScripts
     @stack('scripts')
-    {{-- Stores Alpine para preferencias accesibles persistentes --}}
-    <script>
-        document.addEventListener('alpine:init', function () {
-            Alpine.store('fontScale', {
-                level: (function () {
-                    var storedLevel = parseInt(localStorage.getItem('alumco-font-level') ?? '1', 10);
-                    return Number.isInteger(storedLevel) && storedLevel >= 0 && storedLevel <= 3 ? storedLevel : 1;
-                })(),
-                levels: [14, 16, 18, 20],
-                apply: function () {
-                    document.documentElement.style.setProperty('--font-base', this.levels[this.level] + 'px');
-                },
-                currentLabel: function () {
-                    return this.levels[this.level] + ' px';
-                },
-                increase: function () {
-                    if (this.level < 3) {
-                        this.level++;
-                        localStorage.setItem('alumco-font-level', this.level);
-                        this.apply();
-                    }
-                },
-                decrease: function () {
-                    if (this.level > 0) {
-                        this.level--;
-                        localStorage.setItem('alumco-font-level', this.level);
-                        this.apply();
-                    }
-                },
-                init: function () { this.apply(); }
-            });
-
-            Alpine.store('accessibility', {
-                highContrast: false,
-                reducedMotion: false,
-                simpleBackground: false,
-                compactCards: false,
-                load: function () {
-                    var prefs = {};
-                    try {
-                        prefs = JSON.parse(localStorage.getItem('alumco-accessibility') || '{}');
-                    } catch (error) {
-                        prefs = {};
-                    }
-                    this.highContrast = Boolean(prefs.highContrast);
-                    this.reducedMotion = Boolean(prefs.reducedMotion);
-                    this.simpleBackground = Boolean(prefs.simpleBackground);
-                    this.compactCards = Boolean(prefs.compactCards);
-                    this.apply();
-                },
-                apply: function () {
-                    document.documentElement.dataset.contrast = this.highContrast ? 'high' : 'default';
-                    document.documentElement.dataset.motion = this.reducedMotion ? 'reduced' : 'default';
-                    document.documentElement.dataset.background = this.simpleBackground ? 'simple' : 'textured';
-                    document.documentElement.dataset.cards = this.compactCards ? 'compact' : 'comfortable';
-                },
-                persist: function () {
-                    localStorage.setItem('alumco-accessibility', JSON.stringify({
-                        highContrast: this.highContrast,
-                        reducedMotion: this.reducedMotion,
-                        simpleBackground: this.simpleBackground,
-                        compactCards: this.compactCards
-                    }));
-                    this.apply();
-                },
-                init: function () { this.load(); }
-            });
-        });
-    </script>
+    @include('partials.accessibility-scripts')
 </body>
 </html>

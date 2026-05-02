@@ -87,7 +87,7 @@ class DemoSeedersTest extends TestCase
 
         $this->assertGreaterThan(0, ProgresoModulo::query()->count());
         $this->assertGreaterThan(0, IntentoEvaluacion::query()->where('aprobado', true)->count());
-        $this->assertGreaterThan(0, Certificado::query()->where('ruta_pdf', 'certificados/demo.pdf')->count());
+        $this->assertGreaterThan(0, Certificado::query()->where('ruta_pdf', '')->count());
 
         $attempt = IntentoEvaluacion::query()->where('aprobado', true)->firstOrFail();
         $this->assertEquals($attempt->total_preguntas, $attempt->puntaje);

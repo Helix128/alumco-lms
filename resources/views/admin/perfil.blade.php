@@ -94,6 +94,10 @@
                     </p>
                 </div>
             </div>
+
+            <div class="mt-8 rounded-[24px] bg-white p-6 shadow-sm border border-gray-100">
+                <x-accessibility-preferences title="Preferencias de accesibilidad" description="Son las mismas opciones del botón Opciones" />
+            </div>
         </div>
     </div>
 </div>

@@ -51,10 +51,6 @@ html {
         linear-gradient(180deg, #fffdf8 0%, #f7faff 46%, #fdf9f3 100%);
 }
 
-[data-background="simple"] .worker-shell {
-    background: linear-gradient(180deg, #fffdf8 0%, #f7faff 46%, #fdf9f3 100%);
-}
-
 .worker-topbar {
     background: rgba(255, 255, 255, 0.9);
     backdrop-filter: blur(12px);
@@ -233,31 +229,13 @@ html {
     }
 }
 
-[data-cards="compact"] .worker-course-grid {
-    gap: 1rem;
-}
-
-[data-cards="compact"] .worker-course-cover {
-    height: 8.5rem;
-}
-
-[data-cards="compact"] .worker-course-body {
-    padding: 1rem;
-}
-
-[data-cards="compact"] .worker-course-body h3 {
-    font-size: 1.05rem;
-}
-
-[data-cards="compact"] .worker-course-body p {
-    line-height: 1.45;
-}
-
 [data-contrast="high"] .worker-shell {
     background: #fff;
 }
 
 [data-contrast="high"] .worker-topbar,
+[data-contrast="high"] .admin-shell header,
+[data-contrast="high"] .admin-shell aside,
 [data-contrast="high"] .worker-card,
 [data-contrast="high"] .worker-soft-panel,
 [data-contrast="high"] .worker-course-tile,
@@ -266,11 +244,31 @@ html {
     box-shadow: none;
 }
 
+[data-contrast="high"] .admin-shell,
+[data-contrast="high"] .worker-shell {
+    color: #111827;
+}
+
 [data-contrast="high"] .text-Alumco-gray\/60,
 [data-contrast="high"] .text-Alumco-gray\/65,
 [data-contrast="high"] .text-Alumco-gray\/70,
-[data-contrast="high"] .text-Alumco-gray\/75 {
+[data-contrast="high"] .text-Alumco-gray\/75,
+[data-contrast="high"] .text-Alumco-gray\/40,
+[data-contrast="high"] .text-Alumco-gray\/50,
+[data-contrast="high"] .text-gray-300,
+[data-contrast="high"] .text-gray-400,
+[data-contrast="high"] .text-gray-500,
+[data-contrast="high"] .text-gray-600 {
     color: #1f2937;
+}
+
+[data-contrast="high"] .ring-gray-100\/80,
+[data-contrast="high"] .ring-Alumco-blue\/10,
+[data-contrast="high"] .border-gray-100,
+[data-contrast="high"] .border-gray-200,
+[data-contrast="high"] .border-white\/70 {
+    border-color: #111827;
+    --tw-ring-color: #111827;
 }
 
 [data-contrast="high"] .worker-focus:focus-visible {
@@ -285,6 +283,22 @@ html {
     animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
     transition-duration: 0.001ms !important;
+}
+
+[data-motion="reduced"] ::view-transition-old(root),
+[data-motion="reduced"] ::view-transition-new(root) {
+    animation: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0.001ms !important;
+    }
 }
 
 /* Tarjeta navegable (cursos, módulos) */
@@ -719,4 +733,78 @@ html {
 .cal-view-tab-active {
     background: var(--color-Alumco-blue);
     color: white;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════ */
+/*  Sidebar Acogedor y Sensato (UX 50+)                                       */
+/* ═══════════════════════════════════════════════════════════════════════════ */
+
+.sidebar-cozy-btn {
+    transition: all 0.2s ease-out;
+    background-color: white;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.sidebar-cozy-btn-active {
+    border-color: var(--color-Alumco-blue) !important;
+    border-width: 2px !important;
+    color: var(--color-Alumco-blue) !important;
+    box-shadow: 0 4px 14px rgba(32, 80, 153, 0.12);
+}
+
+.sidebar-cozy-btn-inactive {
+    color: var(--color-Alumco-gray);
+}
+
+.sidebar-cozy-btn-inactive:hover {
+    border-color: rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+    color: var(--color-Alumco-blue);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════ */
+/*  Transiciones Universales (Chrome, Firefox, Safari)                        */
+/* ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Animación de entrada estándar que funciona en TODOS los navegadores */
+.animate-page-entry {
+    animation: page-fade-in 0.3s ease-out both;
+}
+
+@keyframes page-fade-in {
+    from { 
+        opacity: 0; 
+        transform: translateY(8px); 
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0); 
+    }
+}
+
+/* Soporte nativo para View Transitions API (Chrome/Edge) */
+@view-transition {
+    navigation: auto;
+}
+
+::view-transition-old(root) {
+    animation: 100ms ease-in both fade-out;
+}
+
+::view-transition-new(root) {
+    animation: 300ms ease-out both page-fade-in;
+}
+
+@keyframes fade-out {
+    to { opacity: 0; }
+}
+
+/* Elementos persistentes que no deben parpadear */
+.worker-topbar, .admin-topbar-persistent {
+    view-transition-name: topbar;
+}
+
+#app-bottom-nav, #sidebar {
+    view-transition-name: bottom-nav;
 }

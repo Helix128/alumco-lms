@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-Alumco-cream">
+<div class="worker-calendar min-h-screen bg-Alumco-cream">
 
     {{-- ── Cabecera ──────────────────────────────────────────────────────── --}}
     <div class="bg-white border-b border-gray-200 px-4 py-5 sm:px-6">

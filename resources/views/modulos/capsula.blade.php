@@ -99,14 +99,14 @@
                 </div>
             @else
                 <x-file-viewer :rutaArchivo="$modulo->ruta_archivo"
-                               :archivoUrl="route('modulos.archivo', [$curso, $modulo])"
-                               :descargarUrl="route('modulos.descargar', [$curso, $modulo])"
+                               :archivoUrl="route('modulos.archivo', [$curso, $modulo], false)"
+                               :descargarUrl="route('modulos.descargar', [$curso, $modulo], false)"
                                :nombreOriginal="$modulo->nombre_archivo_original" />
             @endif
-        @elseif (in_array($modulo->tipo_contenido, ['pdf', 'imagen', 'descargable']))
+        @elseif (in_array($modulo->tipo_contenido, ['pdf', 'ppt', 'imagen', 'descargable']))
             <x-file-viewer :rutaArchivo="$modulo->ruta_archivo"
-                           :archivoUrl="route('modulos.archivo', [$curso, $modulo])"
-                           :descargarUrl="route('modulos.descargar', [$curso, $modulo])"
+                           :archivoUrl="route('modulos.archivo', [$curso, $modulo], false)"
+                           :descargarUrl="route('modulos.descargar', [$curso, $modulo], false)"
                            :nombreOriginal="$modulo->nombre_archivo_original" />
         @elseif ($modulo->tipo_contenido === 'texto')
             <div class="worker-card p-5 text-Alumco-gray prose prose-base max-w-none

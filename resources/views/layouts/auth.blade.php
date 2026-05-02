@@ -13,9 +13,20 @@
             padding: 0;
             overflow: hidden;
         }
+
+        .auth-shell :focus-visible {
+            outline: 3px solid var(--color-Alumco-yellow);
+            outline-offset: 3px;
+            box-shadow: 0 0 0 6px rgba(248, 182, 6, 0.25);
+        }
+
+        .auth-shell .text-Alumco-gray\/40,
+        .auth-shell .text-Alumco-gray\/50 {
+            color: color-mix(in srgb, var(--color-Alumco-gray) 78%, white);
+        }
     </style>
 </head>
-<body class="bg-Alumco-cream font-sans text-Alumco-gray antialiased">
+<body class="auth-shell bg-Alumco-cream font-sans text-Alumco-gray antialiased">
     <div class="relative flex h-screen w-full flex-col overflow-hidden isolate">
         <!-- Nubes Superiores -->
         <div class="pointer-events-none absolute top-0 -right-10 z-0 select-none">

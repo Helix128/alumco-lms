@@ -149,7 +149,7 @@ class DemoProgressSeeder extends Seeder
             ],
             [
                 'codigo_verificacion' => (string) Str::uuid(),
-                'ruta_pdf' => 'certificados/demo.pdf',
+                'ruta_pdf' => '',
                 'fecha_emision' => now()->subDay(),
             ]
         );

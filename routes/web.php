@@ -7,6 +7,7 @@ use App\Http\Controllers\Capacitador\CursoController as CapacitadorCurso;
 use App\Http\Controllers\Capacitador\DashboardController as CapacitadorDashboard;
 use App\Http\Controllers\Capacitador\ModuloController as CapacitadorModulo;
 use App\Http\Controllers\Capacitador\ParticipanteController as CapacitadorParticipante;
+use App\Http\Controllers\Capacitador\SeccionCursoController;
 use App\Http\Controllers\CursoController;
 use App\Http\Controllers\MisCertificadosController;
 use App\Http\Controllers\ModuloController;
@@ -14,6 +15,7 @@ use App\Http\Controllers\PerfilController;
 use App\Http\Controllers\ReporteController;
 use App\Livewire\CalendarioUsuario;
 use App\Livewire\Capacitador\CalendarioCapacitaciones;
+use App\Support\UserAreaRedirector;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
@@ -32,31 +34,23 @@ Route::middleware('auth')->group(function () {
 
     // Redirección / según rol
     Route::get('/', function () {
-        if (session('preview_mode')) {
-            return redirect()->route('cursos.index');
-        }
-        if (auth()->user()->hasAdminAccess()) {
-            return redirect()->route('admin.reportes.index');
-        }
-        if (auth()->user()->isCapacitador()) {
-            return redirect()->route('capacitador.dashboard');
-        }
-
-        return redirect()->route('cursos.index');
+        return redirect()->route(UserAreaRedirector::canonicalRouteName(auth()->user()));
     });
 
     // --- RUTAS COLABORADOR ---
-    Route::get('/cursos', [CursoController::class, 'index'])->name('cursos.index');
-    Route::get('/cursos/{curso}', [CursoController::class, 'show'])->name('cursos.show');
-    Route::get('/cursos/{curso}/modulos/{modulo}', [ModuloController::class, 'show'])->name('modulos.show');
-    Route::get('/cursos/{curso}/modulos/{modulo}/archivo', [ModuloController::class, 'verArchivo'])->name('modulos.archivo');
-    Route::get('/cursos/{curso}/modulos/{modulo}/descargar', [ModuloController::class, 'descargarArchivo'])->name('modulos.descargar');
-    Route::post('/cursos/{curso}/modulos/{modulo}/completar', [ModuloController::class, 'completar'])->name('modulos.completar');
-    Route::get('/calendario', CalendarioCapacitaciones::class)->name('calendario.index');
-    Route::get('/calendario-cursos', CalendarioUsuario::class)->name('calendario-cursos.index');
+    Route::middleware('worker.area')->group(function () {
+        Route::get('/cursos', [CursoController::class, 'index'])->name('cursos.index');
+        Route::get('/cursos/{curso}', [CursoController::class, 'show'])->name('cursos.show');
+        Route::get('/cursos/{curso}/modulos/{modulo}', [ModuloController::class, 'show'])->name('modulos.show');
+        Route::get('/cursos/{curso}/modulos/{modulo}/archivo', [ModuloController::class, 'verArchivo'])->name('modulos.archivo');
+        Route::get('/cursos/{curso}/modulos/{modulo}/descargar', [ModuloController::class, 'descargarArchivo'])->name('modulos.descargar');
+        Route::post('/cursos/{curso}/modulos/{modulo}/completar', [ModuloController::class, 'completar'])->name('modulos.completar');
+        Route::get('/calendario', CalendarioCapacitaciones::class)->name('calendario.index');
+        Route::get('/calendario-cursos', CalendarioUsuario::class)->name('calendario-cursos.index');
 
-    // Perfil del colaborador
-    Route::get('/perfil', [PerfilController::class, 'show'])->name('perfil.index');
+        // Perfil del colaborador
+        Route::get('/perfil', [PerfilController::class, 'show'])->name('perfil.index');
+    });
 
     // --- MODO VISTA PREVIA (Admin/Dev) ---
     Route::post('/admin/preview-mode/toggle', function () {
@@ -67,25 +61,25 @@ Route::middleware('auth')->group(function () {
         $current = session('preview_mode', false);
         session(['preview_mode' => ! $current]);
 
-        // Si activamos la vista previa, redirigir al catálogo de cursos del trabajador
         if (session('preview_mode')) {
             return redirect()->route('cursos.index')->with('success', 'Modo vista previa activado.');
         }
 
-        // Si desactivamos la vista previa, redirigir al dashboard correspondiente
-        if (auth()->user()->hasAdminAccess()) {
-            return redirect()->route('admin.reportes.index')->with('success', 'Has vuelto al Panel de Administración.');
-        }
-
-        return redirect()->route('capacitador.dashboard')->with('success', 'Has vuelto al Panel del Capacitador.');
+        return redirect()
+            ->route(UserAreaRedirector::userAreaFallbackRouteName(auth()->user()))
+            ->with('success', auth()->user()->hasAdminAccess()
+                ? 'Has vuelto al Panel de Administración.'
+                : 'Has vuelto al Panel del Capacitador.');
     })->name('admin.preview.toggle');
 
-    // Mis certificados (reemplaza Ajustes en el nav)
-    Route::get('/mis-certificados', [MisCertificadosController::class, 'index'])->name('mis-certificados.index');
-    Route::get('/mis-certificados/{certificado}/descargar', [MisCertificadosController::class, 'descargar'])->name('mis-certificados.descargar');
+    Route::middleware('worker.area')->group(function () {
+        // Mis certificados (reemplaza Ajustes en el nav)
+        Route::get('/mis-certificados', [MisCertificadosController::class, 'index'])->name('mis-certificados.index');
+        Route::get('/mis-certificados/{certificado}/descargar', [MisCertificadosController::class, 'descargar'])->name('mis-certificados.descargar');
 
-    // Redirige legacy /ajustes → /mis-certificados
-    Route::get('/ajustes', fn () => redirect()->route('mis-certificados.index'))->name('ajustes.index');
+        // Redirige legacy /ajustes → /mis-certificados
+        Route::get('/ajustes', fn () => redirect()->route('mis-certificados.index'))->name('ajustes.index');
+    });
 
     // --- RUTAS CAPACITADOR ---
     Route::middleware(['capacitador'])->prefix('capacitador')->name('capacitador.')->group(function () {
@@ -111,10 +105,10 @@ Route::middleware('auth')->group(function () {
         Route::post('/cursos/{curso}/modulos/reordenar', [CapacitadorModulo::class, 'reordenar'])->name('cursos.modulos.reordenar');
 
         // Secciones
-        Route::post('/cursos/{curso}/secciones', [\App\Http\Controllers\Capacitador\SeccionCursoController::class, 'store'])->name('cursos.secciones.store');
-        Route::put('/cursos/{curso}/secciones/{seccion}', [\App\Http\Controllers\Capacitador\SeccionCursoController::class, 'update'])->name('cursos.secciones.update');
-        Route::delete('/cursos/{curso}/secciones/{seccion}', [\App\Http\Controllers\Capacitador\SeccionCursoController::class, 'destroy'])->name('cursos.secciones.destroy');
-        Route::post('/cursos/{curso}/secciones/reordenar', [\App\Http\Controllers\Capacitador\SeccionCursoController::class, 'reordenar'])->name('cursos.secciones.reordenar');
+        Route::post('/cursos/{curso}/secciones', [SeccionCursoController::class, 'store'])->name('cursos.secciones.store');
+        Route::put('/cursos/{curso}/secciones/{seccion}', [SeccionCursoController::class, 'update'])->name('cursos.secciones.update');
+        Route::delete('/cursos/{curso}/secciones/{seccion}', [SeccionCursoController::class, 'destroy'])->name('cursos.secciones.destroy');
+        Route::post('/cursos/{curso}/secciones/reordenar', [SeccionCursoController::class, 'reordenar'])->name('cursos.secciones.reordenar');
 
         // Participantes
         Route::get('/cursos/{curso}/participantes', [CapacitadorParticipante::class, 'index'])->name('cursos.participantes.index');

@@ -53,7 +53,7 @@
 
                 @if (in_array($modulo->tipo_contenido, ['video','pdf','ppt','imagen']))
                     {{-- Sección archivo --}}
-                    <div class="space-y-3">
+                    <div class="space-y-4">
                         <label class="block text-sm font-black text-Alumco-blue/40 uppercase tracking-widest">Reemplazar archivo material</label>
                         
                         @if ($modulo->ruta_archivo)
@@ -74,10 +74,10 @@
                                    class="w-full bg-Alumco-cream/30 border border-dashed border-gray-200 rounded-xl px-4 py-8 text-sm file:hidden cursor-pointer hover:bg-Alumco-blue/5 transition-all text-center font-bold text-Alumco-gray/40">
                             <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none gap-2">
                                 <svg class="w-8 h-8 text-Alumco-blue/20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
-                                <span class="text-xs uppercase tracking-widest font-display">Click para subir nuevo archivo</span>
+                                <span class="text-xs uppercase tracking-widest font-display">Click para subir nuevo material (Video, PDF, PPT, Imagen)</span>
                             </div>
                         </div>
-                        <p class="text-[10px] text-Alumco-gray/40 font-bold uppercase tracking-wider text-center italic">Déjalo vacío si no deseas cambiar el archivo actual.</p>
+                        <p class="text-[10px] text-Alumco-gray/40 font-bold uppercase tracking-wider text-center italic">Formatos: MP4, PDF, PPT, PPTX, JPEG, PNG, WEBP. Máximo 100 MB.</p>
                     </div>
 
                 @elseif ($modulo->tipo_contenido === 'texto')

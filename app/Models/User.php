@@ -2,19 +2,21 @@
 
 namespace App\Models;
 
+use App\Notifications\ResetPasswordNotification;
+use App\Support\AccessibilityPreferences;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Notifications\ResetPasswordNotification;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable, SoftDeletes, HasRoles;
+    use HasFactory, HasRoles, Notifiable, SoftDeletes;
 
     protected $fillable = [
-        'name', 'email', 'rut', 'password', 'fecha_nacimiento', 'sexo', 'activo', 'firma_digital', 'sede_id', 'estamento_id'
+        'name', 'email', 'rut', 'password', 'fecha_nacimiento', 'sexo', 'activo', 'accessibility_preferences', 'firma_digital', 'sede_id', 'estamento_id',
     ];
 
     protected $hidden = [
@@ -30,6 +32,24 @@ class User extends Authenticatable
         ];
     }
 
+    /**
+     * @return Attribute<array{fontLevel: int, highContrast: bool, reducedMotion: bool}, array<string, mixed>|null>
+     */
+    protected function accessibilityPreferences(): Attribute
+    {
+        return Attribute::make(
+            get: function (mixed $value): array {
+                $decoded = is_array($value) ? $value : json_decode($value ?? '[]', true);
+
+                return AccessibilityPreferences::normalize(is_array($decoded) ? $decoded : null);
+            },
+            set: fn (?array $value): string => json_encode(
+                AccessibilityPreferences::normalize($value),
+                JSON_THROW_ON_ERROR
+            ),
+        );
+    }
+
     public function sede()
     {
         return $this->belongsTo(Sede::class);
@@ -42,7 +62,7 @@ class User extends Authenticatable
 
     public function cursosImpartidos()
     {
-        return $this->hasMany(Curso::class , 'capacitador_id');
+        return $this->hasMany(Curso::class, 'capacitador_id');
     }
 
     public function certificados()
@@ -97,8 +117,13 @@ class User extends Authenticatable
 
     public function getHierarchyRank(): int
     {
-        if ($this->isDesarrollador()) return 3;
-        if ($this->isAdmin()) return 2;
+        if ($this->isDesarrollador()) {
+            return 3;
+        }
+        if ($this->isAdmin()) {
+            return 2;
+        }
+
         return 1;
     }
 

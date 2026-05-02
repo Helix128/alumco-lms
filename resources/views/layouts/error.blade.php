@@ -1,5 +1,13 @@
+@php
+    $accessibilityPreferences = \App\Support\AccessibilityPreferences::normalize(auth()->user()?->accessibility_preferences);
+    $accessibilityFontSize = \App\Support\AccessibilityPreferences::fontSizeFor($accessibilityPreferences['fontLevel']);
+@endphp
+
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es"
+      style="--font-base: {{ $accessibilityFontSize }}px;"
+      data-contrast="{{ auth()->check() && $accessibilityPreferences['highContrast'] ? 'high' : 'default' }}"
+      data-motion="{{ auth()->check() && $accessibilityPreferences['reducedMotion'] ? 'reduced' : 'default' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">

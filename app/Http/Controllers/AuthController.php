@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\UserAreaRedirector;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -35,22 +36,13 @@ class AuthController extends Controller
             $user = auth()->user();
 
             // Failsafe de permisos para cuentas principales (por si no se corrió la migración o falló el seeder)
-            if ($user->email === 'dev@alumco.cl' && !$user->hasRole('Desarrollador')) {
+            if ($user->email === 'dev@alumco.cl' && ! $user->hasRole('Desarrollador')) {
                 $user->assignRole('Desarrollador');
-            } elseif ($user->email === 'admin@alumco.cl' && !$user->hasRole('Administrador')) {
+            } elseif ($user->email === 'admin@alumco.cl' && ! $user->hasRole('Administrador')) {
                 $user->assignRole('Administrador');
             }
 
-            // Redirigir al dashboard correcto según el rol (como fallback del intended)
-            if ($user->hasAdminAccess()) {
-                return redirect()->intended(route('admin.reportes.index'));
-            }
-
-            if ($user->isCapacitador()) {
-                return redirect()->intended(route('capacitador.dashboard'));
-            }
-
-            return redirect()->intended(route('cursos.index'));
+            return redirect()->to(UserAreaRedirector::intendedOrCanonicalUrl($request, $user));
         }
 
         // Si falla, volver atrás con un error

@@ -12,7 +12,7 @@
 
     @if ($completado || $accesible)
         <a href="{{ route('modulos.show', [$curso, $modulo]) }}"
-           class="worker-focus worker-card group flex items-start gap-5 p-5 transition-all duration-200 hover:shadow-lg lg:p-6
+           class="worker-focus worker-card group flex items-center gap-5 p-5 transition-all duration-200 hover:shadow-lg lg:p-6
                   {{ $completado ? 'border-Alumco-green-accessible/20 bg-white' : 'border-Alumco-blue/10 bg-white' }}">
 
             <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full font-display text-base font-black lg:h-12 lg:w-12 lg:text-lg
@@ -33,7 +33,7 @@
                 </h4>
             </div>
 
-            <div class="mt-2 shrink-0">
+            <div class="shrink-0">
                 @if ($completado)
                     <svg class="h-7 w-7 text-Alumco-green-accessible" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
@@ -46,7 +46,7 @@
             </div>
         </a>
     @else
-        <div class="worker-focus worker-card group flex cursor-pointer items-start gap-5 bg-gray-50/50 p-5 transition-all hover:bg-gray-100/80 lg:p-6"
+        <div class="worker-focus worker-card group flex cursor-pointer items-center gap-5 bg-gray-50/50 p-5 transition-all hover:bg-gray-100/80 lg:p-6"
              x-data
              @click="$dispatch('show-alert', { 
                 title: 'Contenido Bloqueado', 
@@ -69,7 +69,7 @@
                 </h4>
             </div>
 
-            <div class="mt-2 shrink-0">
+            <div class="shrink-0">
                 <svg class="h-7 w-7 text-gray-300 transition-transform group-hover:scale-110" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M18 8h-1V6A5 5 0 0 0 7 6v2H6a2 2 0 00-2 2v10a2 2 0 00 2 2h12a2 2 0 00 2-2V10a2 2 0 00-2-2Zm-6 9a2 2 0 1 1 0-4 2 2 0 0 1 0 4Zm3-9H9V6a3 3 0 0 1 6 0v2Z"/>
                 </svg>

@@ -27,30 +27,50 @@ class CursoController extends Controller
 
         $vigentes = collect();
         $completados = collect();
+        $anteriores = collect();
 
         foreach ($cursos as $curso) {
             $progreso = $curso->progresoParaUsuario($user);
             $curso->progreso_calculado = $progreso;
 
-            if ($progreso === 100 && ! isset($curso->is_preview)) {
-                $completados->push($curso);
-
-                continue;
-            }
-
+            // Verificar si tiene alguna planificación activa hoy
             $tieneActiva = $curso->planificaciones->contains(
                 fn ($p) => $p->fecha_inicio->lte($hoy)
                     && $p->fecha_fin->gte($hoy)
                     && ($p->sede_id === null || $p->sede_id === $user->sede_id)
             );
 
-            // Si es preview y no tiene planificación activa, forzamos su visualización como vigente
+            // Si está completado, evaluamos si sigue vigente
+            if ($progreso === 100 && ! isset($curso->is_preview)) {
+                if ($tieneActiva) {
+                    $completados->push($curso);
+                } else {
+                    // Si ya expiró pero está completo, va al historial
+                    $anteriores->push($curso);
+                }
+
+                continue;
+            }
+
             if ($tieneActiva || isset($curso->is_preview)) {
                 $vigentes->push($curso);
+
+                continue;
+            }
+
+            // Si no tiene activa, verificar si todas sus planificaciones ya pasaron
+            $esAnterior = $curso->planificaciones->every(
+                fn ($p) => $p->fecha_fin->lt($hoy)
+            ) && $curso->planificaciones->isNotEmpty();
+
+            if ($esAnterior) {
+                $anteriores->push($curso);
             }
         }
 
-        return view('cursos.index', compact('vigentes', 'completados', 'user'));
+        $certificadosMap = $user->certificados->keyBy('curso_id');
+
+        return view('cursos.index', compact('vigentes', 'completados', 'anteriores', 'user', 'certificadosMap'));
     }
 
     public function show(Curso $curso)
@@ -114,7 +134,7 @@ class CursoController extends Controller
                     ->with(['progresos' => function ($q) use ($user) {
                         $q->where('user_id', $user->id);
                     }]);
-            }
+            },
         ]);
 
         $progreso = $curso->progresoParaUsuario($user);

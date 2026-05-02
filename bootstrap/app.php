@@ -1,5 +1,9 @@
 <?php
 
+use App\Http\Middleware\EnsureAdminAccess;
+use App\Http\Middleware\EnsureCapacitadorAccess;
+use App\Http\Middleware\EnsureCapacitadorInternoAccess;
+use App\Http\Middleware\EnsureWorkerAreaAccess;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -12,9 +16,10 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
-            'admin'               => \App\Http\Middleware\EnsureAdminAccess::class,
-            'capacitador'         => \App\Http\Middleware\EnsureCapacitadorAccess::class,
-            'capacitador.interno' => \App\Http\Middleware\EnsureCapacitadorInternoAccess::class,
+            'admin' => EnsureAdminAccess::class,
+            'capacitador' => EnsureCapacitadorAccess::class,
+            'capacitador.interno' => EnsureCapacitadorInternoAccess::class,
+            'worker.area' => EnsureWorkerAreaAccess::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

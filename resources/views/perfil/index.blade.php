@@ -58,8 +58,8 @@
         </div>
     </section>
 
-    <section class="worker-card p-5 lg:p-6" x-data>
-        <x-accessibility-preferences title="Preferencias" />
+    <section class="worker-card p-5 lg:p-6">
+        <x-accessibility-preferences title="Preferencias de accesibilidad" description="Son las mismas opciones del botón Opciones" />
     </section>
 
     <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">

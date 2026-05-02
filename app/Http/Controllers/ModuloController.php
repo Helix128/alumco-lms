@@ -8,32 +8,74 @@ use App\Models\ProgresoModulo;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\HeaderUtils;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ModuloController extends Controller
 {
+    private const INLINE_MIME_TYPES = [
+        'gif' => 'image/gif',
+        'jpeg' => 'image/jpeg',
+        'jpg' => 'image/jpeg',
+        'mp4' => 'video/mp4',
+        'ogg' => 'video/ogg',
+        'pdf' => 'application/pdf',
+        'png' => 'image/png',
+        'ppt' => 'application/vnd.ms-powerpoint',
+        'pptx' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        'webm' => 'video/webm',
+        'webp' => 'image/webp',
+    ];
+
     public function verArchivo(Curso $curso, Modulo $modulo): StreamedResponse
     {
-        $modulo = $this->authorizeModuloAccess($curso, $modulo);
+        $this->authorizeFileAccess($curso, $modulo);
         $this->ensureFileExists($modulo);
 
-        $nombreDownload = $modulo->nombre_archivo_original ?? basename($modulo->ruta_archivo);
-
-        return Storage::disk('public')->response($modulo->ruta_archivo, $nombreDownload, [
-            'Content-Disposition' => HeaderUtils::makeDisposition(HeaderUtils::DISPOSITION_INLINE, $nombreDownload),
-        ]);
+        return Storage::disk('public')->response(
+            $modulo->ruta_archivo,
+            $this->displayFileName($modulo),
+            $this->inlineHeadersFor($modulo)
+        );
     }
 
     public function descargarArchivo(Curso $curso, Modulo $modulo): StreamedResponse
     {
-        $modulo = $this->authorizeModuloAccess($curso, $modulo);
+        $this->authorizeFileAccess($curso, $modulo);
         $this->ensureFileExists($modulo);
 
         $nombreDownload = $modulo->nombre_archivo_original ?? basename($modulo->ruta_archivo);
 
         return Storage::disk('public')->download($modulo->ruta_archivo, $nombreDownload);
+    }
+
+    private function authorizeFileAccess(Curso $curso, Modulo $modulo): void
+    {
+        abort_if($modulo->curso_id !== $curso->id, 404);
+
+        $user = auth()->user();
+        abort_unless($user instanceof User, 403);
+
+        // 1. Admin / Dev tienen acceso total
+        if ($user->hasAdminAccess()) {
+            return;
+        }
+
+        // 2. El capacitador autor del curso tiene acceso
+        if ($curso->capacitador_id === $user->id) {
+            return;
+        }
+
+        // 3. Trabajadores con el curso asignado
+        if ($this->belongsToUserEstamento($curso, $user)) {
+            // Nota: No validamos estaAccesiblePara() o estaDisponiblePara() aquí
+            // para permitir descargas si el usuario ya llegó a la vista del módulo.
+            return;
+        }
+
+        abort(403, 'No tienes permisos para acceder a este archivo.');
     }
 
     public function show(Curso $curso, Modulo $modulo): View|RedirectResponse
@@ -174,5 +216,40 @@ class ModuloController extends Controller
     {
         abort_unless($modulo->ruta_archivo, 404);
         abort_unless(Storage::disk('public')->exists($modulo->ruta_archivo), 404, 'Archivo no encontrado.');
+    }
+
+    private function displayFileName(Modulo $modulo): string
+    {
+        return $modulo->nombre_archivo_original ?? basename($modulo->ruta_archivo);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function inlineHeadersFor(Modulo $modulo): array
+    {
+        $fileName = $this->displayFileName($modulo);
+        $fallbackFileName = Str::ascii($fileName) ?: 'archivo';
+
+        return [
+            'Content-Disposition' => HeaderUtils::makeDisposition(
+                HeaderUtils::DISPOSITION_INLINE,
+                $fileName,
+                $fallbackFileName,
+            ),
+            'Content-Type' => $this->mimeTypeFor($modulo),
+            'X-Content-Type-Options' => 'nosniff',
+        ];
+    }
+
+    private function mimeTypeFor(Modulo $modulo): string
+    {
+        $extension = strtolower(pathinfo($this->displayFileName($modulo), PATHINFO_EXTENSION));
+
+        if ($extension === '') {
+            $extension = strtolower(pathinfo($modulo->ruta_archivo, PATHINFO_EXTENSION));
+        }
+
+        return self::INLINE_MIME_TYPES[$extension] ?? 'application/octet-stream';
     }
 }

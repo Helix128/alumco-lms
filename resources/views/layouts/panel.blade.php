@@ -1,5 +1,13 @@
+@php
+    $accessibilityPreferences = \App\Support\AccessibilityPreferences::normalize(auth()->user()?->accessibility_preferences);
+    $accessibilityFontSize = \App\Support\AccessibilityPreferences::fontSizeFor($accessibilityPreferences['fontLevel']);
+@endphp
+
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es"
+      style="--font-base: {{ $accessibilityFontSize }}px;"
+      data-contrast="{{ $accessibilityPreferences['highContrast'] ? 'high' : 'default' }}"
+      data-motion="{{ $accessibilityPreferences['reducedMotion'] ? 'reduced' : 'default' }}">
 
 <head>
     <meta charset="UTF-8">
@@ -68,16 +76,17 @@
             color: #205099;
         }
     </style>
+    @stack('css')
     @stack('styles')
 </head>
 
-<body class="bg-Alumco-cream font-sans text-Alumco-gray h-screen flex flex-col overflow-hidden antialiased">
+<body class="admin-shell bg-Alumco-cream font-sans text-Alumco-gray h-screen flex flex-col overflow-hidden antialiased">
 
     <!-- Topbar -->
-    <header class="bg-Alumco-blue border-b border-white/10 shadow-lg px-6 py-3 flex items-center justify-between z-30 shrink-0">
+    <header class="bg-Alumco-blue border-b border-white/10 shadow-lg px-6 py-3 flex items-center justify-between z-30 shrink-0 admin-topbar-persistent">
         <div class="flex items-center gap-8">
-            <a href="{{ route('capacitador.dashboard') }}" class="flex items-center text-white">
-                <x-logo-alumco class="h-8 w-auto" />
+            <a href="{{ route('capacitador.dashboard') }}" wire:navigate class="flex items-center text-white">
+                <x-logo-alumco class="h-8 w-auto" width="120" height="32" />
             </a>
             <div class="h-6 w-px bg-white/20 hidden md:block"></div>
             <h1 class="hidden md:block font-display font-bold text-lg text-white">
@@ -87,6 +96,10 @@
 
         <div class="flex items-center gap-4">
             @auth
+            @include('partials.accessibility-modal', [
+                'buttonClass' => 'worker-focus hidden items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-white/75 ring-1 ring-white/10 hover:bg-white/20 hover:text-white sm:inline-flex',
+            ])
+
             @if(auth()->user()->hasAdminAccess())
                 <form action="{{ route('admin.preview.toggle') }}" method="POST">
                     @csrf
@@ -115,10 +128,17 @@
                     ->join('');
             @endphp
             <a href="{{ route('admin.perfil.index') }}"
+               wire:navigate
                class="w-10 h-10 rounded-full bg-white text-Alumco-blue font-display font-black text-sm
                       flex items-center justify-center shadow-sm hover:scale-105 transition-transform select-none">
                 {{ $initials }}
             </a>
+            <div class="sm:hidden">
+                @include('partials.accessibility-modal', [
+                    'buttonClass' => 'worker-focus inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white ring-1 ring-white/10 hover:bg-white/20',
+                    'showLabel' => false,
+                ])
+            </div>
             @endauth
         </div>
     </header>
@@ -126,13 +146,13 @@
     <div class="flex-1 flex overflow-hidden">
         
         <!-- Expandable Sidebar -->
-        <aside id="sidebar" class="sidebar-transition w-64 bg-Alumco-blue flex flex-col z-20 shrink-0 overflow-hidden">
+        <aside id="sidebar" class="sidebar-transition w-72 bg-Alumco-blue flex flex-col z-20 shrink-0 overflow-hidden">
             
-            <div class="flex-1 py-6 flex flex-col gap-1 overflow-y-auto custom-scrollbar border-r border-white/10">
+            <div class="flex-1 py-5 px-2 flex flex-col gap-1.5 overflow-y-auto custom-scrollbar border-r border-white/10">
                 
                 @if(session('preview_mode'))
                     {{-- Opciones de Trabajador en Vista Previa --}}
-                    <h2 class="px-6 py-2 text-[10px] font-black text-amber-500 uppercase tracking-[0.2em] mb-2 select-none">Vista Previa: Trabajador</h2>
+                    <h2 class="px-3 py-2 text-[10px] font-black text-amber-500 uppercase tracking-[0.2em] mb-2 select-none">Vista Previa: Trabajador</h2>
                     
                     <x-nav-link-admin href="{{ route('cursos.index') }}" :active="request()->routeIs('cursos.*')" title="Mis Cursos">
                         <x-slot name="icon">
@@ -238,11 +258,11 @@
             </div>
 
             <!-- Footer Sidebar: Cerrar sesión -->
-            <div class="p-4 border-t border-white/10">
+            <div class="p-3 border-t border-white/10">
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
                     <button type="submit"
-                            class="w-full flex items-center gap-4 px-4 py-3 text-white/70 hover:text-Alumco-coral hover:bg-Alumco-coral/10 rounded-xl transition-all duration-200 group"
+                            class="w-full flex items-center gap-3 px-3 py-3 text-white/70 hover:text-Alumco-coral hover:bg-Alumco-coral/10 rounded-xl transition-all duration-200 group"
                             title="Cerrar sesión">
                         <svg class="w-6 h-6 shrink-0 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
@@ -255,7 +275,7 @@
 
         <!-- Main Content -->
         <main class="flex-1 overflow-x-hidden overflow-y-auto p-6 lg:p-10">
-            <div class="max-w-[1600px] mx-auto">
+            <div id="admin-content-{{ md5(request()->fullUrl()) }}" class="max-w-[1600px] mx-auto animate-page-entry">
                 @yield('content')
             </div>
         </main>
@@ -272,5 +292,6 @@
 
     @stack('scripts')
     @livewireScripts
+    @include('partials.accessibility-scripts')
 </body>
 </html>
