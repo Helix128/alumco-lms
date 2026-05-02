@@ -22,6 +22,7 @@ class Modulo extends Model
 
     protected $fillable = [
         'curso_id',
+        'seccion_id',
         'titulo',
         'orden',
         'tipo_contenido',
@@ -36,6 +37,11 @@ class Modulo extends Model
     public function curso()
     {
         return $this->belongsTo(Curso::class);
+    }
+
+    public function seccion()
+    {
+        return $this->belongsTo(SeccionCurso::class, 'seccion_id');
     }
 
     public function evaluacion()
@@ -68,6 +74,12 @@ class Modulo extends Model
 
     public function estaAccesiblePara(User $user, Curso $curso): bool
     {
+        // Si el módulo ya está completado, siempre es accesible
+        if ($this->estaCompletadoPor($user)) {
+            return true;
+        }
+
+        // Buscar el módulo anterior basado en el orden global del curso
         $anterior = $curso->modulos->where('orden', '<', $this->orden)->last();
 
         if (!$anterior) {

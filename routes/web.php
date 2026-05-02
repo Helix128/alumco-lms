@@ -1,19 +1,20 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\ReporteController;
-use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Auth\PasswordResetController;
-use App\Livewire\Admin\UserManagement;
-use App\Http\Controllers\CursoController;
-use App\Http\Controllers\ModuloController;
-use App\Http\Controllers\PerfilController;
-use App\Http\Controllers\MisCertificadosController;
-use App\Http\Controllers\Capacitador\DashboardController as CapacitadorDashboard;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Capacitador\CertificadoController as CapacitadorCertificado;
 use App\Http\Controllers\Capacitador\CursoController as CapacitadorCurso;
+use App\Http\Controllers\Capacitador\DashboardController as CapacitadorDashboard;
 use App\Http\Controllers\Capacitador\ModuloController as CapacitadorModulo;
 use App\Http\Controllers\Capacitador\ParticipanteController as CapacitadorParticipante;
-use App\Http\Controllers\Capacitador\CertificadoController as CapacitadorCertificado;
+use App\Http\Controllers\CursoController;
+use App\Http\Controllers\MisCertificadosController;
+use App\Http\Controllers\ModuloController;
+use App\Http\Controllers\PerfilController;
+use App\Http\Controllers\ReporteController;
+use App\Livewire\CalendarioUsuario;
+use App\Livewire\Capacitador\CalendarioCapacitaciones;
+use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
@@ -31,9 +32,16 @@ Route::middleware('auth')->group(function () {
 
     // Redirección / según rol
     Route::get('/', function () {
-        if (session('preview_mode')) return redirect()->route('cursos.index');
-        if (auth()->user()->hasAdminAccess()) return redirect()->route('admin.reportes.index');
-        if (auth()->user()->isCapacitador())  return redirect()->route('capacitador.dashboard');
+        if (session('preview_mode')) {
+            return redirect()->route('cursos.index');
+        }
+        if (auth()->user()->hasAdminAccess()) {
+            return redirect()->route('admin.reportes.index');
+        }
+        if (auth()->user()->isCapacitador()) {
+            return redirect()->route('capacitador.dashboard');
+        }
+
         return redirect()->route('cursos.index');
     });
 
@@ -41,28 +49,34 @@ Route::middleware('auth')->group(function () {
     Route::get('/cursos', [CursoController::class, 'index'])->name('cursos.index');
     Route::get('/cursos/{curso}', [CursoController::class, 'show'])->name('cursos.show');
     Route::get('/cursos/{curso}/modulos/{modulo}', [ModuloController::class, 'show'])->name('modulos.show');
+    Route::get('/cursos/{curso}/modulos/{modulo}/archivo', [ModuloController::class, 'verArchivo'])->name('modulos.archivo');
     Route::get('/cursos/{curso}/modulos/{modulo}/descargar', [ModuloController::class, 'descargarArchivo'])->name('modulos.descargar');
     Route::post('/cursos/{curso}/modulos/{modulo}/completar', [ModuloController::class, 'completar'])->name('modulos.completar');
-    Route::get('/calendario', \App\Livewire\Capacitador\CalendarioCapacitaciones::class)->name('calendario.index');
-    Route::get('/calendario-cursos', \App\Livewire\Capacitador\CalendarioCapacitaciones::class)->name('calendario-cursos.index');
+    Route::get('/calendario', CalendarioCapacitaciones::class)->name('calendario.index');
+    Route::get('/calendario-cursos', CalendarioUsuario::class)->name('calendario-cursos.index');
 
     // Perfil del colaborador
     Route::get('/perfil', [PerfilController::class, 'show'])->name('perfil.index');
 
     // --- MODO VISTA PREVIA (Admin/Dev) ---
     Route::post('/admin/preview-mode/toggle', function () {
-        if (!auth()->user()->hasAdminAccess() && !auth()->user()->isCapacitador()) abort(403);
-        
+        if (! auth()->user()->hasAdminAccess() && ! auth()->user()->isCapacitador()) {
+            abort(403);
+        }
+
         $current = session('preview_mode', false);
-        session(['preview_mode' => !$current]);
-        
+        session(['preview_mode' => ! $current]);
+
         // Si activamos la vista previa, redirigir al catálogo de cursos del trabajador
         if (session('preview_mode')) {
             return redirect()->route('cursos.index')->with('success', 'Modo vista previa activado.');
         }
-        
+
         // Si desactivamos la vista previa, redirigir al dashboard correspondiente
-        if (auth()->user()->hasAdminAccess()) return redirect()->route('admin.reportes.index')->with('success', 'Has vuelto al Panel de Administración.');
+        if (auth()->user()->hasAdminAccess()) {
+            return redirect()->route('admin.reportes.index')->with('success', 'Has vuelto al Panel de Administración.');
+        }
+
         return redirect()->route('capacitador.dashboard')->with('success', 'Has vuelto al Panel del Capacitador.');
     })->name('admin.preview.toggle');
 
@@ -72,7 +86,7 @@ Route::middleware('auth')->group(function () {
 
     // Redirige legacy /ajustes → /mis-certificados
     Route::get('/ajustes', fn () => redirect()->route('mis-certificados.index'))->name('ajustes.index');
-    
+
     // --- RUTAS CAPACITADOR ---
     Route::middleware(['capacitador'])->prefix('capacitador')->name('capacitador.')->group(function () {
         Route::get('/', [CapacitadorDashboard::class, 'index'])->name('dashboard');
@@ -96,6 +110,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/cursos/{curso}/modulos/{modulo}/evaluacion', [CapacitadorModulo::class, 'evaluacion'])->name('cursos.modulos.evaluacion');
         Route::post('/cursos/{curso}/modulos/reordenar', [CapacitadorModulo::class, 'reordenar'])->name('cursos.modulos.reordenar');
 
+        // Secciones
+        Route::post('/cursos/{curso}/secciones', [\App\Http\Controllers\Capacitador\SeccionCursoController::class, 'store'])->name('cursos.secciones.store');
+        Route::put('/cursos/{curso}/secciones/{seccion}', [\App\Http\Controllers\Capacitador\SeccionCursoController::class, 'update'])->name('cursos.secciones.update');
+        Route::delete('/cursos/{curso}/secciones/{seccion}', [\App\Http\Controllers\Capacitador\SeccionCursoController::class, 'destroy'])->name('cursos.secciones.destroy');
+        Route::post('/cursos/{curso}/secciones/reordenar', [\App\Http\Controllers\Capacitador\SeccionCursoController::class, 'reordenar'])->name('cursos.secciones.reordenar');
+
         // Participantes
         Route::get('/cursos/{curso}/participantes', [CapacitadorParticipante::class, 'index'])->name('cursos.participantes.index');
 
@@ -112,7 +132,10 @@ Route::middleware('auth')->group(function () {
 
     // --- SOLO DESARROLLADOR ---
     Route::get('/dev/configuracion', function () {
-        if (!auth()->user()->isDesarrollador()) abort(403);
+        if (! auth()->user()->isDesarrollador()) {
+            abort(403);
+        }
+
         return view('admin.configuracion');
     })->name('dev.configuracion');
 

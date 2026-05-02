@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-label="Portada de curso sobre RCP básico">
+  <rect width="1200" height="675" fill="#fee2e2"/>
+  <rect x="0" y="438" width="1200" height="237" fill="#991b1b"/>
+  <circle cx="394" cy="262" r="142" fill="#ef4444"/>
+  <path d="M394 356C302 281 260 238 260 188c0-42 32-74 73-74 24 0 47 12 61 31 14-19 37-31 61-31 41 0 73 32 73 74 0 50-42 93-134 168z" fill="#ffffff"/>
+  <rect x="670" y="128" width="260" height="298" rx="36" fill="#ffffff"/>
+  <rect x="715" y="176" width="170" height="72" rx="18" fill="#fecaca"/>
+  <path d="M742 310h116M800 252v116" stroke="#b91c1c" stroke-width="34" stroke-linecap="round"/>
+  <text x="84" y="545" fill="#ffffff" font-family="Arial, sans-serif" font-size="58" font-weight="700">RCP Básico</text>
+  <text x="86" y="600" fill="#fee2e2" font-family="Arial, sans-serif" font-size="30">Respuesta inicial y uso seguro de DEA</text>
+</svg>

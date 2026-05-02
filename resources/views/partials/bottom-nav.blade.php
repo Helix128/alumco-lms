@@ -3,62 +3,75 @@
     $navCalendario   = request()->routeIs('calendario-cursos.*');
     $navCursos       = request()->routeIs('cursos.*') || request()->routeIs('modulos.*');
     $navCertificados = request()->routeIs('mis-certificados.*');
+
+    $initials = auth()->check()
+        ? collect(explode(' ', trim(auth()->user()->name)))
+            ->map(fn($w) => strtoupper($w[0] ?? ''))
+            ->take(2)
+            ->join('')
+        : '';
 @endphp
 
-<nav id="app-bottom-nav" class="fixed bottom-0 inset-x-0 z-50 bg-Alumco-blue h-16 flex items-center justify-around
-            lg:sticky lg:top-24 lg:w-64 lg:h-auto lg:flex-col lg:justify-start lg:gap-2 lg:bg-white lg:border lg:border-gray-100 lg:rounded-3xl lg:p-3 lg:shadow-sm lg:mt-6 lg:shrink-0 lg:z-10">
+<nav id="app-bottom-nav"
+     class="fixed bottom-0 inset-x-0 z-50 h-16 border-t border-white/10 bg-Alumco-blue px-2
+            lg:sticky lg:top-24 lg:h-auto lg:w-[280px] lg:shrink-0 lg:rounded-[22px] lg:border-none lg:bg-white lg:p-5 lg:shadow-2xl lg:shadow-Alumco-blue/10">
 
-    {{-- Perfil --}}
-    <a href="{{ route('perfil.index') }}"
-       class="nav-item flex flex-col items-center gap-0.5 px-4
-              {{ $navPerfil ? 'text-white lg:bg-Alumco-blue' : 'text-white/60 lg:text-Alumco-gray lg:hover:bg-gray-50' }}
-              lg:flex-row lg:w-full lg:px-5 lg:py-3.5 lg:rounded-2xl lg:shadow-sm">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 lg:w-6 lg:h-6 lg:shrink-0" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>
-        </svg>
-        <span class="text-[10px] font-semibold hidden lg:inline lg:text-[15px] lg:font-bold lg:ml-3">Perfil</span>
-        @if ($navPerfil)
-            <span class="block w-1.5 h-1.5 rounded-full bg-white mx-auto lg:hidden"></span>
-        @endif
-    </a>
+    <div class="grid h-full grid-cols-3 items-center gap-1 lg:flex lg:flex-col lg:gap-2">
+        <a href="{{ route('cursos.index') }}"
+           class="worker-focus group relative flex h-16 flex-col items-center justify-center gap-1 rounded-2xl px-2 text-center transition-all
+                  {{ $navCursos
+                      ? 'bg-Alumco-blue text-white shadow-lg shadow-Alumco-blue/25 lg:bg-Alumco-blue/8 lg:text-Alumco-blue lg:shadow-none lg:ring-1 lg:ring-Alumco-blue/15'
+                      : 'text-white/70 hover:bg-white/10 lg:text-Alumco-gray lg:hover:bg-Alumco-blue/5' }}
+                  lg:h-auto lg:flex-row lg:justify-start lg:gap-4 lg:rounded-xl lg:px-4 lg:py-5 lg:text-left"
+           aria-current="{{ $navCursos ? 'page' : 'false' }}">
+            @if ($navCursos)
+                <span class="hidden lg:block absolute left-0 inset-y-2 w-[3px] rounded-r-full bg-Alumco-blue" aria-hidden="true"></span>
+            @endif
+            <span class="flex h-9 w-9 items-center justify-center rounded-xl transition-colors
+                         {{ $navCursos ? 'bg-white/20 lg:bg-Alumco-blue/15' : 'bg-white/10 lg:bg-Alumco-blue/8 lg:group-hover:bg-Alumco-blue/15' }}">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 shrink-0" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15.5A2.5 2.5 0 0 1 17.5 21H6.25A2.25 2.25 0 0 1 4 18.75V5.5Zm2.5-.5a.5.5 0 0 0-.5.5v11.56c.1-.04.2-.06.31-.06H18V5H6.5ZM6.25 19H17.5a.5.5 0 0 0 .5-.5V18H6.25a.5.5 0 0 0 0 1Z"/>
+                </svg>
+            </span>
+            <span class="text-[11px] font-black leading-none lg:text-[15px] lg:leading-tight lg:font-black">Mis cursos</span>
+        </a>
 
-    {{-- Calendario --}}
-    <a href="{{ route('calendario-cursos.index') }}"
-       class="nav-item flex flex-col items-center gap-0.5 px-4
-              {{ $navCalendario ? 'text-white lg:bg-Alumco-blue' : 'text-white/60 lg:text-Alumco-gray lg:hover:bg-gray-50' }}
-              lg:flex-row lg:w-full lg:px-5 lg:py-3.5 lg:rounded-2xl lg:shadow-sm">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 lg:w-6 lg:h-6 lg:shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-        </svg>
-        <span class="text-[10px] font-semibold hidden lg:inline lg:text-[15px] lg:font-bold lg:ml-3">Calendario</span>
-        @if ($navCalendario)
-            <span class="block w-1.5 h-1.5 rounded-full bg-white mx-auto lg:hidden"></span>
-        @endif
-    </a>
+        <a href="{{ route('calendario-cursos.index') }}"
+           class="worker-focus group relative flex h-16 flex-col items-center justify-center gap-1 rounded-2xl px-2 text-center transition-all
+                  {{ $navCalendario
+                      ? 'bg-Alumco-blue text-white shadow-lg shadow-Alumco-blue/25 lg:bg-Alumco-blue/8 lg:text-Alumco-blue lg:shadow-none lg:ring-1 lg:ring-Alumco-blue/15'
+                      : 'text-white/70 hover:bg-white/10 lg:text-Alumco-gray lg:hover:bg-Alumco-blue/5' }}
+                  lg:h-auto lg:flex-row lg:justify-start lg:gap-4 lg:rounded-xl lg:px-4 lg:py-5 lg:text-left"
+           aria-current="{{ $navCalendario ? 'page' : 'false' }}">
+            @if ($navCalendario)
+                <span class="hidden lg:block absolute left-0 inset-y-2 w-[3px] rounded-r-full bg-Alumco-blue" aria-hidden="true"></span>
+            @endif
+            <span class="flex h-9 w-9 items-center justify-center rounded-xl transition-colors
+                         {{ $navCalendario ? 'bg-white/20 lg:bg-Alumco-blue/15' : 'bg-white/10 lg:bg-Alumco-blue/8 lg:group-hover:bg-Alumco-blue/15' }}">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V4m8 3V4M5 10h14M6.5 21h11A2.5 2.5 0 0 0 20 18.5v-11A2.5 2.5 0 0 0 17.5 5h-11A2.5 2.5 0 0 0 4 7.5v11A2.5 2.5 0 0 0 6.5 21Z"/>
+                </svg>
+            </span>
+            <span class="text-[11px] font-black leading-none lg:text-[15px] lg:leading-tight lg:font-black">Calendario</span>
+        </a>
 
-    {{-- Mis Cursos (elevado, circular) --}}
-    <a href="{{ route('cursos.index') }}"
-       class="nav-courses-btn relative -mt-8 bg-Alumco-blue border-4 rounded-full p-3.5 shadow-lg text-white
-              {{ $navCursos ? 'border-Alumco-green lg:bg-Alumco-blue lg:text-white' : 'border-Alumco-cream lg:text-Alumco-gray lg:bg-transparent lg:hover:bg-gray-50' }}
-              lg:mt-0 lg:border-0 lg:rounded-2xl lg:shadow-sm lg:px-5 lg:py-3.5 lg:flex lg:flex-row lg:w-full lg:items-center">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 lg:w-6 lg:h-6 lg:shrink-0" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
-        </svg>
-        <span class="text-xs hidden lg:inline lg:text-[15px] lg:font-bold lg:ml-3">Mis cursos</span>
-    </a>
-
-    {{-- Mis Logros --}}
-    <a href="{{ route('mis-certificados.index') }}"
-       class="nav-item flex flex-col items-center gap-0.5 px-4
-              {{ $navCertificados ? 'text-white lg:bg-Alumco-blue' : 'text-white/60 lg:text-Alumco-gray lg:hover:bg-gray-50' }}
-              lg:flex-row lg:w-full lg:px-5 lg:py-3.5 lg:rounded-2xl lg:shadow-sm">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 lg:w-6 lg:h-6 lg:shrink-0" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 1L9.17 6.36 3 7.27l4.5 4.38L6.34 18 12 15l5.66 3-.84-6.35L21 7.27l-6.17-.91L12 1z"/>
-        </svg>
-        <span class="text-[10px] font-semibold hidden lg:inline lg:text-[15px] lg:font-bold lg:ml-3">Mis logros</span>
-        @if ($navCertificados)
-            <span class="block w-1.5 h-1.5 rounded-full bg-white mx-auto lg:hidden"></span>
-        @endif
-    </a>
-
+        <a href="{{ route('mis-certificados.index') }}"
+           class="worker-focus group relative flex h-16 flex-col items-center justify-center gap-1 rounded-2xl px-2 text-center transition-all
+                  {{ $navCertificados
+                      ? 'bg-Alumco-blue text-white shadow-lg shadow-Alumco-blue/25 lg:bg-Alumco-blue/8 lg:text-Alumco-blue lg:shadow-none lg:ring-1 lg:ring-Alumco-blue/15'
+                      : 'text-white/70 hover:bg-white/10 lg:text-Alumco-gray lg:hover:bg-Alumco-blue/5' }}
+                  lg:h-auto lg:flex-row lg:justify-start lg:gap-4 lg:rounded-xl lg:px-4 lg:py-5 lg:text-left"
+           aria-current="{{ $navCertificados ? 'page' : 'false' }}">
+            @if ($navCertificados)
+                <span class="hidden lg:block absolute left-0 inset-y-2 w-[3px] rounded-r-full bg-Alumco-blue" aria-hidden="true"></span>
+            @endif
+            <span class="flex h-9 w-9 items-center justify-center rounded-xl transition-colors
+                         {{ $navCertificados ? 'bg-white/20 lg:bg-Alumco-blue/15' : 'bg-white/10 lg:bg-Alumco-blue/8 lg:group-hover:bg-Alumco-blue/15' }}">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 shrink-0" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 2 9.45 7.16 3.75 8l4.13 4.03-.98 5.68L12 15.03l5.1 2.68-.98-5.68L20.25 8l-5.7-.84L12 2Zm-2 18.5h4v1.5h-4v-1.5Z"/>
+                </svg>
+            </span>
+            <span class="text-[11px] font-black leading-none lg:text-[15px] lg:leading-tight lg:font-black">Certificados</span>
+        </a>
+    </div>
 </nav>

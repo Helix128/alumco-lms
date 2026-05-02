@@ -1,0 +1,21 @@
+{
+    "agents": [
+        "claude_code",
+        "gemini",
+        "codex"
+    ],
+    "cloud": false,
+    "guidelines": true,
+    "mcp": true,
+    "nightwatch": false,
+    "packages": [
+        "spatie/laravel-permission"
+    ],
+    "sail": true,
+    "skills": [
+        "laravel-best-practices",
+        "livewire-development",
+        "tailwindcss-development",
+        "laravel-permission-development"
+    ]
+}

@@ -10,146 +10,149 @@
         ->join('');
 @endphp
 
-{{-- HERO CARD --}}
-<div class="bg-gradient-to-br from-Alumco-blue to-[#163c7a] rounded-3xl p-6 text-white shadow-md">
-
-    {{-- Avatar de iniciales --}}
-    <div class="w-20 h-20 rounded-full bg-white/20 border-2 border-white/40
-                flex items-center justify-center mx-auto mb-4">
-        <span class="font-display font-black text-3xl leading-none">{{ $initials }}</span>
-    </div>
-
-    {{-- Nombre y email --}}
-    <p class="font-display font-black text-2xl text-center leading-tight">{{ $user->name }}</p>
-    <p class="text-white/70 text-sm text-center mt-0.5">{{ $user->email }}</p>
-
-    {{-- Sede y estamento --}}
-    <div class="flex items-center justify-center gap-3 mt-3 flex-wrap">
-        @if ($user->sede)
-            <span class="flex items-center gap-1.5 text-white/80 text-sm">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-                </svg>
-                {{ $user->sede->nombre }}
-            </span>
-        @endif
-        @if ($user->estamento)
-            <span class="bg-white/20 text-white text-xs font-semibold px-3 py-1 rounded-full">
-                {{ $user->estamento->nombre }}
-            </span>
-        @endif
-    </div>
-</div>
-
-{{-- ESTADÍSTICAS --}}
-<div class="grid grid-cols-3 gap-3 mt-5">
-    <div class="bg-white rounded-2xl p-4 text-center shadow-sm border border-gray-100">
-        <p class="font-display font-black text-3xl text-Alumco-blue">{{ $totalCursos }}</p>
-        <p class="text-[11px] text-Alumco-gray/60 mt-0.5 leading-tight font-medium">Asignados</p>
-    </div>
-    <div class="bg-white rounded-2xl p-4 text-center shadow-sm border border-gray-100">
-        <p class="font-display font-black text-3xl text-Alumco-green-vivid">{{ $cursosCompletados }}</p>
-        <p class="text-[11px] text-Alumco-gray/60 mt-0.5 leading-tight font-medium">Completados</p>
-    </div>
-    <div class="bg-white rounded-2xl p-4 text-center shadow-sm border border-gray-100">
-        <p class="font-display font-black text-3xl text-Alumco-yellow">{{ $cursosEnProgreso }}</p>
-        <p class="text-[11px] text-Alumco-gray/60 mt-0.5 leading-tight font-medium">En progreso</p>
-    </div>
-</div>
-
-{{-- INFORMACIÓN PERSONAL --}}
-<div class="mt-6">
-    <h3 class="font-display font-bold text-Alumco-gray text-xs uppercase tracking-widest mb-3 px-1">
-        Información
-    </h3>
-    <div class="bg-white rounded-2xl divide-y divide-gray-100 shadow-sm border border-gray-100">
-
-        {{-- Email --}}
-        <div class="flex items-center gap-3 px-5 py-4">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-Alumco-blue/60 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"/>
-            </svg>
-            <div>
-                <p class="text-xs text-Alumco-gray/50 font-medium">Correo electrónico</p>
-                <p class="text-sm font-semibold text-Alumco-gray">{{ $user->email }}</p>
-            </div>
-        </div>
-
-        {{-- Fecha de nacimiento --}}
-        <div class="flex items-center gap-3 px-5 py-4">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-Alumco-blue/60 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 9v7.5"/>
-            </svg>
-            <div>
-                <p class="text-xs text-Alumco-gray/50 font-medium">Fecha de nacimiento</p>
-                <p class="text-sm font-semibold text-Alumco-gray">
-                    {{ $user->fecha_nacimiento
-                        ? \Carbon\Carbon::parse($user->fecha_nacimiento)->format('d/m/Y')
-                        : '—' }}
-                </p>
-            </div>
-        </div>
-
-        {{-- Sede --}}
-        <div class="flex items-center gap-3 px-5 py-4">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-Alumco-blue/60 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21"/>
-            </svg>
-            <div>
-                <p class="text-xs text-Alumco-gray/50 font-medium">Sede</p>
-                <p class="text-sm font-semibold text-Alumco-gray">
-                    {{ $user->sede?->nombre ?? 'Sin sede asignada' }}
-                </p>
-            </div>
-        </div>
-
-    </div>
-</div>
-
-{{-- CERTIFICADOS RECIENTES --}}
-@if ($certificados->isNotEmpty())
-<div class="mt-6">
-    <h3 class="font-display font-bold text-Alumco-gray text-xs uppercase tracking-widest mb-3 px-1">
-        Certificados recientes
-    </h3>
-    <div class="flex flex-col gap-2">
-        @foreach ($certificados as $cert)
-            <div class="bg-white rounded-2xl p-4 flex items-center gap-4 shadow-sm border border-gray-100">
-                <div class="w-10 h-10 rounded-full bg-Alumco-green/40 flex items-center justify-center shrink-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-Alumco-green-vivid" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 1L9.17 6.36 3 7.27l4.5 4.38L6.34 18 12 15l5.66 3-.84-6.35L21 7.27l-6.17-.91L12 1z"/>
-                    </svg>
+<div class="space-y-6">
+    <section class="worker-card overflow-hidden">
+        <div class="border-t-4 border-Alumco-blue p-5 lg:p-7">
+            <div class="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+                <div class="flex items-center gap-4">
+                    <div class="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-Alumco-blue text-white">
+                        <span class="font-display text-3xl font-black leading-none">{{ $initials }}</span>
+                    </div>
+                    <div class="min-w-0">
+                        <h1 class="font-display text-3xl font-black leading-tight text-Alumco-gray">{{ $user->name }}</h1>
+                        <p class="mt-1 text-base font-semibold text-Alumco-gray/70 break-all">{{ $user->email }}</p>
+                    </div>
                 </div>
-                <div class="flex-1 min-w-0">
-                    <p class="font-bold text-Alumco-gray text-sm truncate">{{ $cert->curso->titulo }}</p>
-                    <p class="text-xs text-Alumco-gray/55 mt-0.5">
-                        {{ $cert->fecha_emision?->format('d/m/Y') ?? '—' }}
-                    </p>
+
+                <div class="flex flex-wrap gap-2">
+                    @if ($user->sede)
+                        <span class="inline-flex items-center gap-2 rounded-full bg-Alumco-blue/10 px-4 py-2 text-sm font-bold text-Alumco-blue">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5Z"/>
+                            </svg>
+                            {{ $user->sede->nombre }}
+                        </span>
+                    @endif
+                    @if ($user->estamento)
+                        <span class="rounded-full bg-Alumco-green/35 px-4 py-2 text-sm font-bold text-Alumco-gray">
+                            {{ $user->estamento->nombre }}
+                        </span>
+                    @endif
                 </div>
-                <a href="{{ route('mis-certificados.descargar', $cert) }}"
-                   class="shrink-0 text-Alumco-blue text-xs font-bold hover:underline">
-                    Descargar
-                </a>
             </div>
-        @endforeach
+        </div>
+    </section>
 
-        @if ($certificados->count() >= 5)
-            <a href="{{ route('mis-certificados.index') }}"
-               class="text-center text-Alumco-blue text-sm font-semibold py-2 hover:underline">
-                Ver todos mis certificados →
-            </a>
-        @endif
+    <section class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div class="worker-card p-5 text-center">
+            <p class="font-display text-4xl font-black text-Alumco-blue">{{ $totalCursos }}</p>
+            <p class="mt-1 text-base font-bold text-Alumco-gray/70">Asignados</p>
+        </div>
+        <div class="worker-card p-5 text-center">
+            <p class="font-display text-4xl font-black text-Alumco-green-accessible">{{ $cursosCompletados }}</p>
+            <p class="mt-1 text-base font-bold text-Alumco-gray/70">Completados</p>
+        </div>
+        <div class="worker-card p-5 text-center">
+            <p class="font-display text-4xl font-black text-Alumco-gold-accessible">{{ $cursosEnProgreso }}</p>
+            <p class="mt-1 text-base font-bold text-Alumco-gray/70">En progreso</p>
+        </div>
+    </section>
+
+    <section class="worker-card p-5 lg:p-6" x-data>
+        <x-accessibility-preferences title="Preferencias" />
+    </section>
+
+    <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">
+        <section>
+            <h2 class="mb-3 font-display text-xl font-black text-Alumco-gray">Información</h2>
+            <div class="worker-card divide-y divide-gray-100">
+                <div class="flex items-start gap-5 px-6 py-5">
+                    <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-Alumco-blue/10 text-Alumco-blue">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"/>
+                        </svg>
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-sm font-bold text-Alumco-gray/60">Correo electrónico</p>
+                        <p class="mt-0.5 break-all text-base font-bold text-Alumco-gray">{{ $user->email }}</p>
+                    </div>
+                </div>
+
+                <div class="flex items-start gap-5 px-6 py-5">
+                    <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-Alumco-blue/10 text-Alumco-blue">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-Alumco-gray/60">Fecha de nacimiento</p>
+                        <p class="mt-0.5 text-base font-bold text-Alumco-gray">
+                            {{ $user->fecha_nacimiento
+                                ? \Carbon\Carbon::parse($user->fecha_nacimiento)->format('d/m/Y')
+                                : '—' }}
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex items-start gap-5 px-6 py-5">
+                    <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-Alumco-blue/10 text-Alumco-blue">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m3-3H15m-1.5 3H15"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-Alumco-gray/60">Sede</p>
+                        <p class="mt-0.5 text-base font-bold text-Alumco-gray">
+                            {{ $user->sede?->nombre ?? 'Sin sede asignada' }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2 class="mb-3 font-display text-xl font-black text-Alumco-gray">Certificados recientes</h2>
+            @if ($certificados->isNotEmpty())
+                <div class="space-y-3">
+                    @foreach ($certificados as $cert)
+                        <div class="worker-card flex items-center gap-5 p-5">
+                            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-Alumco-green/40">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-Alumco-green-accessible" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M12 1 9.17 6.36 3 7.27l4.5 4.38L6.34 18 12 15l5.66 3-.84-6.35L21 7.27l-6.17-.91L12 1Z"/>
+                                </svg>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <p class="text-base font-black leading-snug text-Alumco-gray">{{ $cert->curso->titulo }}</p>
+                                <p class="mt-0.5 text-sm font-semibold text-Alumco-gray/60">
+                                    {{ $cert->fecha_emision?->format('d/m/Y') ?? '—' }}
+                                </p>
+                            </div>
+                            <a href="{{ route('mis-certificados.descargar', $cert) }}"
+                               class="worker-focus rounded-full bg-Alumco-blue px-4 py-2.5 text-sm font-black text-white">
+                                Descargar
+                            </a>
+                        </div>
+                    @endforeach
+
+                    @if ($certificados->count() >= 5)
+                        <a href="{{ route('mis-certificados.index') }}"
+                           class="worker-focus inline-flex rounded-full px-4 py-2 text-base font-bold text-Alumco-blue hover:bg-Alumco-blue/5">
+                            Ver todos mis certificados
+                        </a>
+                    @endif
+                </div>
+            @else
+                <div class="worker-card p-5 text-base font-semibold text-Alumco-gray/65">
+                    Aún no tienes certificados recientes.
+                </div>
+            @endif
+        </section>
     </div>
-</div>
-@endif
 
-{{-- CERRAR SESIÓN --}}
-<div class="mt-8 mb-4">
-    <form action="{{ route('logout') }}" method="POST">
+    <form action="{{ route('logout') }}" method="POST" class="max-w-sm">
         @csrf
         <button type="submit"
-                class="btn-logout w-full py-4 rounded-2xl border-2 border-Alumco-coral text-Alumco-coral
-                       font-bold text-base">
+                class="btn-logout worker-focus w-full rounded-full border-2 border-Alumco-coral-accessible px-5 py-4 text-lg font-black text-Alumco-coral-accessible">
             Cerrar sesión
         </button>
     </form>

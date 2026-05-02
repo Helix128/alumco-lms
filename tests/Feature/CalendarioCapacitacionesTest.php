@@ -7,6 +7,7 @@ use App\Models\Curso;
 use App\Models\Estamento;
 use App\Models\PlanificacionCurso;
 use App\Models\User;
+use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -15,13 +16,24 @@ class CalendarioCapacitacionesTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->seed(RolesAndPermissionsSeeder::class);
+    }
+
     private function crearAdmin(): User
     {
         $estamento = Estamento::create(['nombre' => 'Administrador']);
 
-        return User::factory()->create([
+        $admin = User::factory()->create([
             'estamento_id' => $estamento->id,
         ]);
+
+        $admin->assignRole('Administrador');
+
+        return $admin;
     }
 
     public function test_admin_can_resize_a_planificacion_from_gantt_handles(): void
@@ -41,6 +53,9 @@ class CalendarioCapacitacionesTest extends TestCase
         ]);
 
         Livewire::test(CalendarioCapacitaciones::class)
+            ->set('anioActual', 2026)
+            ->set('mesActual', 4)
+            ->call('cambiarVista', 'mensual')
             ->call('ajustarBordePlanificacion', $plan->id, 'inicio', 8)
             ->call('ajustarBordePlanificacion', $plan->id, 'fin', 18);
 
@@ -66,6 +81,8 @@ class CalendarioCapacitacionesTest extends TestCase
         ]);
 
         Livewire::test(CalendarioCapacitaciones::class)
+            ->set('anioActual', 2026)
+            ->set('mesActual', 4)
             ->call('cambiarVista', 'mensual')
             ->assertSee('grid-column: 3 / span 3; grid-row: 2', false);
     }
@@ -86,6 +103,8 @@ class CalendarioCapacitacionesTest extends TestCase
         ]);
 
         Livewire::test(CalendarioCapacitaciones::class)
+            ->set('anioActual', 2026)
+            ->set('mesActual', 4)
             ->call('cambiarVista', 'mensual')
             ->assertSee('grid-column: 5 / span 3; grid-row: 2', false)
             ->assertSee('grid-column: 1 / span 3; grid-row: 2', false);
@@ -99,12 +118,15 @@ class CalendarioCapacitacionesTest extends TestCase
         $curso = Curso::factory()->create(['capacitador_id' => $admin->id]);
 
         $plan = PlanificacionCurso::create([
-            'curso_id'     => $curso->id,
+            'curso_id' => $curso->id,
             'fecha_inicio' => '2026-04-05',
-            'fecha_fin'    => '2026-04-09', // duración = 4 días
+            'fecha_fin' => '2026-04-09', // duración = 4 días
         ]);
 
         Livewire::test(CalendarioCapacitaciones::class)
+            ->set('anioActual', 2026)
+            ->set('mesActual', 4)
+            ->call('cambiarVista', 'mensual')
             ->call('moverPlanificacion', $plan->id, 10); // mover a día 10
 
         $plan->refresh();

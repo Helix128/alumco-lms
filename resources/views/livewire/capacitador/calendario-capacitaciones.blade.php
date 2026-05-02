@@ -371,18 +371,20 @@
                                 @php $sedeKey = $fila['sede_id'] ?? 0; @endphp
 
                                 {{-- Row label (sticky) --}}
-                                <div class="sticky left-0 z-30 bg-white border-r-2 border-gray-200 border-b border-gray-100 p-2 flex items-center gap-2 min-h-[44px] group select-none">
-                                    @if($fila['sede_id'] === null)
-                                        <svg class="w-3.5 h-3.5 text-Alumco-blue shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064"/>
-                                        </svg>
-                                    @else
-                                        <svg class="w-3.5 h-3.5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                        </svg>
+                                @php
+                                    $sedePaletteColors = ['bg-Alumco-blue', 'bg-amber-500', 'bg-emerald-500', 'bg-rose-500', 'bg-violet-500'];
+                                    $sedeColorIdx = $fila['sede_id'] === null ? 0 : ($fila['sede_id'] % (count($sedePaletteColors) - 1)) + 1;
+                                    $sedeBg = $sedePaletteColors[$sedeColorIdx];
+                                    $filaVacia = count(array_filter($fila['semanas'], fn($s) => count($s['cursos']) > 0)) === 0;
+                                @endphp
+                                <div class="sticky left-0 z-30 bg-white border-r-2 border-gray-200 border-b border-gray-100 p-2 flex flex-col justify-center gap-1 min-h-[44px] group select-none">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-2.5 h-2.5 rounded-full shrink-0 {{ $sedeBg }}"></div>
+                                        <span class="truncate text-[11px] font-black uppercase tracking-tight text-gray-700">{{ $fila['nombre'] }}</span>
+                                    </div>
+                                    @if($filaVacia)
+                                        <span class="text-[9px] text-gray-400 font-semibold uppercase tracking-widest ml-[18px]">Sin cursos</span>
                                     @endif
-                                    <span class="truncate text-[11px] font-black uppercase tracking-tight text-gray-700">{{ $fila['nombre'] }}</span>
                                 </div>
 
                                 {{-- Week cells for this sede --}}
@@ -652,6 +654,40 @@
                 {{-- Modal body --}}
                 <div class="px-8 py-6 space-y-6">
 
+                    {{-- Sede selector (PRIMERO — define el contexto de la planificación) --}}
+                    <div class="space-y-2">
+                        <label class="block text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">Sede del Evento</label>
+                        <div class="flex flex-wrap gap-2">
+                            <button type="button"
+                                    wire:click="$set('sedeIdPlan', null)"
+                                    @class([
+                                        'flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-bold transition-all border',
+                                        'bg-Alumco-blue text-white border-Alumco-blue shadow-md' => $sedeIdPlan === null,
+                                        'bg-gray-50 text-gray-500 border-gray-200 hover:border-Alumco-blue/30 hover:bg-blue-50' => $sedeIdPlan !== null,
+                                    ])>
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064"/>
+                                </svg>
+                                Todas las sedes
+                            </button>
+                            @foreach($sedes as $sede)
+                                <button type="button"
+                                        wire:click="$set('sedeIdPlan', {{ $sede['id'] }})"
+                                        @class([
+                                            'flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-bold transition-all border',
+                                            'bg-Alumco-blue text-white border-Alumco-blue shadow-md' => (int)$sedeIdPlan === $sede['id'],
+                                            'bg-gray-50 text-gray-500 border-gray-200 hover:border-Alumco-blue/30 hover:bg-blue-50' => (int)$sedeIdPlan !== $sede['id'],
+                                        ])>
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    </svg>
+                                    {{ $sede['nombre'] }}
+                                </button>
+                            @endforeach
+                        </div>
+                    </div>
+
                     {{-- Course search + picker --}}
                     <div class="space-y-3">
                         <label class="block text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">Seleccionar Curso</label>
@@ -754,34 +790,12 @@
                         </div>
                     @endif
 
-                    {{-- Extra info grid --}}
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {{-- Sede selector --}}
-                        <div class="space-y-2">
-                            <label class="block text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">Sede del Evento</label>
-                            <div class="relative">
-                                <select wire:model="sedeIdPlan"
-                                        class="w-full bg-gray-50 border-none rounded-2xl py-3 px-4 text-sm font-bold text-Alumco-blue focus:ring-4 focus:ring-Alumco-blue/10 transition-all appearance-none cursor-pointer">
-                                    <option value="">Todas las sedes (Global)</option>
-                                    @foreach($sedes as $sede)
-                                        <option value="{{ $sede['id'] }}">{{ $sede['nombre'] }}</option>
-                                    @endforeach
-                                </select>
-                                <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-gray-400">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                                    </svg>
-                                </div>
-                            </div>
-                        </div>
-
-                        {{-- Notes --}}
-                        <div class="space-y-2">
-                            <label class="block text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">Notas Internas</label>
-                            <textarea wire:model="notas" rows="1"
-                                      placeholder="Ej: Turno mañana, sala A..."
-                                      class="w-full bg-gray-50 border-none rounded-2xl py-3 px-4 text-sm font-bold text-Alumco-blue placeholder:text-gray-400 focus:ring-4 focus:ring-Alumco-blue/10 transition-all resize-none"></textarea>
-                        </div>
+                    {{-- Notes --}}
+                    <div class="space-y-2">
+                        <label class="block text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">Notas Internas</label>
+                        <textarea wire:model="notas" rows="2"
+                                  placeholder="Ej: Turno mañana, sala A..."
+                                  class="w-full bg-gray-50 border-none rounded-2xl py-3 px-4 text-sm font-bold text-Alumco-blue placeholder:text-gray-400 focus:ring-4 focus:ring-Alumco-blue/10 transition-all resize-none"></textarea>
                     </div>
                 </div>
 
