@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Models\Curso;
+use App\Models\Curso; 
 use App\Models\Estamento;
 use App\Models\Evaluacion;
 use App\Models\Modulo;
