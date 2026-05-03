@@ -6,7 +6,9 @@ use App\Models\Certificado;
 use App\Models\Curso;
 use App\Models\GlobalSetting;
 use App\Models\IntentoEvaluacion;
+use App\Models\NotificationDelivery;
 use App\Models\User;
+use App\Notifications\CourseCompletedCertificateNotification;
 use Barryvdh\DomPDF\Facade\Pdf as PdfFacade;
 use Barryvdh\DomPDF\PDF;
 use Endroid\QrCode\Builder\Builder;
@@ -27,6 +29,7 @@ class CertificadoService
 
         if ($existente) {
             $this->deleteStoredPdf($existente);
+            $this->notifyCertificateAvailable($user, $curso, $existente);
 
             return $existente;
         }
@@ -54,13 +57,17 @@ class CertificadoService
 
         $codigo = (string) Str::uuid();
 
-        return Certificado::create([
+        $certificado = Certificado::create([
             'user_id' => $user->id,
             'curso_id' => $curso->id,
             'codigo_verificacion' => $codigo,
             'ruta_pdf' => '',
             'fecha_emision' => now(),
         ]);
+
+        $this->notifyCertificateAvailable($user, $curso, $certificado);
+
+        return $certificado;
     }
 
     public function output(Certificado $certificado): string
@@ -151,6 +158,22 @@ class CertificadoService
 
         if ($certificado->ruta_pdf !== '') {
             $certificado->forceFill(['ruta_pdf' => ''])->saveQuietly();
+        }
+    }
+
+    private function notifyCertificateAvailable(User $user, Curso $curso, Certificado $certificado): void
+    {
+        $dedupeKey = NotificationDelivery::certificateCompletedKey($user, $curso, $certificado);
+
+        $recorded = NotificationDelivery::recordOnce($dedupeKey, [
+            'user_id' => $user->id,
+            'curso_id' => $curso->id,
+            'certificado_id' => $certificado->id,
+            'type' => NotificationDelivery::CourseCompletedCertificate,
+        ]);
+
+        if ($recorded) {
+            $user->notify(new CourseCompletedCertificateNotification($curso, $certificado));
         }
     }
 }

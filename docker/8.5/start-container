@@ -15,7 +15,7 @@ fi
 
 chmod -R ugo+rw /.composer
 
-if [ -f "package.json" ]; then
+if [ "${SAIL_SKIP_NPM_BUILD:-false}" != "true" ] && [ -f "package.json" ]; then
     if [ ! -d "node_modules" ]; then
         gosu sail npm install
     fi

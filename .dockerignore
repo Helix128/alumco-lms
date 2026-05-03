@@ -33,4 +33,10 @@ storage/logs/*
 Thumbs.db
 Homestead.json
 Homestead.yaml
-docker/
+docker/*
+!docker/8.*/
+!docker/8.*/Dockerfile
+!docker/8.*/entrypoint.sh
+!docker/8.*/php.ini
+!docker/8.*/start-container
+!docker/8.*/supervisord.conf
