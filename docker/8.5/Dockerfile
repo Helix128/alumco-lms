@@ -12,9 +12,9 @@ ENV LANG=C.UTF-8
 # 1. Configuración de Zona Horaria
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-# 2. Hardcodear un mirror de grado empresarial (Kernel.org) ANTES de cualquier actualización
-RUN sed -i 's/archive.ubuntu.com/mirrors.kernel.org/g' /etc/apt/sources.list.d/ubuntu.sources && \
-    sed -i 's/security.ubuntu.com/mirrors.kernel.org/g' /etc/apt/sources.list.d/ubuntu.sources
+# Cambiando a un mirror basado en CDN global (más resiliente)
+RUN sed -i 's/archive.ubuntu.com/mirror.edge.kernel.org/g' /etc/apt/sources.list.d/ubuntu.sources && \
+    sed -i 's/security.ubuntu.com/mirror.edge.kernel.org/g' /etc/apt/sources.list.d/ubuntu.sources
 
 # 3. Configuración de APT agresiva (Falla rápido, fuerza IPv4, previene atascos)
 RUN echo "Acquire::http::Pipeline-Depth 0;" > /etc/apt/apt.conf.d/99custom && \
