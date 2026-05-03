@@ -1,4 +1,4 @@
-FROM ubuntu:26.04 AS base
+FROM ubuntu:24.04 AS base
 
 LABEL maintainer="Taylor Otwell"
 ARG WWWGROUP
@@ -8,61 +8,28 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=UTC
 ENV LANG=C.UTF-8
 
-# =========================================================
-# INFRAESTRUCTURA DE RED Y ALTA DISPONIBILIDAD (CTO SETUP)
-# =========================================================
-
-# 1. Configuración de Zona Horaria
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
-
-# 2. Estrategia Multiespejo (Fallo en cascada automático)
-# Intenta primero Chile (Baja latencia), si falla va a Kernel.org (CDN), si falla va al Oficial.
-RUN printf "Types: deb\n\
-URIs: http://cl.archive.ubuntu.com/ubuntu/ http://mirrors.kernel.org/ubuntu/ http://archive.ubuntu.com/ubuntu/\n\
-Suites: resolute resolute-updates resolute-backports\n\
-Components: main restricted universe multiverse\n\
-Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg\n\
-\n\
-Types: deb\n\
-URIs: http://cl.archive.ubuntu.com/ubuntu/ http://mirrors.kernel.org/ubuntu/ http://security.ubuntu.com/ubuntu/\n\
-Suites: resolute-security\n\
-Components: main restricted universe multiverse\n\
-Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg\n" > /etc/apt/sources.list.d/ubuntu.sources
-
-# 3. Configuración de APT conservadora (Previene TCP Zombies y bloqueos)
 RUN echo "Acquire::http::Pipeline-Depth 0;" > /etc/apt/apt.conf.d/99custom && \
-    echo "Acquire::Queue-Mode \"access\";" >> /etc/apt/apt.conf.d/99custom && \
     echo "Acquire::http::No-Cache true;" >> /etc/apt/apt.conf.d/99custom && \
-    echo "Acquire::BrokenProxy     true;" >> /etc/apt/apt.conf.d/99custom && \
-    echo "Acquire::Retries \"3\";" >> /etc/apt/apt.conf.d/99custom && \
-    echo "Acquire::http::Timeout \"3\";" >> /etc/apt/apt.conf.d/99custom && \
-    echo "Acquire::https::Timeout \"3\";" >> /etc/apt/apt.conf.d/99custom && \
-    echo "Acquire::ForceIPv4 \"true\";" >> /etc/apt/apt.conf.d/99custom
+    echo "Acquire::BrokenProxy     true;" >> /etc/apt/apt.conf.d/99custom
 
-# =========================================================
-# BLOQUES DE CONSTRUCCIÓN
-# =========================================================
-
-# BLOQUE 1: Dependencias base limpias y directas
-RUN apt-get update && \
-    mkdir -p /etc/apt/keyrings && \
-    apt-get install -y --no-install-recommends gnupg gosu curl ca-certificates zip unzip git sqlite3 libcap2-bin libpng-dev python3 dnsutils librsvg2-bin fswatch ffmpeg nano && \
-    apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
-# BLOQUE 2: Extensiones de PHP
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends libgd3 php8.5-cli php8.5-dev php8.5-pgsql php8.5-sqlite3 php8.5-gd php8.5-curl php-mongodb php8.5-mysql php8.5-mbstring php8.5-xml php8.5-zip php8.5-bcmath php8.5-soap php8.5-intl php8.5-readline php8.5-ldap php-msgpack php-igbinary php-redis php-memcached php-pcov php-imagick && \
-    curl --fail --show-error --location --retry 3 --retry-delay 2 --connect-timeout 15 https://getcomposer.org/installer | php -- --install-dir=/usr/bin/ --filename=composer && \
-    apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+RUN apt-get update && apt-get upgrade -y \
+    && mkdir -p /etc/apt/keyrings \
+    && apt-get install -y gnupg gosu curl ca-certificates zip unzip git sqlite3 libcap2-bin libpng-dev python3 dnsutils librsvg2-bin fswatch ffmpeg nano \
+    && curl -sS 'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xb8dc7e53946656efbce4c1dd71daeaab4ad4cab6' | gpg --dearmor | tee /etc/apt/keyrings/ppa_ondrej_php.gpg > /dev/null \
+    && echo "deb [signed-by=/etc/apt/keyrings/ppa_ondrej_php.gpg] https://ppa.launchpadcontent.net/ondrej/php/ubuntu noble main" > /etc/apt/sources.list.d/ppa_ondrej_php.list \
+    && apt-get update \
+    && apt-get install -y libgd3 php8.5-cli php8.5-dev php8.5-pgsql php8.5-sqlite3 php8.5-gd php8.5-curl php8.5-mongodb php8.5-imap php8.5-mysql php8.5-mbstring php8.5-xml php8.5-zip php8.5-bcmath php8.5-soap php8.5-intl php8.5-readline php8.5-ldap php8.5-msgpack php8.5-igbinary php8.5-redis php8.5-memcached php8.5-pcov php8.5-imagick \
+    && curl -sLS https://getcomposer.org/installer | php -- --install-dir=/usr/bin/ --filename=composer \
+    && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 FROM base AS frontend-builder
 ARG NODE_VERSION=24
 COPY . /var/www/html
-# BLOQUE 3: Frontend Builder
-RUN curl --fail --show-error --location --retry 3 --retry-delay 2 --connect-timeout 10 https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg && \
-    echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_VERSION.x nodistro main" > /etc/apt/sources.list.d/nodesource.list && \
-    apt-get update && apt-get install -y nodejs && \
-    npm install && npm run build
+RUN curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
+    && echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_VERSION.x nodistro main" > /etc/apt/sources.list.d/nodesource.list \
+    && apt-get update && apt-get install -y nodejs \
+    && npm install && npm run build
 
 FROM base AS development
 ARG NODE_VERSION=24
@@ -71,23 +38,21 @@ ARG POSTGRES_VERSION=16
 ARG WWWUSER
 ARG WWWGROUP
 
-ENV SUPERVISOR_PHP_COMMAND="/usr/bin/php8.5 -d variables_order=EGPCS /var/www/html/artisan serve --host=0.0.0.0 --port=80"
+ENV SUPERVISOR_PHP_COMMAND="/usr/bin/php -d variables_order=EGPCS /var/www/html/artisan serve --host=0.0.0.0 --port=80"
 ENV SUPERVISOR_PHP_USER="sail"
 ENV PLAYWRIGHT_BROWSERS_PATH=0
 
-# BLOQUE 4: Development
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends php8.5-xdebug supervisor $MYSQL_CLIENT postgresql-client && \
-    curl --fail --show-error --location --retry 3 --retry-delay 2 --connect-timeout 10 https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg && \
-    echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_VERSION.x nodistro main" > /etc/apt/sources.list.d/nodesource.list && \
-    apt-get update && \
-    apt-get install -y --no-install-recommends nodejs && \
-    apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
-    npm install -g npm pnpm bun && npx playwright install-deps && corepack enable && corepack prepare yarn@stable --activate
+RUN apt-get update \
+    && apt-get install -y php8.5-xdebug supervisor supervisor $MYSQL_CLIENT postgresql-client-$POSTGRES_VERSION \
+    && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
+    && echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_VERSION.x nodistro main" > /etc/apt/sources.list.d/nodesource.list \
+    && apt-get update && apt-get install -y nodejs \
+    && npm install -g npm pnpm bun && npx playwright install-deps && corepack enable && corepack prepare yarn@stable --activate \
+    && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 RUN setcap "cap_net_bind_service=+ep" /usr/bin/php8.5
 
-# --- SECCION DE RESCATE DE USUARIO ---
+# --- SECCIÓN DE RESCATE DE USUARIO ---
 RUN touch /var/mail/ubuntu && chown ubuntu /var/mail/ubuntu && userdel -r ubuntu ; \
     groupadd --force -g $WWWGROUP sail && \
     useradd -ms /bin/bash --no-user-group -g $WWWGROUP -u $WWWUSER sail
@@ -95,9 +60,9 @@ RUN touch /var/mail/ubuntu && chown ubuntu /var/mail/ubuntu && userdel -r ubuntu
 
 RUN git config --global --add safe.directory /var/www/html
 
-COPY docker/8.5/start-container /usr/local/bin/start-container
-COPY docker/8.5/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-COPY docker/8.5/php.ini /etc/php/8.5/cli/conf.d/99-sail.ini
+COPY start-container /usr/local/bin/start-container
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY php.ini /etc/php/8.5/cli/conf.d/99-sail.ini
 RUN chmod +x /usr/local/bin/start-container
 
 EXPOSE 80/tcp
@@ -107,29 +72,20 @@ FROM base AS production
 ENV APP_ENV=production
 ENV APP_DEBUG=false
 
-# BLOQUE 5: Producción
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends php8.5-fpm && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y php8.5-fpm \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -p /run/php && \
     sed -i 's/listen = \/run\/php\/php8.5-fpm.sock/listen = 0.0.0.0:9000/' /etc/php/8.5/fpm/pool.d/www.conf
 
-# --- OPTIMIZACIÓN DE CACHÉ PARA COMPOSER ---
-# Copiamos solo los archivos de dependencias primero para fijar el caché
-COPY composer.json composer.lock* /var/www/html/
-RUN composer install --no-interaction --prefer-dist --no-scripts --no-autoloader --no-dev
-
-# Copiamos el resto de la aplicación
 COPY . /var/www/html
 COPY --from=frontend-builder /var/www/html/public/build /var/www/html/public/build
 
-# Finalizamos la carga optimizada del autoloader
-RUN composer dump-autoload --optimize
+RUN composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
 
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
-COPY docker/8.5/entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 EXPOSE 9000
