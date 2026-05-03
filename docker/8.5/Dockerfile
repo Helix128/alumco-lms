@@ -13,8 +13,8 @@ ENV LANG=C.UTF-8
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 # Cambiando a un mirror basado en CDN global (más resiliente)
-RUN sed -i 's/archive.ubuntu.com/mirror.edge.kernel.org/g' /etc/apt/sources.list.d/ubuntu.sources && \
-    sed -i 's/security.ubuntu.com/mirror.edge.kernel.org/g' /etc/apt/sources.list.d/ubuntu.sources
+RUN sed -i 's/archive.ubuntu.com/mirrors.edge.kernel.org/g' /etc/apt/sources.list.d/ubuntu.sources && \
+    sed -i 's/security.ubuntu.com/mirrors.edge.kernel.org/g' /etc/apt/sources.list.d/ubuntu.sources
 
 # 3. Configuración de APT agresiva (Falla rápido, fuerza IPv4, previene atascos)
 RUN echo "Acquire::http::Pipeline-Depth 0;" > /etc/apt/apt.conf.d/99custom && \
