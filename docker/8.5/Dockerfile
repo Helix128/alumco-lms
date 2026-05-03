@@ -9,7 +9,6 @@ ENV TZ=UTC
 ENV LANG=C.UTF-8
 
 # --- RESTRICCIÓN DE RED PARA APT ---
-# Se añade Queue-Mode "access" para forzar descargas secuenciales (un hilo a la vez)
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 RUN echo "Acquire::http::Pipeline-Depth 0;" > /etc/apt/apt.conf.d/99custom && \
     echo "Acquire::Queue-Mode \"access\";" >> /etc/apt/apt.conf.d/99custom && \
@@ -20,12 +19,24 @@ RUN echo "Acquire::http::Pipeline-Depth 0;" > /etc/apt/apt.conf.d/99custom && \
     echo "Acquire::https::Timeout \"30\";" >> /etc/apt/apt.conf.d/99custom && \
     echo "Acquire::ForceIPv4 \"true\";" >> /etc/apt/apt.conf.d/99custom
 
-RUN apt-get update -o APT::Update::Error-Mode=any \
+# BLOQUE 1: Dependencias base con Fallback
+RUN apt-get update -o APT::Update::Error-Mode=any || ( \
+        echo "⚠️ Bloqueo detectado en el mirror principal. Cambiando a Kernel.org..." && \
+        sed -i 's/archive.ubuntu.com/mirrors.kernel.org/g' /etc/apt/sources.list.d/ubuntu.sources && \
+        sed -i 's/security.ubuntu.com/mirrors.kernel.org/g' /etc/apt/sources.list.d/ubuntu.sources && \
+        apt-get update -o APT::Update::Error-Mode=any \
+    ) \
     && mkdir -p /etc/apt/keyrings \
     && apt-get install -y --no-install-recommends gnupg gosu curl ca-certificates zip unzip git sqlite3 libcap2-bin libpng-dev python3 dnsutils librsvg2-bin fswatch ffmpeg nano \
     && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-RUN apt-get update -o APT::Update::Error-Mode=any \
+# BLOQUE 2: Extensiones de PHP con Fallback
+RUN apt-get update -o APT::Update::Error-Mode=any || ( \
+        echo "⚠️ Bloqueo detectado en el mirror principal. Cambiando a Kernel.org..." && \
+        sed -i 's/archive.ubuntu.com/mirrors.kernel.org/g' /etc/apt/sources.list.d/ubuntu.sources && \
+        sed -i 's/security.ubuntu.com/mirrors.kernel.org/g' /etc/apt/sources.list.d/ubuntu.sources && \
+        apt-get update -o APT::Update::Error-Mode=any \
+    ) \
     && apt-get install -y --no-install-recommends libgd3 php8.5-cli php8.5-dev php8.5-pgsql php8.5-sqlite3 php8.5-gd php8.5-curl php-mongodb php8.5-mysql php8.5-mbstring php8.5-xml php8.5-zip php8.5-bcmath php8.5-soap php8.5-intl php8.5-readline php8.5-ldap php-msgpack php-igbinary php-redis php-memcached php-pcov php-imagick \
     && curl --fail --show-error --location --retry 5 --retry-delay 2 --connect-timeout 30 https://getcomposer.org/installer | php -- --install-dir=/usr/bin/ --filename=composer \
     && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
@@ -33,9 +44,16 @@ RUN apt-get update -o APT::Update::Error-Mode=any \
 FROM base AS frontend-builder
 ARG NODE_VERSION=24
 COPY . /var/www/html
+# BLOQUE 3: Frontend Builder con Fallback
 RUN curl --fail --show-error --location --retry 5 --retry-delay 2 --connect-timeout 30 https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
     && echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_VERSION.x nodistro main" > /etc/apt/sources.list.d/nodesource.list \
-    && apt-get update -o APT::Update::Error-Mode=any && apt-get install -y nodejs \
+    && (apt-get update -o APT::Update::Error-Mode=any || ( \
+        echo "⚠️ Bloqueo detectado en el mirror principal. Cambiando a Kernel.org..." && \
+        sed -i 's/archive.ubuntu.com/mirrors.kernel.org/g' /etc/apt/sources.list.d/ubuntu.sources && \
+        sed -i 's/security.ubuntu.com/mirrors.kernel.org/g' /etc/apt/sources.list.d/ubuntu.sources && \
+        apt-get update -o APT::Update::Error-Mode=any \
+    )) \
+    && apt-get install -y nodejs \
     && npm install && npm run build
 
 FROM base AS development
@@ -49,13 +67,20 @@ ENV SUPERVISOR_PHP_COMMAND="/usr/bin/php8.5 -d variables_order=EGPCS /var/www/ht
 ENV SUPERVISOR_PHP_USER="sail"
 ENV PLAYWRIGHT_BROWSERS_PATH=0
 
-RUN apt-get update -o APT::Update::Error-Mode=any \
+# BLOQUE 4: Development con Fallback
+RUN (apt-get update -o APT::Update::Error-Mode=any || ( \
+        echo "⚠️ Bloqueo detectado en el mirror principal. Cambiando a Kernel.org..." && \
+        sed -i 's/archive.ubuntu.com/mirrors.kernel.org/g' /etc/apt/sources.list.d/ubuntu.sources && \
+        sed -i 's/security.ubuntu.com/mirrors.kernel.org/g' /etc/apt/sources.list.d/ubuntu.sources && \
+        apt-get update -o APT::Update::Error-Mode=any \
+    )) \
     && apt-get install -y --no-install-recommends php8.5-xdebug supervisor $MYSQL_CLIENT postgresql-client \
     && curl --fail --show-error --location --retry 5 --retry-delay 2 --connect-timeout 30 https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
     && echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_VERSION.x nodistro main" > /etc/apt/sources.list.d/nodesource.list \
-    && apt-get update -o APT::Update::Error-Mode=any && apt-get install -y --no-install-recommends nodejs \
-    && npm install -g npm pnpm bun && npx playwright install-deps && corepack enable && corepack prepare yarn@stable --activate \
-    && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+    && apt-get update -o APT::Update::Error-Mode=any \
+    && apt-get install -y --no-install-recommends nodejs \
+    && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
+    && npm install -g npm pnpm bun && npx playwright install-deps && corepack enable && corepack prepare yarn@stable --activate
 
 RUN setcap "cap_net_bind_service=+ep" /usr/bin/php8.5
 
@@ -79,7 +104,14 @@ FROM base AS production
 ENV APP_ENV=production
 ENV APP_DEBUG=false
 
-RUN apt-get update -o APT::Update::Error-Mode=any && apt-get install -y --no-install-recommends php8.5-fpm \
+# BLOQUE 5: Producción con Fallback
+RUN (apt-get update -o APT::Update::Error-Mode=any || ( \
+        echo "⚠️ Bloqueo detectado en el mirror principal. Cambiando a Kernel.org..." && \
+        sed -i 's/archive.ubuntu.com/mirrors.kernel.org/g' /etc/apt/sources.list.d/ubuntu.sources && \
+        sed -i 's/security.ubuntu.com/mirrors.kernel.org/g' /etc/apt/sources.list.d/ubuntu.sources && \
+        apt-get update -o APT::Update::Error-Mode=any \
+    )) \
+    && apt-get install -y --no-install-recommends php8.5-fpm \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -p /run/php && \
