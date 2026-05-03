@@ -23,15 +23,11 @@ echo "Iniciando despliegue de actualizaciones..."
 # 2. Obtener el codigo nuevo
 git pull origin main
 
-echo "Evaluando estrategia de construccion..."
-
 export MAX_CONCURRENT_STAGES=1
 # ==========================================
 # 3. Logica de Construccion (Zero-Downtime)
 # ==========================================
 if [ "$BUILD_MODE" == "sequential" ]; then
-    echo "[Modo Secuencial]: Activado. Construyendo por capas para proteger la red..."
-    
     echo " -> Construyendo capa base..."
     sudo docker build -f "$DOCKERFILE_PATH" --target base -t app-base-cache:latest .
     
@@ -41,7 +37,6 @@ if [ "$BUILD_MODE" == "sequential" ]; then
     echo " -> Ensamblando imagen final de produccion..."
     sudo docker compose -f compose.prod.yaml build app
 else
-    echo "[Modo Paralelo]: Activado. Usando maxima concurrencia de BuildKit..."
     sudo docker compose -f compose.prod.yaml build app
 fi
 
