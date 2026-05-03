@@ -9,6 +9,7 @@ ENV TZ=UTC
 ENV LANG=C.UTF-8
 
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
 RUN echo "Acquire::http::Pipeline-Depth 0;" > /etc/apt/apt.conf.d/99custom && \
     echo "Acquire::http::No-Cache true;" >> /etc/apt/apt.conf.d/99custom && \
     echo "Acquire::BrokenProxy     true;" >> /etc/apt/apt.conf.d/99custom
@@ -34,7 +35,7 @@ RUN curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg -
 FROM base AS development
 ARG NODE_VERSION=24
 ARG MYSQL_CLIENT="mysql-client"
-ARG POSTGRES_VERSION=16
+ARG POSTGRES_VERSION=18
 ARG WWWUSER
 ARG WWWGROUP
 
@@ -43,26 +44,28 @@ ENV SUPERVISOR_PHP_USER="sail"
 ENV PLAYWRIGHT_BROWSERS_PATH=0
 
 RUN apt-get update \
-    && apt-get install -y php8.5-xdebug supervisor supervisor $MYSQL_CLIENT postgresql-client-$POSTGRES_VERSION \
+    && apt-get install -y php8.5-xdebug supervisor $MYSQL_CLIENT \
     && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
     && echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_VERSION.x nodistro main" > /etc/apt/sources.list.d/nodesource.list \
     && apt-get update && apt-get install -y nodejs \
     && npm install -g npm pnpm bun && npx playwright install-deps && corepack enable && corepack prepare yarn@stable --activate \
+    && curl -sS https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor | tee /etc/apt/keyrings/pgdg.gpg >/dev/null \
+    && echo "deb [signed-by=/etc/apt/keyrings/pgdg.gpg] http://apt.postgresql.org/pub/repos/apt noble-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
+    && apt-get update \
+    && apt-get install -y postgresql-client-$POSTGRES_VERSION \
     && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 RUN setcap "cap_net_bind_service=+ep" /usr/bin/php8.5
 
-# --- SECCIÓN DE RESCATE DE USUARIO ---
 RUN touch /var/mail/ubuntu && chown ubuntu /var/mail/ubuntu && userdel -r ubuntu ; \
     groupadd --force -g $WWWGROUP sail && \
     useradd -ms /bin/bash --no-user-group -g $WWWGROUP -u $WWWUSER sail
-# -------------------------------------
 
 RUN git config --global --add safe.directory /var/www/html
 
-COPY start-container /usr/local/bin/start-container
-COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-COPY php.ini /etc/php/8.5/cli/conf.d/99-sail.ini
+COPY docker/8.5/start-container /usr/local/bin/start-container
+COPY docker/8.5/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY docker/8.5/php.ini /etc/php/8.5/cli/conf.d/99-sail.ini
 RUN chmod +x /usr/local/bin/start-container
 
 EXPOSE 80/tcp
@@ -85,7 +88,7 @@ RUN composer install --no-interaction --prefer-dist --optimize-autoloader --no-d
 
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
-COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY docker/8.5/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 EXPOSE 9000

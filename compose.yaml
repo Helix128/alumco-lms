@@ -2,12 +2,12 @@ services:
     laravel.test:
         build:
             context: .
-            dockerfile: docker/8.5/Dockerfile
+            dockerfile: docker/8.4-trixie/Dockerfile
             target: development
             args:
                 WWWGROUP: '${WWWGROUP}'
                 WWWUSER: '${WWWUSER}'
-        image: 'sail-8.5/app'
+        image: 'sail-8.4-trixie/app'
         extra_hosts:
             - 'host.docker.internal:host-gateway'
         ports:
@@ -28,7 +28,7 @@ services:
             - redis
             - mailpit
     queue:
-        image: 'sail-8.5/app'
+        image: 'sail-8.4-trixie/app'
         extra_hosts:
             - 'host.docker.internal:host-gateway'
         environment:
@@ -48,7 +48,7 @@ services:
             - mailpit
         command: php artisan queue:work --tries=3 --sleep=1 --timeout=90
     scheduler:
-        image: 'sail-8.5/app'
+        image: 'sail-8.4-trixie/app'
         extra_hosts:
             - 'host.docker.internal:host-gateway'
         environment:

@@ -8,8 +8,8 @@ set -e
 BUILD_MODE="parallel"
 
 # IMPORTANTE: Cambia esta ruta si tu archivo tiene otro nombre
-# Ejemplo: "Dockerfile.prod" o "docker/8.5/Dockerfile"
-DOCKERFILE_PATH="docker/8.5/Dockerfile" 
+# Ejemplo: "Dockerfile.prod" o "docker/8.4-trixie/Dockerfile"
+DOCKERFILE_PATH="docker/8.4-trixie/Dockerfile"
 
 # Recorrer todos los argumentos pasados al script
 for arg in "$@"; do
@@ -25,6 +25,7 @@ git pull origin main
 
 echo "Evaluando estrategia de construccion..."
 
+export MAX_CONCURRENT_STAGES=1
 # ==========================================
 # 3. Logica de Construccion (Zero-Downtime)
 # ==========================================
