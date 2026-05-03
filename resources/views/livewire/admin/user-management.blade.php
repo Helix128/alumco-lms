@@ -1,4 +1,17 @@
-<div x-data>
+<div x-data="{ 
+    confirmModal: {
+        open: false,
+        title: '',
+        message: '',
+        action: null,
+        userId: null,
+        confirmText: 'Confirmar',
+        confirmColor: 'bg-Alumco-blue'
+    },
+    showConfirm(title, message, action, userId, confirmText = 'Confirmar', confirmColor = 'bg-Alumco-blue') {
+        this.confirmModal = { open: true, title, message, action, userId, confirmText, confirmColor };
+    }
+}">
     @push('styles')
     <style>
         /* Drawer: estados y transiciones */
@@ -206,7 +219,7 @@
                             @endif
                         </td>
                         
-                        <td class="px-6 py-5 text-right relative"
+                        <td class="px-6 py-5 text-right relative z-10"
                             x-data="{
                                 open: false,
                                 menuX: 0,
@@ -224,16 +237,18 @@
                                 closeMenu() {
                                     this.open = false;
                                 },
-                            }">
+                            }"
+                            @scroll.window.passive="closeMenu()"
+                            @sidebar-toggled.window="closeMenu()">
                             @php
                                 $canManage = auth()->user()->canManageUser($user);
                             @endphp
 
                             @if($canManage)
                             <button type="button" @click="toggleMenu($event)"
-                            class="admin-icon-button w-10 h-10 rounded-xl hover:shadow-md text-gray-400 hover:text-Alumco-blue border border-transparent hover:border-gray-100 ml-auto" title="Más opciones">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path>
+                            class="p-2 rounded-lg text-black hover:text-Alumco-blue hover:bg-gray-100 transition-all flex items-center justify-center ml-auto" title="Más opciones">
+                                <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
                                 </svg>
                             </button>
 
@@ -251,28 +266,27 @@
                                      class="fixed w-56 admin-surface py-2 z-[90] text-left"
                                      :style="`left: ${menuX}px; top: ${menuY}px; transform: translateX(-100%);`">
 
-                                    <button wire:click="edit({{ $user->id }})" class="admin-inline-button w-full px-4 py-2 text-xs font-bold text-Alumco-gray hover:bg-Alumco-blue/5 hover:text-Alumco-blue flex items-center gap-3 transition-colors">
+                                    <button wire:click="edit({{ $user->id }})" @click="closeMenu()" class="admin-inline-button w-full px-4 py-2 text-xs font-bold text-Alumco-gray hover:bg-Alumco-blue/5 hover:text-Alumco-blue flex items-center gap-3 transition-colors">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
                                         Editar colaborador
                                     </button>
-                                    
-                                    <button wire:click="toggleStatus({{ $user->id }})" wire:confirm="\u00bfSeguro que deseas cambiar el estado de este usuario?" class="admin-inline-button w-full px-4 py-2 text-xs font-bold text-Alumco-gray hover:bg-Alumco-blue/5 hover:text-green-600 flex items-center gap-3 transition-colors">
+
+                                    <button @click="showConfirm('Cambiar estado', '¿Seguro que deseas cambiar el estado de este usuario?', 'toggleStatus', {{ $user->id }}); closeMenu()" class="admin-inline-button w-full px-4 py-2 text-xs font-bold text-Alumco-gray hover:bg-Alumco-blue/5 hover:text-green-600 flex items-center gap-3 transition-colors">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                         Cambiar estado
                                     </button>
 
-                                    <button wire:click="resetPassword({{ $user->id }})" wire:confirm="\u00bfEnviar correo de recuperaci\u00f3n de contrase\u00f1a a este usuario?" class="admin-inline-button w-full px-4 py-2 text-xs font-bold text-Alumco-gray hover:bg-Alumco-blue/5 hover:text-amber-600 flex items-center gap-3 transition-colors">
+                                    <button @click="showConfirm('Resetear acceso', '¿Enviar correo de recuperación de contraseña a este usuario?', 'resetPassword', {{ $user->id }}, 'Enviar Correo', 'bg-amber-600'); closeMenu()" class="admin-inline-button w-full px-4 py-2 text-xs font-bold text-Alumco-gray hover:bg-Alumco-blue/5 hover:text-amber-600 flex items-center gap-3 transition-colors">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path></svg>
                                         Resetear acceso
                                     </button>
 
                                     <div class="h-px bg-gray-100 my-1 mx-2"></div>
 
-                                    <button wire:click="deleteUser({{ $user->id }})" wire:confirm="A punto de eliminar usuario. \u00bfContinuar?" class="admin-inline-button w-full px-4 py-2 text-xs font-bold text-red-600 hover:bg-red-50 flex items-center gap-3 transition-colors">
+                                    <button @click="showConfirm('Eliminar registro', 'A punto de eliminar usuario. Esta acción es irreversible. ¿Continuar?', 'deleteUser', {{ $user->id }}, 'Eliminar', 'bg-red-600'); closeMenu()" class="admin-inline-button w-full px-4 py-2 text-xs font-bold text-red-600 hover:bg-red-50 flex items-center gap-3 transition-colors">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                         Eliminar registro
-                                    </button>
-                                </div>
+                                    </button>                                </div>
                             </template>
                             @endif
                         </td>
@@ -297,149 +311,206 @@
         @endif
     </div>
 
-    <!-- DRAWER: BACKDROP -->
-    <div id="drawer-backdrop" :class="{ 'is-open': $wire.showDrawer }" aria-hidden="true" @click="$wire.showDrawer = false"></div>
+    <!-- DRAWER: BACKDROP Y PANEL LATERAL (Teleport a body para evitar conflictos de posicionamiento) -->
+    <template x-teleport="body">
+        <div>
+            <!-- Backdrop -->
+            <div id="drawer-backdrop" :class="{ 'is-open': $wire.showDrawer }" aria-hidden="true" @click="$wire.showDrawer = false"></div>
 
-    <!-- DRAWER: PANEL LATERAL -->
-    <div id="drawer-usuario" :class="{ 'is-open': $wire.showDrawer }" aria-hidden="true">
-        <!-- Header -->
-        <div class="px-8 py-6 border-b border-gray-100 flex items-center justify-between shrink-0">
-            <div>
-                <h3 class="text-xl font-display font-black text-Alumco-blue">
-                    {{ $editingUser ? 'Editar usuario' : 'Nuevo usuario' }}
-                </h3>
-                <p class="text-xs text-Alumco-gray/50 font-bold uppercase tracking-wider mt-1">Directorio de usuarios</p>
-            </div>
-            <button type="button" @click="$wire.showDrawer = false" class="w-10 h-10 rounded-full hover:bg-gray-100 text-gray-400 transition-colors flex items-center justify-center">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-            </button>
-        </div>
-
-        <!-- Form -->
-        <form wire:submit="save" class="flex flex-col flex-1 min-h-0">
-            <!-- Scrollable Body -->
-            <div class="flex-1 overflow-y-auto px-8 py-8 space-y-8 custom-scrollbar">
-                
-                <!-- Datos de Acceso -->
-                <div class="space-y-5">
-                    <h4 class="text-[11px] font-display font-black uppercase tracking-[0.2em] text-Alumco-blue/40">Datos de Acceso</h4>
-                    
-                    <div class="space-y-1">
-                        <label for="input-name" class="drawer-field-label">Nombre Completo <span class="text-Alumco-coral">*</span></label>
-                        <input type="text" wire:model="name" id="input-name" required class="drawer-input" placeholder="Ej: Juan Pérez">
-                        @error('name') <span class="text-xs text-red-600 font-bold">{{ $message }}</span> @enderror
+            <!-- Panel Lateral -->
+            <div id="drawer-usuario" :class="{ 'is-open': $wire.showDrawer }" aria-hidden="true">
+                <!-- Header -->
+                <div class="px-8 py-6 border-b border-gray-100 flex items-center justify-between shrink-0">
+                    <div>
+                        <h3 class="text-xl font-display font-black text-Alumco-blue">
+                            {{ $editingUser ? 'Editar usuario' : 'Nuevo usuario' }}
+                        </h3>
+                        <p class="text-xs text-Alumco-gray/50 font-bold uppercase tracking-wider mt-1">Directorio de usuarios</p>
                     </div>
-
-                    <div class="space-y-1">
-                        <label for="input-email" class="drawer-field-label">Correo Electrónico <span class="text-Alumco-coral">*</span></label>
-                        <input type="email" wire:model="email" id="input-email" required class="drawer-input" placeholder="usuario@alumco.cl">
-                        @error('email') <span class="text-xs text-red-600 font-bold">{{ $message }}</span> @enderror
-                    </div>
-
-                    <div class="space-y-1">
-                        <label for="input-rut" class="drawer-field-label">RUT <span class="text-Alumco-gray/40 text-[10px] font-normal tracking-normal">(Ej: 12.345.678-9)</span></label>
-                        <input type="text" wire:model="rut" id="input-rut" class="drawer-input uppercase" placeholder="12.345.678-9">
-                        @error('rut') <span class="text-xs text-red-600 font-bold">{{ $message }}</span> @enderror
-                    </div>
-
-                    @if(!$editingUser)
-                    <div class="p-4 rounded-2xl bg-Alumco-blue/5 border border-Alumco-blue/10 flex gap-3">
-                        <svg class="w-5 h-5 text-Alumco-blue shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        <p class="text-xs text-Alumco-blue/80 leading-relaxed font-medium">Se enviará un correo automático para la configuración de la contraseña.</p>
-                    </div>
-                    @endif
+                    <button type="button" @click="$wire.showDrawer = false" class="w-10 h-10 rounded-full hover:bg-gray-100 text-gray-400 transition-colors flex items-center justify-center">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
                 </div>
 
-                <!-- Asignación -->
-                <div class="space-y-5">
-                    <h4 class="text-[11px] font-display font-black uppercase tracking-[0.2em] text-Alumco-blue/40">Sistema y Organización</h4>
-                    
-                    <div class="grid grid-cols-1 gap-5">
-                        <div class="space-y-1">
-                            <label for="input-role" class="drawer-field-label">Rol en el Sistema <span class="text-Alumco-coral">*</span></label>
-                            <select wire:model.live="role" id="input-role" required class="drawer-select">
-                                <option value="">Seleccionar...</option>
-                                @foreach($roles as $r)
-                                    <option value="{{ $r->name }}">{{ $r->name }}</option>
-                                @endforeach
-                            </select>
-                            @error('role') <span class="text-xs text-red-600 font-bold">{{ $message }}</span> @enderror
-                        </div>
-
-                        <div class="space-y-1">
-                            <label for="input-estamento" class="drawer-field-label">Estamento / Área</label>
-                            <select wire:model="estamento_id" id="input-estamento" class="drawer-select">
-                                <option value="">Ninguno / No aplica</option>
-                                @foreach($estamentos as $est)
-                                    <option value="{{ $est->id }}">{{ $est->nombre }}</option>
-                                @endforeach
-                            </select>
-                            @error('estamento_id') <span class="text-xs text-red-600 font-bold">{{ $message }}</span> @enderror
-                        </div>
-
-                        <div class="space-y-1">
-                            <label for="input-sede" class="drawer-field-label">Sede Asociada <span class="text-Alumco-coral">*</span></label>
-                            <select wire:model="sede_id" id="input-sede" required class="drawer-select">
-                                <option value="">Seleccionar...</option>
-                                @foreach($sedes as $s)
-                                    <option value="{{ $s->id }}">{{ $s->nombre }}</option>
-                                @endforeach
-                            </select>
-                            @error('sede_id') <span class="text-xs text-red-600 font-bold">{{ $message }}</span> @enderror
-                        </div>
-
-                        <div class="space-y-1" x-show="$wire.role === 'Capacitador'" x-transition>
-                            <label for="input-firma" class="drawer-field-label">Firma Digital</label>
-                            <input type="file" wire:model="firma_digital" id="input-firma" accept="image/*" class="drawer-input text-xs">
-                            <p class="text-[10px] text-Alumco-gray/40 italic">PNG transparente de 300x150px recomendado.</p>
-                            @error('firma_digital') <span class="text-xs text-red-600 font-bold">{{ $message }}</span> @enderror
+                <!-- Form -->
+                <form wire:submit="save" class="flex flex-col flex-1 min-h-0">
+                    <!-- Scrollable Body -->
+                    <div class="flex-1 overflow-y-auto px-8 py-8 space-y-8 custom-scrollbar">
+                        
+                        <!-- Datos de Acceso -->
+                        <div class="space-y-5">
+                            <h4 class="text-[11px] font-display font-black uppercase tracking-[0.2em] text-Alumco-blue/40">Datos de Acceso</h4>
                             
-                            @if ($firma_digital)
-                                <div class="mt-2 p-2 bg-gray-50 rounded-xl border border-gray-100">
-                                    <img src="{{ $firma_digital->temporaryUrl() }}" class="h-16 object-contain mix-blend-multiply mx-auto">
-                                </div>
-                            @elseif ($firma_digital_url)
-                                <div class="mt-2 p-2 bg-gray-50 rounded-xl border border-gray-100">
-                                    <img src="{{ $firma_digital_url }}" class="h-16 object-contain mix-blend-multiply mx-auto">
-                                </div>
+                            <div class="space-y-1">
+                                <label for="input-name" class="drawer-field-label">Nombre Completo <span class="text-Alumco-coral">*</span></label>
+                                <input type="text" wire:model="name" id="input-name" required class="drawer-input" placeholder="Ej: Juan Pérez">
+                                @error('name') <span class="text-xs text-red-600 font-bold">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div class="space-y-1">
+                                <label for="input-email" class="drawer-field-label">Correo Electrónico <span class="text-Alumco-coral">*</span></label>
+                                <input type="email" wire:model="email" id="input-email" required class="drawer-input" placeholder="usuario@alumco.cl">
+                                @error('email') <span class="text-xs text-red-600 font-bold">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div class="space-y-1">
+                                <label for="input-rut" class="drawer-field-label">RUT <span class="text-Alumco-gray/40 text-[10px] font-normal tracking-normal">(Ej: 12.345.678-9)</span></label>
+                                <input type="text" wire:model="rut" id="input-rut" class="drawer-input uppercase" placeholder="12.345.678-9">
+                                @error('rut') <span class="text-xs text-red-600 font-bold">{{ $message }}</span> @enderror
+                            </div>
+
+                            @if(!$editingUser)
+                            <div class="p-4 rounded-2xl bg-Alumco-blue/5 border border-Alumco-blue/10 flex gap-3">
+                                <svg class="w-5 h-5 text-Alumco-blue shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                <p class="text-xs text-Alumco-blue/80 leading-relaxed font-medium">Se enviará un correo automático para la configuración de la contraseña.</p>
+                            </div>
                             @endif
                         </div>
+
+                        <!-- Asignación -->
+                        <div class="space-y-5">
+                            <h4 class="text-[11px] font-display font-black uppercase tracking-[0.2em] text-Alumco-blue/40">Sistema y Organización</h4>
+                            
+                            <div class="grid grid-cols-1 gap-5">
+                                <div class="space-y-1">
+                                    <label for="input-role" class="drawer-field-label">Rol en el Sistema <span class="text-Alumco-coral">*</span></label>
+                                    <select wire:model.live="role" id="input-role" required class="drawer-select">
+                                        <option value="">Seleccionar...</option>
+                                        @foreach($roles as $r)
+                                            <option value="{{ $r->name }}">{{ $r->name }}</option>
+                                        @endforeach
+                                    </select>
+                                    @error('role') <span class="text-xs text-red-600 font-bold">{{ $message }}</span> @enderror
+                                </div>
+
+                                <div class="space-y-1">
+                                    <label for="input-estamento" class="drawer-field-label">Estamento / Área</label>
+                                    <select wire:model="estamento_id" id="input-estamento" class="drawer-select">
+                                        <option value="">Ninguno / No aplica</option>
+                                        @foreach($estamentos as $est)
+                                            <option value="{{ $est->id }}">{{ $est->nombre }}</option>
+                                        @endforeach
+                                    </select>
+                                    @error('estamento_id') <span class="text-xs text-red-600 font-bold">{{ $message }}</span> @enderror
+                                </div>
+
+                                <div class="space-y-1">
+                                    <label for="input-sede" class="drawer-field-label">Sede Asociada <span class="text-Alumco-coral">*</span></label>
+                                    <select wire:model="sede_id" id="input-sede" required class="drawer-select">
+                                        <option value="">Seleccionar...</option>
+                                        @foreach($sedes as $s)
+                                            <option value="{{ $s->id }}">{{ $s->nombre }}</option>
+                                        @endforeach
+                                    </select>
+                                    @error('sede_id') <span class="text-xs text-red-600 font-bold">{{ $message }}</span> @enderror
+                                </div>
+
+                                <div class="space-y-1" x-show="$wire.role === 'Capacitador'" x-transition>
+                                    <label for="input-firma" class="drawer-field-label">Firma Digital</label>
+                                    <input type="file" wire:model="firma_digital" id="input-firma" accept="image/*" class="drawer-input text-xs">
+                                    <p class="text-[10px] text-Alumco-gray/40 italic">PNG transparente de 300x150px recomendado.</p>
+                                    @error('firma_digital') <span class="text-xs text-red-600 font-bold">{{ $message }}</span> @enderror
+                                    
+                                    @if ($firma_digital)
+                                        <div class="mt-2 p-2 bg-gray-50 rounded-xl border border-gray-100">
+                                            <img src="{{ $firma_digital->temporaryUrl() }}" class="h-16 object-contain mix-blend-multiply mx-auto">
+                                        </div>
+                                    @elseif ($firma_digital_url)
+                                        <div class="mt-2 p-2 bg-gray-50 rounded-xl border border-gray-100">
+                                            <img src="{{ $firma_digital_url }}" class="h-16 object-contain mix-blend-multiply mx-auto">
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-5">
+                                <div class="space-y-1">
+                                    <label for="input-sexo" class="drawer-field-label">Sexo</label>
+                                    <select wire:model="sexo" id="input-sexo" class="drawer-select">
+                                        <option value="">Opcional</option>
+                                        <option value="M">Masculino</option>
+                                        <option value="F">Femenino</option>
+                                        <option value="Otro">Otro</option>
+                                    </select>
+                                    @error('sexo') <span class="text-xs text-red-600 font-bold">{{ $message }}</span> @enderror
+                                </div>
+                                <div class="space-y-1">
+                                    <label for="input-fecha_nacimiento" class="drawer-field-label">Nacimiento</label>
+                                    <input type="date" wire:model="fecha_nacimiento" id="input-fecha_nacimiento" class="drawer-input">
+                                    @error('fecha_nacimiento') <span class="text-xs text-red-600 font-bold">{{ $message }}</span> @enderror
+                                </div>
+                            </div>
+
+                            <div x-show="$wire.role === 'Administrador' || $wire.role === 'Desarrollador'" x-transition 
+                                 class="p-4 rounded-2xl bg-amber-50 border border-amber-100 flex gap-3">
+                                <svg class="w-5 h-5 text-amber-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86l-7.1 12.3A1 1 0 004.06 18h15.88a1 1 0 00.87-1.84l-7.1-12.3a1 1 0 00-1.74 0z"></path></svg>
+                                <p class="text-xs text-amber-800 font-medium leading-relaxed">Este rol otorga permisos de administración total.</p>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-5">
-                        <div class="space-y-1">
-                            <label for="input-sexo" class="drawer-field-label">Sexo</label>
-                            <select wire:model="sexo" id="input-sexo" class="drawer-select">
-                                <option value="">Opcional</option>
-                                <option value="M">Masculino</option>
-                                <option value="F">Femenino</option>
-                                <option value="Otro">Otro</option>
-                            </select>
-                            @error('sexo') <span class="text-xs text-red-600 font-bold">{{ $message }}</span> @enderror
-                        </div>
-                        <div class="space-y-1">
-                            <label for="input-fecha_nacimiento" class="drawer-field-label">Nacimiento</label>
-                            <input type="date" wire:model="fecha_nacimiento" id="input-fecha_nacimiento" class="drawer-input">
-                            @error('fecha_nacimiento') <span class="text-xs text-red-600 font-bold">{{ $message }}</span> @enderror
-                        </div>
+                    <!-- Footer -->
+                    <div class="px-8 py-6 border-t border-gray-100 bg-gray-50/50 flex gap-3 shrink-0">
+                        <button type="button" @click="$wire.showDrawer = false" class="flex-1 h-12 rounded-2xl border border-gray-200 bg-white text-Alumco-gray font-display font-bold text-sm hover:bg-gray-50 transition-colors">Cancelar</button>
+                        <button type="submit" class="flex-1 h-12 rounded-2xl bg-Alumco-blue text-white font-display font-bold text-sm shadow-lg shadow-Alumco-blue/20 hover:opacity-90 transition-all active:scale-95">
+                            <span wire:loading.remove wire:target="save, firma_digital">Guardar Cambios</span>
+                            <span wire:loading wire:target="save, firma_digital">Procesando...</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </template>
+
+    {{-- Modal de Confirmación Homogéneo --}}
+    <template x-teleport="body">
+        <div x-show="confirmModal.open" 
+             x-cloak
+             class="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            {{-- Backdrop --}}
+            <div x-show="confirmModal.open"
+                 x-transition:enter="ease-out duration-300"
+                 x-transition:enter-start="opacity-0"
+                 x-transition:enter-end="opacity-100"
+                 x-transition:leave="ease-in duration-200"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0"
+                 @click="confirmModal.open = false"
+                 class="absolute inset-0 bg-Alumco-blue/20 backdrop-blur-sm"></div>
+
+            {{-- Modal Content --}}
+            <div x-show="confirmModal.open"
+                 x-transition:enter="ease-out duration-300"
+                 x-transition:enter-start="opacity-0 scale-95 translate-y-4"
+                 x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                 x-transition:leave="ease-in duration-200"
+                 x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                 x-transition:leave-end="opacity-0 scale-95 translate-y-4"
+                 class="relative bg-white rounded-[32px] shadow-2xl shadow-Alumco-blue/10 w-full max-w-sm overflow-hidden border border-gray-100">
+                
+                <div class="p-8 text-center">
+                    <div class="w-16 h-16 rounded-full bg-gray-50 flex items-center justify-center mx-auto mb-6">
+                        <svg class="w-8 h-8 text-Alumco-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
                     </div>
 
-                    <div x-show="$wire.role === 'Administrador' || $wire.role === 'Desarrollador'" x-transition 
-                         class="p-4 rounded-2xl bg-amber-50 border border-amber-100 flex gap-3">
-                        <svg class="w-5 h-5 text-amber-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86l-7.1 12.3A1 1 0 004.06 18h15.88a1 1 0 00.87-1.84l-7.1-12.3a1 1 0 00-1.74 0z"></path></svg>
-                        <p class="text-xs text-amber-800 font-medium leading-relaxed">Este rol otorga permisos de administración total.</p>
-                    </div>
+                    <h3 class="text-xl font-display font-black text-Alumco-blue mb-2" x-text="confirmModal.title"></h3>
+                    <p class="text-sm text-Alumco-gray/60 leading-relaxed" x-text="confirmModal.message"></p>
+                </div>
+
+                <div class="px-8 pb-8 flex gap-3">
+                    <button @click="confirmModal.open = false" 
+                            class="flex-1 h-12 rounded-2xl border border-gray-200 bg-white text-Alumco-gray font-display font-bold text-sm hover:bg-gray-50 transition-colors">
+                        Cancelar
+                    </button>
+                    <button @click="$wire[confirmModal.action](confirmModal.userId); confirmModal.open = false" 
+                            :class="confirmModal.confirmColor"
+                            class="flex-1 h-12 rounded-2xl text-white font-display font-bold text-sm shadow-lg hover:opacity-90 transition-all active:scale-95"
+                            x-text="confirmModal.confirmText">
+                    </button>
                 </div>
             </div>
-
-            <!-- Footer -->
-            <div class="px-8 py-6 border-t border-gray-100 bg-gray-50/50 flex gap-3 shrink-0">
-                <button type="button" @click="$wire.showDrawer = false" class="flex-1 h-12 rounded-2xl border border-gray-200 bg-white text-Alumco-gray font-display font-bold text-sm hover:bg-gray-50 transition-colors">Cancelar</button>
-                <button type="submit" class="flex-1 h-12 rounded-2xl bg-Alumco-blue text-white font-display font-bold text-sm shadow-lg shadow-Alumco-blue/20 hover:opacity-90 transition-all active:scale-95">
-                    <span wire:loading.remove wire:target="save, firma_digital">Guardar Cambios</span>
-                    <span wire:loading wire:target="save, firma_digital">Procesando...</span>
-                </button>
-            </div>
-        </form>
-    </div>
+        </div>
+    </template>
 </div>

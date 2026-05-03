@@ -19,7 +19,7 @@
         <div class="grid h-full grid-cols-3 items-center gap-1.5 lg:flex lg:flex-col lg:gap-3">
             <a href="{{ route('cursos.index') }}"
                wire:navigate
-               class="worker-focus sidebar-cozy-btn group relative flex h-16 flex-col items-center justify-center gap-1 rounded-2xl px-2 text-center
+               class="worker-focus sidebar-cozy-btn group relative flex h-16 flex-col items-center justify-center gap-1 px-2 text-center
                       {{ $navCursos ? 'sidebar-cozy-btn-active' : 'sidebar-cozy-btn-inactive' }}
                       lg:h-auto lg:w-full lg:flex-row lg:justify-start lg:gap-4 lg:rounded-2xl lg:px-5 lg:py-4 lg:text-left"
                aria-current="{{ $navCursos ? 'page' : 'false' }}">
@@ -33,7 +33,7 @@
 
             <a href="{{ route('calendario-cursos.index') }}"
                wire:navigate
-               class="worker-focus sidebar-cozy-btn group relative flex h-16 flex-col items-center justify-center gap-1 rounded-2xl px-2 text-center
+               class="worker-focus sidebar-cozy-btn group relative flex h-16 flex-col items-center justify-center gap-1 px-2 text-center
                       {{ $navCalendario ? 'sidebar-cozy-btn-active' : 'sidebar-cozy-btn-inactive' }}
                       lg:h-auto lg:w-full lg:flex-row lg:justify-start lg:gap-4 lg:rounded-2xl lg:px-5 lg:py-4 lg:text-left"
                aria-current="{{ $navCalendario ? 'page' : 'false' }}">
@@ -47,7 +47,7 @@
 
             <a href="{{ route('mis-certificados.index') }}"
                wire:navigate
-               class="worker-focus sidebar-cozy-btn group relative flex h-16 flex-col items-center justify-center gap-1 rounded-2xl px-2 text-center
+               class="worker-focus sidebar-cozy-btn group relative flex h-16 flex-col items-center justify-center gap-1 px-2 text-center
                       {{ $navCertificados ? 'sidebar-cozy-btn-active' : 'sidebar-cozy-btn-inactive' }}
                       lg:h-auto lg:w-full lg:flex-row lg:justify-start lg:gap-4 lg:rounded-2xl lg:px-5 lg:py-4 lg:text-left"
                aria-current="{{ $navCertificados ? 'page' : 'false' }}">

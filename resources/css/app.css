@@ -416,6 +416,13 @@ html {
     background: #fff;
     padding: 0.9rem 1rem;
     box-shadow: 0 8px 22px rgba(32, 80, 153, 0.04);
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.accessibility-toggle:hover {
+    background-color: #f8fafc;
+    border-color: #e2e8f0;
 }
 
 .accessibility-toggle-title,
@@ -1130,26 +1137,69 @@ html {
 
 .sidebar-cozy-btn {
     transition: all 0.2s ease-out;
-    background-color: white;
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+@media (min-width: 1024px) {
+    .sidebar-cozy-btn {
+        background-color: white;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+    }
 }
 
 .sidebar-cozy-btn-active {
-    border-color: var(--color-Alumco-blue) !important;
-    border-width: 2px !important;
-    color: var(--color-Alumco-blue) !important;
-    box-shadow: 0 4px 14px rgba(32, 80, 153, 0.12);
+    color: white !important;
+}
+
+@media (min-width: 1024px) {
+    .sidebar-cozy-btn-active {
+        border-color: var(--color-Alumco-blue) !important;
+        border-width: 2px !important;
+        color: var(--color-Alumco-blue) !important;
+        box-shadow: 0 4px 14px rgba(32, 80, 153, 0.12);
+    }
+}
+
+@media (max-width: 1023px) {
+    .sidebar-cozy-btn-active {
+        background-color: rgba(255, 255, 255, 0.15);
+    }
+    
+    .sidebar-cozy-btn-active::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 32px;
+        height: 4px;
+        background-color: var(--color-Alumco-yellow);
+        border-bottom-left-radius: 4px;
+        border-bottom-right-radius: 4px;
+    }
 }
 
 .sidebar-cozy-btn-inactive {
-    color: var(--color-Alumco-gray);
+    color: rgba(255, 255, 255, 0.65);
 }
 
-.sidebar-cozy-btn-inactive:hover {
-    border-color: rgba(0, 0, 0, 0.2);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
-    color: var(--color-Alumco-blue);
+@media (min-width: 1024px) {
+    .sidebar-cozy-btn-inactive {
+        color: var(--color-Alumco-gray);
+    }
+
+    .sidebar-cozy-btn-inactive:hover {
+        border-color: rgba(0, 0, 0, 0.2);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+        color: var(--color-Alumco-blue);
+    }
+}
+
+@media (max-width: 1023px) {
+    .sidebar-cozy-btn-inactive:hover {
+        color: white;
+        background-color: rgba(255, 255, 255, 0.05);
+    }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════ */

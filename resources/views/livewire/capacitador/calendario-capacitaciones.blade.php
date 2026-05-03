@@ -663,6 +663,8 @@
                 this.startSede = sede;
                 this.currentSede = sede;
                 this.moved = false;
+                document.body.style.cursor = 'crosshair';
+                document.body.style.userSelect = 'none';
                 this.updatePointerPreview(event, 'Nuevo bloque');
             },
 
@@ -676,6 +678,8 @@
                 this.currentSede = sede;
                 this.span = span;
                 this.moved = false;
+                document.body.style.cursor = 'grabbing';
+                document.body.style.userSelect = 'none';
                 this.updatePointerPreview(event, 'Mover bloque');
             },
 
@@ -687,6 +691,8 @@
                 this.currentWeek = week;
                 this.edge = edge;
                 this.moved = false;
+                document.body.style.cursor = 'ew-resize';
+                document.body.style.userSelect = 'none';
                 this.updatePointerPreview(event, edge === 'inicio' ? 'Ajustar inicio' : 'Ajustar fin');
             },
 
@@ -694,7 +700,8 @@
                 if (!this.action || this.action === 'course') return;
                 this.currentWeek = week;
                 this.currentSede = sede;
-                this.moved = this.moved || week !== this.startWeek || sede !== this.startSede;
+                const sedeChanged = this.action !== 'resize' && sede !== this.startSede;
+                this.moved = this.moved || week !== this.startWeek || sedeChanged;
             },
 
             trackPointer(event) {
@@ -753,6 +760,8 @@
                 this.pointerPreview.show = false;
                 this.pointerPreview.isOutline = false;
                 this.pointerPreview.width = null;
+                document.body.style.cursor = '';
+                document.body.style.userSelect = '';
                 window.setTimeout(() => { this.moved = false; }, 0);
             },
 

@@ -13,28 +13,28 @@
 <div class="space-y-6">
     <section class="worker-card overflow-hidden">
         <div class="border-t-4 border-Alumco-blue p-5 lg:p-7">
-            <div class="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-                <div class="flex items-center gap-4">
-                    <div class="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-Alumco-blue text-white">
-                        <span class="font-display text-3xl font-black leading-none">{{ $initials }}</span>
+            <div class="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+                <div class="flex items-center gap-4 min-w-0">
+                    <div class="flex h-16 w-16 sm:h-20 sm:w-20 shrink-0 items-center justify-center rounded-full bg-Alumco-blue text-white shadow-inner">
+                        <span class="font-display text-2xl sm:text-3xl font-black leading-none">{{ $initials }}</span>
                     </div>
                     <div class="min-w-0">
-                        <h1 class="font-display text-3xl font-black leading-tight text-Alumco-gray">{{ $user->name }}</h1>
-                        <p class="mt-1 text-base font-semibold text-Alumco-gray/70 break-all">{{ $user->email }}</p>
+                        <h1 class="font-display text-2xl sm:text-3xl font-black leading-tight text-Alumco-gray truncate">{{ $user->name }}</h1>
+                        <p class="mt-0.5 text-sm sm:text-base font-semibold text-Alumco-gray/70 truncate">{{ $user->email }}</p>
                     </div>
                 </div>
 
-                <div class="flex flex-wrap gap-2">
+                <div class="flex flex-wrap gap-2 sm:justify-end">
                     @if ($user->sede)
-                        <span class="inline-flex items-center gap-2 rounded-full bg-Alumco-blue/10 px-4 py-2 text-sm font-bold text-Alumco-blue">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <span class="inline-flex items-center gap-2 rounded-full bg-Alumco-blue/10 px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-bold text-Alumco-blue ring-1 ring-Alumco-blue/20">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                 <path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5Z"/>
                             </svg>
                             {{ $user->sede->nombre }}
                         </span>
                     @endif
                     @if ($user->estamento)
-                        <span class="rounded-full bg-Alumco-green/35 px-4 py-2 text-sm font-bold text-Alumco-gray">
+                        <span class="rounded-full bg-Alumco-green/35 px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-bold text-Alumco-gray ring-1 ring-Alumco-green/20">
                             {{ $user->estamento->nombre }}
                         </span>
                     @endif
@@ -43,18 +43,18 @@
         </div>
     </section>
 
-    <section class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div class="worker-card p-5 text-center">
-            <p class="font-display text-4xl font-black text-Alumco-blue">{{ $totalCursos }}</p>
-            <p class="mt-1 text-base font-bold text-Alumco-gray/70">Asignados</p>
+    <section class="grid grid-cols-3 gap-2.5 sm:gap-4">
+        <div class="worker-card p-4 sm:p-5 text-center">
+            <p class="font-display text-2xl sm:text-4xl font-black text-Alumco-blue">{{ $totalCursos }}</p>
+            <p class="mt-0.5 text-[10px] sm:text-base font-bold text-Alumco-gray/70 uppercase sm:normal-case">Asignados</p>
         </div>
-        <div class="worker-card p-5 text-center">
-            <p class="font-display text-4xl font-black text-Alumco-green-accessible">{{ $cursosCompletados }}</p>
-            <p class="mt-1 text-base font-bold text-Alumco-gray/70">Completados</p>
+        <div class="worker-card p-4 sm:p-5 text-center">
+            <p class="font-display text-2xl sm:text-4xl font-black text-Alumco-green-accessible">{{ $cursosCompletados }}</p>
+            <p class="mt-0.5 text-[10px] sm:text-base font-bold text-Alumco-gray/70 uppercase sm:normal-case">Listos</p>
         </div>
-        <div class="worker-card p-5 text-center">
-            <p class="font-display text-4xl font-black text-Alumco-gold-accessible">{{ $cursosEnProgreso }}</p>
-            <p class="mt-1 text-base font-bold text-Alumco-gray/70">En progreso</p>
+        <div class="worker-card p-4 sm:p-5 text-center">
+            <p class="font-display text-2xl sm:text-4xl font-black text-Alumco-gold-accessible">{{ $cursosEnProgreso }}</p>
+            <p class="mt-0.5 text-[10px] sm:text-base font-bold text-Alumco-gray/70 uppercase sm:normal-case">En curso</p>
         </div>
     </section>
 

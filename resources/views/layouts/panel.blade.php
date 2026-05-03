@@ -86,9 +86,17 @@
     <!-- Topbar -->
     <header class="admin-topbar admin-topbar-persistent border-b border-white/10 px-6 py-3 flex items-center justify-between z-30 shrink-0">
         <div class="flex items-center gap-8">
-            <a href="{{ route('capacitador.dashboard') }}" wire:navigate class="flex items-center text-white">
-                <x-logo-alumco class="h-8 w-auto" width="120" height="32" />
-            </a>
+            <div class="flex items-center gap-4">
+                <button @click="sidebarOpen = !sidebarOpen; window.dispatchEvent(new CustomEvent('sidebar-toggled'))" 
+                        class="text-white/70 hover:text-white transition-colors p-1">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </button>
+                <a href="{{ route('capacitador.dashboard') }}" wire:navigate class="flex items-center text-white">
+                    <x-logo-alumco class="h-8 w-auto" width="120" height="32" />
+                </a>
+            </div>
             <div class="admin-topbar-divider h-6 w-px hidden md:block"></div>
             <h1 class="hidden md:block font-display font-black text-lg text-white tracking-tight">
                 @yield('header_title', 'Centro de Gestión')
@@ -141,10 +149,12 @@
         </div>
     </header>
 
-    <div class="flex-1 flex overflow-hidden">
+    <div class="flex-1 flex overflow-hidden" x-data="{ sidebarOpen: true }">
         
         <!-- Expandable Sidebar -->
-        <aside id="sidebar" class="admin-sidebar sidebar-transition w-72 bg-Alumco-blue flex flex-col z-20 shrink-0 overflow-hidden">
+        <aside id="sidebar" 
+               class="admin-sidebar sidebar-transition bg-Alumco-blue flex flex-col z-20 shrink-0 overflow-hidden"
+               :class="sidebarOpen ? 'w-72' : 'w-20'">
             
             <div class="flex-1 py-5 px-2 flex flex-col gap-1.5 overflow-y-auto custom-scrollbar border-r border-white/10">
                 

@@ -25,7 +25,7 @@
                 </p>
             </div>
 
-            <div class="grid grid-cols-4 gap-2.5 lg:min-w-[480px] lg:gap-4">
+            <div class="grid grid-cols-2 gap-2.5 sm:grid-cols-4 lg:min-w-[480px] lg:gap-4">
                 <div class="rounded-3xl bg-white/85 p-3 text-center shadow-sm ring-1 ring-Alumco-blue/10 lg:p-4">
                     <p class="font-display text-2xl font-black text-Alumco-blue lg:text-3xl">{{ $vigentes->count() }}</p>
                     <p class="mt-0.5 text-[10px] font-bold text-Alumco-gray/70 uppercase lg:text-xs">Vigentes</p>

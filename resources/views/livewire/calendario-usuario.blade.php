@@ -3,12 +3,12 @@
     <div class="max-w-4xl mx-auto px-4 py-6 sm:px-6 space-y-8">
 
         {{-- ── Cabecera ──────────────────────────────────────────────────────── --}}
-        <div class="worker-soft-panel px-4 py-5 sm:px-6 flex items-center justify-between gap-4">
+        <div class="worker-soft-panel px-4 py-5 sm:px-6 flex flex-wrap items-center justify-between gap-4">
 
             {{-- Navegación mes --}}
             <button
                 wire:click="mesAnterior"
-                class="flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition text-base font-medium"
+                class="flex items-center gap-2 px-3 py-2 sm:px-4 rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition text-sm sm:text-base font-medium order-2 sm:order-none"
                 aria-label="Mes anterior"
             >
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -17,8 +17,8 @@
                 <span class="hidden sm:inline">Anterior</span>
             </button>
 
-            <div class="text-center">
-                <h1 class="text-2xl sm:text-3xl font-bold text-Alumco-gray capitalize">
+            <div class="text-center w-full sm:w-auto order-1 sm:order-none">
+                <h1 class="text-xl sm:text-3xl font-bold text-Alumco-gray capitalize">
                     @php
                         $nombresMes = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
                     @endphp
@@ -34,7 +34,7 @@
 
             <button
                 wire:click="mesSiguiente"
-                class="flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition text-base font-medium"
+                class="flex items-center gap-2 px-3 py-2 sm:px-4 rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition text-sm sm:text-base font-medium order-3 sm:order-none"
                 aria-label="Mes siguiente"
             >
                 <span class="hidden sm:inline">Siguiente</span>
@@ -46,57 +46,58 @@
         </div>
 
         {{-- ── Grid mensual ─────────────────────────────────────────────── --}}
-        <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
+        <div class="bg-white rounded-2xl shadow-sm overflow-hidden overflow-x-auto">
+            <div class="min-w-[600px]">
+                {{-- Cabecera días de la semana --}}
+                <div class="grid grid-cols-7 border-b border-gray-200">
+                    @foreach(['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'] as $dia)
+                        <div class="py-3 text-center text-sm font-semibold text-gray-500 uppercase tracking-wide">
+                            {{ $dia }}
+                        </div>
+                    @endforeach
+                </div>
 
-            {{-- Cabecera días de la semana --}}
-            <div class="grid grid-cols-7 border-b border-gray-200">
-                @foreach(['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'] as $dia)
-                    <div class="py-3 text-center text-sm font-semibold text-gray-500 uppercase tracking-wide">
-                        {{ $dia }}
-                    </div>
-                @endforeach
-            </div>
+                {{-- Semanas --}}
+                <div class="divide-y divide-gray-100">
+                    @foreach($semanasDelMes as $semana)
+                        <div class="grid grid-cols-7">
+                            @foreach($semana['dias'] as $dia)
+                                <div @class([
+                                    'min-h-[80px] p-1.5 border-r border-gray-100 last:border-r-0',
+                                    'bg-gray-50' => !$dia['esMesActual'] || $dia['esPasado'],
+                                    'bg-white'   => $dia['esMesActual'] && !$dia['esPasado'],
+                                ])>
 
-            {{-- Semanas --}}
-            <div class="divide-y divide-gray-100">
-                @foreach($semanasDelMes as $semana)
-                    <div class="grid grid-cols-7">
-                        @foreach($semana['dias'] as $dia)
-                            <div @class([
-                                'min-h-[80px] p-1.5 border-r border-gray-100 last:border-r-0',
-                                'bg-gray-50' => !$dia['esMesActual'] || $dia['esPasado'],
-                                'bg-white'   => $dia['esMesActual'] && !$dia['esPasado'],
-                            ])>
+                                    {{-- Número de día --}}
+                                    <div class="flex justify-end mb-1">
+                                        <span @class([
+                                            'inline-flex items-center justify-center w-7 h-7 rounded-full text-sm font-semibold',
+                                            'bg-Alumco-blue text-white' => $dia['esHoy'],
+                                            'text-gray-300' => !$dia['esMesActual'],
+                                            'text-gray-400' => $dia['esMesActual'] && $dia['esPasado'] && !$dia['esHoy'],
+                                            'text-Alumco-gray' => $dia['esMesActual'] && !$dia['esPasado'] && !$dia['esHoy'],
+                                        ])>
+                                            {{ $dia['num'] }}
+                                        </span>
+                                    </div>
 
-                                {{-- Número de día --}}
-                                <div class="flex justify-end mb-1">
-                                    <span @class([
-                                        'inline-flex items-center justify-center w-7 h-7 rounded-full text-sm font-semibold',
-                                        'bg-Alumco-blue text-white' => $dia['esHoy'],
-                                        'text-gray-300' => !$dia['esMesActual'],
-                                        'text-gray-400' => $dia['esMesActual'] && $dia['esPasado'] && !$dia['esHoy'],
-                                        'text-Alumco-gray' => $dia['esMesActual'] && !$dia['esPasado'] && !$dia['esHoy'],
-                                    ])>
-                                        {{ $dia['num'] }}
-                                    </span>
+                                    {{-- Chips de cursos --}}
+                                    <div class="space-y-0.5">
+                                        @foreach(array_slice($dia['cursos'], 0, 2) as $curso)
+                                            <div class="rounded px-1 py-0.5 {{ $curso['bg'] }} truncate text-white text-[10px] sm:text-xs leading-tight" title="{{ $curso['titulo'] }}">
+                                                {{ $curso['titulo'] }}
+                                            </div>
+                                        @endforeach
+                                        @if(count($dia['cursos']) > 2)
+                                            <div class="text-[10px] text-gray-500 pl-1">+{{ count($dia['cursos']) - 2 }} más</div>
+                                        @endif
+                                    </div>
+
                                 </div>
-
-                                {{-- Chips de cursos --}}
-                                <div class="space-y-0.5">
-                                    @foreach(array_slice($dia['cursos'], 0, 2) as $curso)
-                                        <div class="rounded px-1 py-0.5 {{ $curso['bg'] }} truncate text-white text-xs leading-tight" title="{{ $curso['titulo'] }}">
-                                            {{ $curso['titulo'] }}
-                                        </div>
-                                    @endforeach
-                                    @if(count($dia['cursos']) > 2)
-                                        <div class="text-xs text-gray-500 pl-1">+{{ count($dia['cursos']) - 2 }} más</div>
-                                    @endif
-                                </div>
-
-                            </div>
-                        @endforeach
-                    </div>
-                @endforeach
+                            @endforeach
+                        </div>
+                    @endforeach
+                </div>
             </div>
         </div>
 
