@@ -8,19 +8,40 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=UTC
 ENV LANG=C.UTF-8
 
-# --- RESTRICCIÓN DE RED Y PREVENCIÓN DE BLOQUEOS ---
+# =========================================================
+# INFRAESTRUCTURA DE RED Y ALTA DISPONIBILIDAD (CTO SETUP)
+# =========================================================
+
 # 1. Configuración de Zona Horaria
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-# 3. Configuración de APT agresiva (Falla rápido, fuerza IPv4, previene atascos)
+# 2. Estrategia Multiespejo (Fallo en cascada automático)
+# Intenta primero Chile (Baja latencia), si falla va a Kernel.org (CDN), si falla va al Oficial.
+RUN printf "Types: deb\n\
+URIs: http://cl.archive.ubuntu.com/ubuntu/ http://mirrors.kernel.org/ubuntu/ http://archive.ubuntu.com/ubuntu/\n\
+Suites: resolute resolute-updates resolute-backports\n\
+Components: main restricted universe multiverse\n\
+Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg\n\
+\n\
+Types: deb\n\
+URIs: http://cl.archive.ubuntu.com/ubuntu/ http://mirrors.kernel.org/ubuntu/ http://security.ubuntu.com/ubuntu/\n\
+Suites: resolute-security\n\
+Components: main restricted universe multiverse\n\
+Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg\n" > /etc/apt/sources.list.d/ubuntu.sources
+
+# 3. Configuración de APT conservadora (Previene TCP Zombies y bloqueos)
 RUN echo "Acquire::http::Pipeline-Depth 0;" > /etc/apt/apt.conf.d/99custom && \
     echo "Acquire::Queue-Mode \"access\";" >> /etc/apt/apt.conf.d/99custom && \
     echo "Acquire::http::No-Cache true;" >> /etc/apt/apt.conf.d/99custom && \
     echo "Acquire::BrokenProxy     true;" >> /etc/apt/apt.conf.d/99custom && \
-    echo "Acquire::Retries \"3\";" >> /etc/apt/apt.conf.d/99custom && \
-    echo "Acquire::http::Timeout \"10\";" >> /etc/apt/apt.conf.d/99custom && \
-    echo "Acquire::https::Timeout \"10\";" >> /etc/apt/apt.conf.d/99custom && \
+    echo "Acquire::Retries \"10\";" >> /etc/apt/apt.conf.d/99custom && \
+    echo "Acquire::http::Timeout \"5\";" >> /etc/apt/apt.conf.d/99custom && \
+    echo "Acquire::https::Timeout \"5\";" >> /etc/apt/apt.conf.d/99custom && \
     echo "Acquire::ForceIPv4 \"true\";" >> /etc/apt/apt.conf.d/99custom
+
+# =========================================================
+# BLOQUES DE CONSTRUCCIÓN
+# =========================================================
 
 # BLOQUE 1: Dependencias base limpias y directas
 RUN apt-get update && \
@@ -94,7 +115,7 @@ RUN apt-get update && \
 RUN mkdir -p /run/php && \
     sed -i 's/listen = \/run\/php\/php8.5-fpm.sock/listen = 0.0.0.0:9000/' /etc/php/8.5/fpm/pool.d/www.conf
 
-# --- OPTIMIZACIÓN DE CACHÉ PARA COMPOSER (Estratégico) ---
+# --- OPTIMIZACIÓN DE CACHÉ PARA COMPOSER ---
 # Copiamos solo los archivos de dependencias primero para fijar el caché
 COPY composer.json composer.lock* /var/www/html/
 RUN composer install --no-interaction --prefer-dist --no-scripts --no-autoloader --no-dev
