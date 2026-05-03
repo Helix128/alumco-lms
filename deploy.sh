@@ -3,9 +3,13 @@
 set -e
 
 # ==========================================
-# 1. Análisis de Argumentos
+# 1. Configuracion
 # ==========================================
 BUILD_MODE="parallel"
+
+# IMPORTANTE: Cambia esta ruta si tu archivo tiene otro nombre
+# Ejemplo: "Dockerfile.prod" o "docker/8.5/Dockerfile"
+DOCKERFILE_PATH="docker/8.5/Dockerfile" 
 
 # Recorrer todos los argumentos pasados al script
 for arg in "$@"; do
@@ -14,50 +18,50 @@ for arg in "$@"; do
     fi
 done
 
-echo "🚀 Iniciando despliegue de actualizaciones..."
+echo "Iniciando despliegue de actualizaciones..."
 
-# 2. Obtener el código nuevo
+# 2. Obtener el codigo nuevo
 git pull origin main
 
-echo "📦 Evaluando estrategia de construcción..."
+echo "Evaluando estrategia de construccion..."
 
 # ==========================================
-# 3. Lógica de Construcción (Zero-Downtime)
+# 3. Logica de Construccion (Zero-Downtime)
 # ==========================================
 if [ "$BUILD_MODE" == "sequential" ]; then
-    echo "🐢 [Modo Secuencial]: Activado. Construyendo por capas para proteger la red..."
+    echo "[Modo Secuencial]: Activado. Construyendo por capas para proteger la red..."
     
     echo " -> Construyendo capa base..."
-    sudo docker build --target base -t app-base-cache:latest .
+    sudo docker build -f "$DOCKERFILE_PATH" --target base -t app-base-cache:latest .
     
     echo " -> Construyendo dependencias frontend..."
-    sudo docker build --target frontend-builder -t app-frontend-cache:latest .
+    sudo docker build -f "$DOCKERFILE_PATH" --target frontend-builder -t app-frontend-cache:latest .
     
-    echo " -> Ensamblando imagen final de producción..."
+    echo " -> Ensamblando imagen final de produccion..."
     sudo docker compose -f compose.prod.yaml build app
 else
-    echo "⚡ [Modo Paralelo]: Activado. Usando máxima concurrencia de BuildKit..."
+    echo "[Modo Paralelo]: Activado. Usando maxima concurrencia de BuildKit..."
     sudo docker compose -f compose.prod.yaml build app
 fi
 
 # ==========================================
-# 4. Orquestación y Despliegue
+# 4. Orquestacion y Despliegue
 # ==========================================
-echo "🔄 Poniendo la aplicación en modo mantenimiento..."
+echo "Poniendo la aplicacion en modo mantenimiento..."
 sudo docker compose -f compose.prod.yaml exec app php artisan down || true
 
-echo "🚢 Reiniciando los contenedores con la nueva imagen..."
+echo "Reiniciando los contenedores con la nueva imagen..."
 sudo docker compose -f compose.prod.yaml up -d
 
-echo "🗄️ Ejecutando migraciones..."
+echo "Ejecutando migraciones..."
 sudo docker compose -f compose.prod.yaml exec app php artisan migrate --force
 
-echo "⚡ Optimizando cachés de Laravel..."
+echo "Optimizando caches de Laravel..."
 sudo docker compose -f compose.prod.yaml exec app php artisan optimize
 sudo docker compose -f compose.prod.yaml exec app php artisan view:cache
 sudo docker compose -f compose.prod.yaml exec app php artisan event:cache
 
-echo "✅ Levantando la aplicación..."
+echo "Levantando la aplicacion..."
 sudo docker compose -f compose.prod.yaml exec app php artisan up || true
 
-echo "🎉 ¡Actualización completada con éxito!"
+echo "Actualizacion completada con exito!"
