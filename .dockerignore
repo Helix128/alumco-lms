@@ -25,6 +25,8 @@ storage/framework/cache/*
 storage/framework/sessions/*
 storage/framework/views/*
 storage/logs/*
+bootstrap/cache/*.php
+!bootstrap/cache/.gitignore
 .phpunit.cache
 .phpunit.result.cache
 
@@ -40,3 +42,5 @@ docker/*
 !docker/8.*/php.ini
 !docker/8.*/start-container
 !docker/8.*/supervisord.conf
+!docker/nginx/
+!docker/nginx/default.conf

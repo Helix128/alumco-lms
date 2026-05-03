@@ -1,4 +1,5 @@
 FROM node:24-trixie-slim AS node-runtime
+FROM composer:2 AS composer-runtime
 
 FROM debian:trixie-slim AS base
 
@@ -18,8 +19,8 @@ RUN echo "Acquire::http::Pipeline-Depth 0;" > /etc/apt/apt.conf.d/99custom && \
     echo "Acquire::http::No-Cache true;" >> /etc/apt/apt.conf.d/99custom && \
     echo "Acquire::BrokenProxy     true;" >> /etc/apt/apt.conf.d/99custom
 
-RUN apt-get update && apt-get upgrade -y \
-    && apt-get install -y \
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
         ca-certificates \
         curl \
         dnsutils \
@@ -56,9 +57,13 @@ RUN apt-get update && apt-get upgrade -y \
         php8.4-sqlite3 \
         php8.4-xml \
         php8.4-zip \
-    && curl -sLS https://getcomposer.org/installer | php -- --install-dir=/usr/bin/ --filename=composer \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+COPY --from=composer-runtime /usr/bin/composer /usr/local/bin/composer
+RUN ln -sf /usr/bin/php8.4 /usr/local/bin/php \
+    && php -v \
+    && composer --version
 
 FROM base AS frontend-builder
 
@@ -121,10 +126,13 @@ ENV APP_DEBUG=false
 RUN mkdir -p /run/php \
     && sed -i 's/listen = \/run\/php\/php8.4-fpm.sock/listen = 0.0.0.0:9000/' /etc/php/8.4/fpm/pool.d/www.conf
 
+COPY composer.json composer.lock /var/www/html/
+RUN composer install --no-dev --no-interaction --prefer-dist --no-scripts --no-autoloader
+
 COPY . /var/www/html
 COPY --from=frontend-builder /var/www/html/public/build /var/www/html/public/build
-
-RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+RUN rm -f bootstrap/cache/*.php \
+    && composer dump-autoload --no-dev --optimize --no-interaction
 
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
@@ -135,3 +143,8 @@ EXPOSE 9000
 
 ENTRYPOINT ["entrypoint.sh"]
 CMD ["/usr/sbin/php-fpm8.4", "-F"]
+
+FROM nginx:alpine AS web
+
+COPY docker/nginx/default.conf /etc/nginx/conf.d/default.conf
+COPY --from=production /var/www/html/public /var/www/html/public
