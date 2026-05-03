@@ -29,7 +29,7 @@
                         <span class="text-lg font-black text-Alumco-blue">{{ $progreso }}%</span>
                     </div>
                     <div class="h-3 overflow-hidden rounded-full bg-Alumco-blue/10">
-                        <div class="h-full rounded-full bg-Alumco-blue transition-all duration-500"
+                        <div class="h-full rounded-full bg-Alumco-blue transition-all duration-300"
                              style="width: {{ $progreso }}%"></div>
                     </div>
                 </div>

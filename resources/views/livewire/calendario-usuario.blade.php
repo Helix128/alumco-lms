@@ -127,7 +127,7 @@
                             </div>
                             @if($item['activo'])
                                 <span class="self-start sm:self-center shrink-0 inline-flex items-center gap-1 bg-green-100 text-green-800 text-sm font-medium px-3 py-1 rounded-full">
-                                    <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                                    <span class="w-2 h-2 bg-green-500 rounded-full"></span>
                                     En curso
                                 </span>
                             @else

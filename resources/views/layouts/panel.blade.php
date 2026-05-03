@@ -86,13 +86,7 @@
     <!-- Topbar -->
     <header class="admin-topbar admin-topbar-persistent border-b border-white/10 px-6 py-3 flex items-center justify-between z-30 shrink-0">
         <div class="flex items-center gap-8">
-            <div class="flex items-center gap-4">
-                <button @click="sidebarOpen = !sidebarOpen; window.dispatchEvent(new CustomEvent('sidebar-toggled'))" 
-                        class="text-white/70 hover:text-white transition-colors p-1">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-                    </svg>
-                </button>
+            <div class="flex items-center">
                 <a href="{{ route('capacitador.dashboard') }}" wire:navigate class="flex items-center text-white">
                     <x-logo-alumco class="h-8 w-auto" width="120" height="32" />
                 </a>

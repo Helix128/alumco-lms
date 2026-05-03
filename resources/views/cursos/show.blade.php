@@ -63,7 +63,7 @@
                             <span class="text-xl font-black text-Alumco-blue">{{ $progreso }}%</span>
                         </div>
                         <div class="h-3 overflow-hidden rounded-full bg-black/8">
-                            <div class="h-full rounded-full bg-Alumco-blue transition-all duration-1000 ease-out"
+                            <div class="h-full rounded-full bg-Alumco-blue transition-all duration-[400ms] ease-out"
                                  style="width: {{ $progreso }}%"></div>
                         </div>
                     </div>
@@ -156,7 +156,7 @@
                             <div class="relative h-12 w-12">
                                 <svg class="h-full w-full" viewBox="0 0 36 36">
                                     <path class="text-gray-100" stroke-width="3" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                    <path class="text-Alumco-green-accessible transition-all duration-1000" stroke-width="3" stroke-dasharray="{{ $porcentajeSeccion }}, 100" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                    <path class="text-Alumco-green-accessible transition-all duration-[400ms]" stroke-width="3" stroke-dasharray="{{ $porcentajeSeccion }}, 100" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
                                 </svg>
                             </div>
                         </div>

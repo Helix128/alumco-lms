@@ -26,7 +26,7 @@
     <div class="fixed bottom-20 right-4 lg:bottom-8 lg:right-8 z-[60] bg-amber-500 text-white p-3 rounded-2xl shadow-2xl flex items-center gap-3 ring-4 ring-amber-500/20 max-w-sm transition-all duration-300">
         <div class="flex items-center gap-3">
             <div class="bg-white/20 p-2 rounded-xl">
-                <svg class="w-5 h-5 animate-pulse shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                 </svg>
@@ -73,7 +73,7 @@
                     <span class="min-w-0 text-right">
                         <span class="block max-w-64 truncate text-sm font-bold leading-tight text-Alumco-gray group-hover:text-Alumco-blue transition-colors">{{ auth()->user()->name }}</span>
                     </span>
-                    <span class="avatar-btn flex h-11 w-11 items-center justify-center rounded-full bg-Alumco-blue text-sm font-black text-white shadow-sm select-none transition-transform group-hover:scale-105">
+                    <span class="avatar-btn flex h-11 w-11 items-center justify-center rounded-full bg-Alumco-blue text-sm font-black text-white shadow-sm select-none transition-transform group-hover:scale-[1.02]">
                         {{ $initials }}
                     </span>
                 </a>

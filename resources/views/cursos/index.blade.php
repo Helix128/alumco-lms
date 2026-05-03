@@ -64,12 +64,12 @@
     <div class="grid">
         {{-- Contenido Pestaña: Disponibles --}}
         <div x-show="tab === 'disponibles'" 
-             x-transition:enter="transition ease-out duration-300 delay-150" 
-             x-transition:enter-start="opacity-0 translate-y-4" 
-             x-transition:enter-end="opacity-100 translate-y-0"
-             x-transition:leave="transition ease-in duration-200"
-             x-transition:leave-start="opacity-100 translate-y-0"
-             x-transition:leave-end="opacity-0 -translate-y-4"
+             x-transition:enter="transition ease-out duration-150"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-100"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
              class="[grid-area:1/1] space-y-12">
             @if($vigentes->isNotEmpty())
                 <section>
@@ -93,7 +93,7 @@
 
                                 <div class="worker-course-cover relative h-52 overflow-hidden rounded-t-3xl bg-Alumco-blue/5">
                                     @if ($curso->imagen_portada)
-                                        <img src="{{ asset('storage/' . $curso->imagen_portada) }}" alt="{{ $curso->titulo }}" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105">
+                                        <img src="{{ asset('storage/' . $curso->imagen_portada) }}" alt="{{ $curso->titulo }}" class="h-full w-full object-cover transition-transform duration-200 group-hover:scale-[1.02]">
                                     @else
                                         <div class="flex h-full w-full items-center justify-center">
                                             <svg class="h-20 w-20 text-Alumco-blue/20" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -125,7 +125,7 @@
                                             <span class="text-sm font-black text-Alumco-blue">{{ $progreso }}%</span>
                                         </div>
                                         <div class="h-2.5 overflow-hidden rounded-full bg-gray-100">
-                                            <div class="h-full rounded-full bg-Alumco-blue transition-all duration-700" style="width: {{ $progreso }}%"></div>
+                                            <div class="h-full rounded-full bg-Alumco-blue transition-all duration-300" style="width: {{ $progreso }}%"></div>
                                         </div>
                                     </div>
 
@@ -180,7 +180,7 @@
                                 
                                 <div class="worker-course-cover relative h-52 overflow-hidden rounded-t-3xl bg-Alumco-green-accessible/5">
                                     @if ($curso->imagen_portada)
-                                        <img src="{{ asset('storage/' . $curso->imagen_portada) }}" alt="{{ $curso->titulo }}" class="h-full w-full object-cover opacity-90 transition-transform duration-500 group-hover:scale-105 group-hover:opacity-100">
+                                        <img src="{{ asset('storage/' . $curso->imagen_portada) }}" alt="{{ $curso->titulo }}" class="h-full w-full object-cover opacity-90 transition-transform duration-200 group-hover:scale-[1.02] group-hover:opacity-100">
                                     @else
                                         <div class="flex h-full w-full items-center justify-center">
                                             <svg class="h-20 w-20 text-Alumco-green-accessible/20" fill="currentColor" viewBox="0 0 24 24">
@@ -220,12 +220,12 @@
 
         {{-- Contenido Pestaña: Historial --}}
         <div x-cloak x-show="tab === 'historial'" 
-             x-transition:enter="transition ease-out duration-300 delay-150" 
-             x-transition:enter-start="opacity-0 translate-y-4" 
-             x-transition:enter-end="opacity-100 translate-y-0"
-             x-transition:leave="transition ease-in duration-200"
-             x-transition:leave-start="opacity-100 translate-y-0"
-             x-transition:leave-end="opacity-0 -translate-y-4"
+             x-transition:enter="transition ease-out duration-150"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-100"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
              class="[grid-area:1/1] space-y-12">
             <section>
                 <div class="mb-5 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
@@ -243,7 +243,7 @@
                                 $expiracion = $curso->planificaciones->max('fecha_fin');
                             @endphp
 
-                            <div class="group relative flex flex-col overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-gray-100/80 grayscale-[0.8] hover:grayscale-0 transition-all duration-500 opacity-75 hover:opacity-100 worker-course-tile">
+                            <div class="group relative flex flex-col overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-gray-100/80 opacity-90 transition-all duration-200 hover:opacity-100 worker-course-tile">
                                 {{-- Portada con Overlay de "Cerrado" --}}
                                 <div class="worker-course-cover relative h-44 overflow-hidden bg-gray-100">
                                     @if ($curso->imagen_portada)
@@ -285,7 +285,7 @@
                                             <span class="text-sm font-black text-Alumco-gray/60">{{ $progreso }}%</span>
                                         </div>
                                         <div class="h-1.5 overflow-hidden rounded-full bg-gray-50">
-                                            <div class="h-full rounded-full bg-Alumco-gray/20 transition-all duration-1000" style="width: {{ $progreso }}%"></div>
+                                            <div class="h-full rounded-full bg-Alumco-gray/20 transition-all duration-300" style="width: {{ $progreso }}%"></div>
                                         </div>
                                     </div>
 
