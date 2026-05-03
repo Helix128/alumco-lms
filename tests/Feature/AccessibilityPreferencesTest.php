@@ -55,6 +55,13 @@ class AccessibilityPreferencesTest extends TestCase
             ->assertSee('Son las mismas opciones del botón Opciones')
             ->assertSee('Reducir movimiento')
             ->assertSee('Tamaño de texto')
+            ->assertSee('Normal')
+            ->assertSee('Grande')
+            ->assertSee('Extra')
+            ->assertDontSee('Actual:')
+            ->assertDontSee('18 px')
+            ->assertDontSee('20 px')
+            ->assertDontSee('22 px')
             ->assertDontSee('Fondo simple')
             ->assertDontSee('Tarjetas compactas');
     }
@@ -72,6 +79,7 @@ class AccessibilityPreferencesTest extends TestCase
         $this->actingAs($user)
             ->get(route('perfil.index'))
             ->assertOk()
+            ->assertSee('data-font="2"', false)
             ->assertSee('data-contrast="high"', false)
             ->assertSee('data-motion="reduced"', false)
             ->assertDontSee('data-background=', false)
@@ -89,7 +97,77 @@ class AccessibilityPreferencesTest extends TestCase
             ->assertOk()
             ->assertSee('Opciones')
             ->assertSee('Preferencias de accesibilidad')
-            ->assertSee('Son las mismas opciones del botón Opciones');
+            ->assertSee('Son las mismas opciones del botón Opciones')
+            ->assertSee('Normal')
+            ->assertSee('Grande')
+            ->assertSee('Extra')
+            ->assertDontSee('Actual:')
+            ->assertDontSee('18 px')
+            ->assertDontSee('20 px')
+            ->assertDontSee('22 px');
+    }
+
+    public function test_admin_panel_routes_apply_saved_accessibility_preferences(): void
+    {
+        $admin = User::factory()->create([
+            'accessibility_preferences' => [
+                'fontLevel' => 2,
+                'highContrast' => true,
+                'reducedMotion' => true,
+            ],
+        ]);
+        $admin->assignRole('Administrador');
+
+        foreach ([
+            'admin.perfil.index',
+            'admin.reportes.index',
+            'admin.usuarios.index',
+            'capacitador.dashboard',
+        ] as $routeName) {
+            $this->actingAs($admin)
+                ->get(route($routeName))
+                ->assertOk()
+                ->assertSee('data-font="2"', false)
+                ->assertSee('data-contrast="high"', false)
+                ->assertSee('data-motion="reduced"', false)
+                ->assertSee('--font-base: 22px', false);
+        }
+    }
+
+    public function test_developer_panel_route_applies_saved_accessibility_preferences(): void
+    {
+        $developer = User::factory()->create([
+            'accessibility_preferences' => [
+                'fontLevel' => 1,
+                'highContrast' => true,
+                'reducedMotion' => true,
+            ],
+        ]);
+        $developer->assignRole('Desarrollador');
+
+        $this->actingAs($developer)
+            ->get(route('dev.configuracion'))
+            ->assertOk()
+            ->assertSee('data-font="1"', false)
+            ->assertSee('data-contrast="high"', false)
+            ->assertSee('data-motion="reduced"', false)
+            ->assertSee('--font-base: 20px', false);
+    }
+
+    public function test_livewire_accessibility_options_do_not_render_pixel_labels(): void
+    {
+        $user = User::factory()->create();
+
+        Livewire::actingAs($user)
+            ->test(AccessibilityPreferences::class)
+            ->assertSee('Tamaño de texto')
+            ->assertSee('Normal')
+            ->assertSee('Grande')
+            ->assertSee('Extra')
+            ->assertDontSee('Actual:')
+            ->assertDontSee('18 px')
+            ->assertDontSee('20 px')
+            ->assertDontSee('22 px');
     }
 
     public function test_livewire_component_persists_accessibility_preferences(): void

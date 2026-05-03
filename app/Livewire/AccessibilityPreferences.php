@@ -86,11 +86,6 @@ class AccessibilityPreferences extends Component
         $this->reducedMotion = $preferences['reducedMotion'];
     }
 
-    public function fontLabel(): string
-    {
-        return AccessibilityPreferencesSupport::fontSizeFor($this->fontLevel).' px';
-    }
-
     /**
      * @return array{fontLevel: int, highContrast: bool, reducedMotion: bool}
      */

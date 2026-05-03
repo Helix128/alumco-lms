@@ -6,6 +6,7 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}"
       style="--font-base: {{ $accessibilityFontSize }}px;"
+      data-font="{{ $accessibilityPreferences['fontLevel'] }}"
       data-contrast="{{ $accessibilityPreferences['highContrast'] ? 'high' : 'default' }}"
       data-motion="{{ $accessibilityPreferences['reducedMotion'] ? 'reduced' : 'default' }}">
     <head>

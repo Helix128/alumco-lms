@@ -32,6 +32,22 @@ class ReportsTest extends TestCase
             ->assertSee('Análisis de Cumplimiento');
     }
 
+    public function test_the_admin_shell_renders_the_shared_navigation_and_actions()
+    {
+        $admin = $this->createAdmin();
+
+        $this->actingAs($admin)
+            ->get(route('admin.reportes.index'))
+            ->assertOk()
+            ->assertSee('Reportes e Impacto')
+            ->assertSee('Ver como Usuario')
+            ->assertSee('Dashboard')
+            ->assertSee('Cursos y Material')
+            ->assertSee('Reportes Académicos')
+            ->assertSee('Directorio de usuarios')
+            ->assertSee('Cerrar Sesión');
+    }
+
     public function test_a_worker_cannot_access_reports_page()
     {
         $trabajador = $this->createTrabajador();

@@ -101,7 +101,8 @@
 
     <div class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-            <h2 class="text-xl font-display font-bold text-Alumco-blue/70">Gestión de Colaboradores</h2>
+            <h2 class="admin-page-title">Gestión de Colaboradores</h2>
+            <p class="admin-page-subtitle">Alta, edición y control de acceso de colaboradores.</p>
         </div>
 
         <div class="flex flex-col sm:flex-row items-center gap-4">
@@ -109,7 +110,7 @@
             <div class="relative w-full sm:w-72">
                 <input type="text" wire:model.live.debounce.300ms="search"
                        placeholder="Buscar por nombre o correo..." 
-                       class="w-full pl-11 pr-4 py-2.5 bg-white border border-gray-200 rounded-2xl shadow-sm focus:ring-4 focus:ring-Alumco-blue/10 focus:border-Alumco-blue outline-none transition-all text-sm">
+                       class="admin-toolbar-input w-full pl-11 pr-4">
                 <svg class="w-5 h-5 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                 </svg>
@@ -117,7 +118,7 @@
             
             <!-- Botón Nuevo -->
             <button type="button" wire:click="openCreate" 
-                    class="w-full sm:w-auto bg-Alumco-blue hover:bg-Alumco-blue/90 text-white font-display font-bold py-2.5 px-6 rounded-2xl shadow-lg shadow-Alumco-blue/20 flex items-center justify-center transition-all active:scale-95">
+                    class="w-full sm:w-auto admin-action-button admin-action-button--primary">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                 </svg>
@@ -142,7 +143,7 @@
     @endif
 
     <!-- Tabla Card-Style -->
-    <div class="bg-white rounded-[24px] border border-gray-200 shadow-none overflow-hidden">
+    <div class="admin-surface overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
                 <thead>
@@ -205,50 +206,74 @@
                             @endif
                         </td>
                         
-                        <td class="px-6 py-5 text-right relative" x-data="{ open: false }">
+                        <td class="px-6 py-5 text-right relative"
+                            x-data="{
+                                open: false,
+                                menuX: 0,
+                                menuY: 0,
+                                placement: 'bottom',
+                                toggleMenu(event) {
+                                    const rect = event.currentTarget.getBoundingClientRect();
+                                    const estimatedHeight = 240;
+
+                                    this.menuX = rect.right;
+                                    this.placement = window.innerHeight - rect.bottom < estimatedHeight ? 'top' : 'bottom';
+                                    this.menuY = this.placement === 'top' ? rect.top - 12 : rect.bottom + 12;
+                                    this.open = !this.open;
+                                },
+                                closeMenu() {
+                                    this.open = false;
+                                },
+                            }">
                             @php
                                 $canManage = auth()->user()->canManageUser($user);
                             @endphp
 
                             @if($canManage)
-                            <button type="button" @click="open = !open" @click.away="open = false"
-                                    class="w-10 h-10 rounded-xl hover:bg-white hover:shadow-md text-gray-400 hover:text-Alumco-blue transition-all flex items-center justify-center border border-transparent hover:border-gray-100 ml-auto" title="Más opciones">
+                            <button type="button" @click="toggleMenu($event)"
+                            class="admin-icon-button w-10 h-10 rounded-xl hover:shadow-md text-gray-400 hover:text-Alumco-blue border border-transparent hover:border-gray-100 ml-auto" title="Más opciones">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path>
                                 </svg>
                             </button>
 
-                            <div x-show="open" 
-                                 x-transition:enter="transition ease-out duration-100"
-                                 x-transition:enter-start="transform opacity-0 scale-95"
-                                 x-transition:enter-end="transform opacity-100 scale-100"
-                                 x-transition:leave="transition ease-in duration-75"
-                                 x-transition:leave-start="transform opacity-100 scale-100"
-                                 x-transition:leave-end="transform opacity-0 scale-95"
-                                 class="absolute right-8 top-12 w-48 bg-white rounded-xl shadow-xl border border-gray-100 py-2 z-50 text-left">
-                                
-                                <button wire:click="edit({{ $user->id }})" class="w-full px-4 py-2 text-xs font-bold text-Alumco-gray hover:bg-Alumco-blue/5 hover:text-Alumco-blue flex items-center gap-3 transition-colors">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                                    Editar colaborador
-                                </button>
-                                
-                                <button wire:click="toggleStatus({{ $user->id }})" wire:confirm="\u00bfSeguro que deseas cambiar el estado de este usuario?" class="w-full px-4 py-2 text-xs font-bold text-Alumco-gray hover:bg-Alumco-blue/5 hover:text-green-600 flex items-center gap-3 transition-colors">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                    Cambiar estado
-                                </button>
+                            <template x-teleport="body">
+                                <div x-cloak
+                                     x-show="open"
+                                     @click.away="closeMenu()"
+                                     @keydown.escape.window="closeMenu()"
+                                     x-transition:enter="transition ease-out duration-100"
+                                     x-transition:enter-start="transform opacity-0 scale-95"
+                                     x-transition:enter-end="transform opacity-100 scale-100"
+                                     x-transition:leave="transition ease-in duration-75"
+                                     x-transition:leave-start="transform opacity-100 scale-100"
+                                     x-transition:leave-end="transform opacity-0 scale-95"
+                                     class="fixed w-56 admin-surface py-2 z-[90] text-left"
+                                     :style="`left: ${menuX}px; top: ${menuY}px; transform: translateX(-100%);`">
 
-                                <button wire:click="resetPassword({{ $user->id }})" wire:confirm="\u00bfEnviar correo de recuperaci\u00f3n de contrase\u00f1a a este usuario?" class="w-full px-4 py-2 text-xs font-bold text-Alumco-gray hover:bg-Alumco-blue/5 hover:text-amber-600 flex items-center gap-3 transition-colors">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path></svg>
-                                    Resetear acceso
-                                </button>
+                                    <button wire:click="edit({{ $user->id }})" class="admin-inline-button w-full px-4 py-2 text-xs font-bold text-Alumco-gray hover:bg-Alumco-blue/5 hover:text-Alumco-blue flex items-center gap-3 transition-colors">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                        Editar colaborador
+                                    </button>
+                                    
+                                    <button wire:click="toggleStatus({{ $user->id }})" wire:confirm="\u00bfSeguro que deseas cambiar el estado de este usuario?" class="admin-inline-button w-full px-4 py-2 text-xs font-bold text-Alumco-gray hover:bg-Alumco-blue/5 hover:text-green-600 flex items-center gap-3 transition-colors">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                        Cambiar estado
+                                    </button>
 
-                                <div class="h-px bg-gray-100 my-1 mx-2"></div>
+                                    <button wire:click="resetPassword({{ $user->id }})" wire:confirm="\u00bfEnviar correo de recuperaci\u00f3n de contrase\u00f1a a este usuario?" class="admin-inline-button w-full px-4 py-2 text-xs font-bold text-Alumco-gray hover:bg-Alumco-blue/5 hover:text-amber-600 flex items-center gap-3 transition-colors">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path></svg>
+                                        Resetear acceso
+                                    </button>
 
-                                <button wire:click="deleteUser({{ $user->id }})" wire:confirm="A punto de eliminar usuario. \u00bfContinuar?" class="w-full px-4 py-2 text-xs font-bold text-red-600 hover:bg-red-50 flex items-center gap-3 transition-colors">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                    Eliminar registro
-                                </button>
-                            </div>
+                                    <div class="h-px bg-gray-100 my-1 mx-2"></div>
+
+                                    <button wire:click="deleteUser({{ $user->id }})" wire:confirm="A punto de eliminar usuario. \u00bfContinuar?" class="admin-inline-button w-full px-4 py-2 text-xs font-bold text-red-600 hover:bg-red-50 flex items-center gap-3 transition-colors">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                        Eliminar registro
+                                    </button>
+                                </div>
+                            </template>
                             @endif
                         </td>
                     </tr>

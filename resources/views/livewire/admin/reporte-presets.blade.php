@@ -14,7 +14,7 @@
         <button 
             type="button"
             @click="open = !open"
-            class="flex items-center gap-3 pl-4 pr-3 py-3 bg-white border border-gray-200 rounded-2xl text-sm font-bold text-Alumco-blue shadow-lg shadow-gray-100/50 hover:border-Alumco-blue/30 transition-all active:scale-95"
+            class="admin-action-button admin-action-button--secondary pl-4 pr-3 shadow-lg shadow-gray-100/50"
         >
             <svg class="w-5 h-5 text-Alumco-blue/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
@@ -31,7 +31,7 @@
             x-transition:enter="transition ease-out duration-100"
             x-transition:enter-start="opacity-0 scale-95"
             x-transition:enter-end="opacity-100 scale-100"
-            class="absolute bottom-full left-0 mb-2 w-72 bg-white border border-gray-100 rounded-2xl shadow-[0_-10px_40px_rgba(0,0,0,0.1)] z-[60] py-2 overflow-hidden"
+            class="absolute bottom-full left-0 mb-2 w-72 admin-surface shadow-[0_-10px_40px_rgba(0,0,0,0.1)] z-[60] py-2 overflow-hidden"
             style="display: none;"
         >
             {{-- Botón Crear Nuevo --}}
@@ -62,7 +62,7 @@
                         <button 
                             type="button"
                             @click.stop="deletingId = {{ $p->id }}"
-                            class="p-2 text-gray-400 hover:text-Alumco-coral hover:bg-Alumco-coral/5 rounded-xl transition-all"
+                            class="admin-icon-button h-9 w-9 border border-transparent bg-transparent text-gray-400 hover:text-Alumco-coral hover:bg-Alumco-coral/5"
                             title="Eliminar"
                         >
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -83,7 +83,7 @@
              x-transition:enter="transition ease-out duration-200"
              x-transition:enter-start="opacity-0 scale-95"
              x-transition:enter-end="opacity-100 scale-100"
-             class="absolute bottom-full left-0 mb-2 w-72 h-48 z-[70] bg-white/95 backdrop-blur-sm flex flex-col items-center justify-center p-4 text-center rounded-2xl border border-gray-100 shadow-xl"
+             class="absolute bottom-full left-0 mb-2 w-72 h-48 z-[70] admin-surface flex flex-col items-center justify-center p-4 text-center backdrop-blur-sm"
              style="display: none;"
              @click.stop
         >
@@ -91,12 +91,12 @@
             <div class="flex gap-2">
                 <button type="button" 
                         @click="deletingId = null" 
-                        class="px-3 py-1.5 text-[9px] font-black text-gray-400 hover:text-Alumco-blue uppercase tracking-tighter transition-colors">
+                        class="admin-inline-button px-3 py-1.5 text-[9px] font-black text-gray-400 hover:text-Alumco-blue uppercase tracking-tighter transition-colors">
                     Cancelar
                 </button>
                 <button type="button" 
                         @click="$wire.eliminarPreset(deletingId); deletingId = null" 
-                        class="px-4 py-1.5 bg-Alumco-coral text-white text-[9px] font-black rounded-lg shadow-lg shadow-Alumco-coral/20 hover:bg-Alumco-coral/90 uppercase tracking-widest transition-all">
+                        class="admin-action-button admin-action-button--small bg-Alumco-coral text-white shadow-lg shadow-Alumco-coral/20 hover:bg-Alumco-coral/90 uppercase tracking-widest transition-all">
                     Confirmar
                 </button>
             </div>
@@ -117,21 +117,21 @@
             x-ref="nuevoNombreInput"
             wire:model="nuevoNombre"
             placeholder="Nombre..."
-            class="w-56 px-4 py-3 bg-white border border-gray-200 rounded-2xl text-xs font-bold focus:ring-2 focus:ring-Alumco-blue/20 focus:border-Alumco-blue/30 outline-none @error('nuevoNombre') border-Alumco-coral @enderror"
+            class="admin-toolbar-input w-56 px-4 py-3 text-xs font-bold @error('nuevoNombre') border-Alumco-coral @enderror"
             @keydown.enter.prevent="$wire.guardarPreset(selectedKeys)"
             @keydown.escape="creating = false"
         >
         <button 
             type="button"
             @click="$wire.guardarPreset(selectedKeys)"
-            class="bg-Alumco-blue text-white px-4 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-Alumco-blue/90 transition-all shadow-lg shadow-Alumco-blue/10 active:scale-95"
+            class="admin-action-button admin-action-button--primary admin-action-button--small shadow-lg shadow-Alumco-blue/10 uppercase tracking-widest"
         >
             OK
         </button>
         <button 
             type="button"
             @click="creating = false; $wire.resetError('nuevoNombre'); $wire.nuevoNombre = ''"
-            class="p-2 text-gray-300 hover:text-Alumco-coral transition-colors"
+            class="admin-icon-button h-10 w-10 border border-gray-100 bg-white text-gray-300 hover:text-Alumco-coral"
         >
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>

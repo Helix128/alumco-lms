@@ -6,6 +6,7 @@
 <!DOCTYPE html>
 <html lang="es"
       style="--font-base: {{ $accessibilityFontSize }}px;"
+      data-font="{{ $accessibilityPreferences['fontLevel'] }}"
       data-contrast="{{ $accessibilityPreferences['highContrast'] ? 'high' : 'default' }}"
       data-motion="{{ $accessibilityPreferences['reducedMotion'] ? 'reduced' : 'default' }}">
 
@@ -80,16 +81,16 @@
     @stack('styles')
 </head>
 
-<body class="admin-shell bg-Alumco-cream font-sans text-Alumco-gray h-screen flex flex-col overflow-hidden antialiased">
+<body class="admin-shell font-sans text-Alumco-gray h-screen flex flex-col overflow-hidden antialiased">
 
     <!-- Topbar -->
-    <header class="bg-Alumco-blue border-b border-white/10 shadow-md px-6 py-3 flex items-center justify-between z-30 shrink-0 admin-topbar-persistent">
+    <header class="admin-topbar admin-topbar-persistent border-b border-white/10 px-6 py-3 flex items-center justify-between z-30 shrink-0">
         <div class="flex items-center gap-8">
             <a href="{{ route('capacitador.dashboard') }}" wire:navigate class="flex items-center text-white">
                 <x-logo-alumco class="h-8 w-auto" width="120" height="32" />
             </a>
-            <div class="h-6 w-px bg-white/20 hidden md:block"></div>
-            <h1 class="hidden md:block font-display font-bold text-lg text-white">
+            <div class="admin-topbar-divider h-6 w-px hidden md:block"></div>
+            <h1 class="hidden md:block font-display font-black text-lg text-white tracking-tight">
                 @yield('header_title', 'Centro de Gestión')
             </h1>
         </div>
@@ -97,17 +98,15 @@
         <div class="flex items-center gap-4">
             @auth
             @include('partials.accessibility-modal', [
-                'buttonClass' => 'worker-focus hidden items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-white/75 ring-1 ring-white/10 hover:bg-white/20 hover:text-white sm:inline-flex',
+                'buttonClass' => 'worker-focus admin-topbar-action hidden sm:inline-flex',
             ])
 
             @if(auth()->user()->hasAdminAccess())
                 <form action="{{ route('admin.preview.toggle') }}" method="POST">
                     @csrf
                     <button type="submit" 
-                            class="flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider transition-all duration-200 active:scale-95
-                                   {{ session('preview_mode') 
-                                      ? 'bg-amber-500 text-white hover:bg-amber-600 animate-pulse' 
-                                      : 'bg-white/10 text-white/60 hover:bg-white/20 hover:text-white' }}">
+                            data-active="{{ session('preview_mode') ? 'true' : 'false' }}"
+                            class="worker-focus admin-topbar-action admin-topbar-action--preview">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
@@ -119,7 +118,7 @@
 
             <div class="text-right hidden sm:block">
                 <p class="text-[10px] font-black text-white/40 uppercase tracking-widest leading-none mb-0.5">Administrador</p>
-                <p class="text-sm font-bold text-white leading-none">{{ auth()->user()->name }}</p>
+                <p class="text-sm font-bold text-white leading-none tracking-tight">{{ auth()->user()->name }}</p>
             </div>
             @php
                 $initials = collect(explode(' ', trim(auth()->user()->name)))
@@ -129,13 +128,12 @@
             @endphp
             <a href="{{ route('admin.perfil.index') }}"
                wire:navigate
-               class="w-10 h-10 rounded-full bg-white text-Alumco-blue font-display font-black text-sm
-                      flex items-center justify-center shadow-none hover:shadow-lg hover:shadow-white/10 hover:scale-105 active:scale-95 transition-all select-none">
+               class="worker-focus admin-avatar-button select-none">
                 {{ $initials }}
             </a>
             <div class="sm:hidden">
                 @include('partials.accessibility-modal', [
-                    'buttonClass' => 'worker-focus inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white ring-1 ring-white/10 hover:bg-white/20',
+                    'buttonClass' => 'worker-focus admin-icon-button',
                     'showLabel' => false,
                 ])
             </div>
@@ -146,13 +144,13 @@
     <div class="flex-1 flex overflow-hidden">
         
         <!-- Expandable Sidebar -->
-        <aside id="sidebar" class="sidebar-transition w-72 bg-Alumco-blue flex flex-col z-20 shrink-0 overflow-hidden">
+        <aside id="sidebar" class="admin-sidebar sidebar-transition w-72 bg-Alumco-blue flex flex-col z-20 shrink-0 overflow-hidden">
             
             <div class="flex-1 py-5 px-2 flex flex-col gap-1.5 overflow-y-auto custom-scrollbar border-r border-white/10">
                 
                 @if(session('preview_mode'))
                     {{-- Opciones de Trabajador en Vista Previa --}}
-                    <h2 class="px-3 py-2 text-[10px] font-black text-amber-500 uppercase tracking-[0.2em] mb-2 select-none">Vista Previa: Trabajador</h2>
+                    <h2 class="admin-sidebar-section-label mb-2 select-none">Vista Previa: Trabajador</h2>
                     
                     <x-nav-link-admin href="{{ route('cursos.index') }}" :active="request()->routeIs('cursos.*')" title="Mis Cursos">
                         <x-slot name="icon">
@@ -262,7 +260,7 @@
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
                     <button type="submit"
-                            class="w-full flex items-center gap-3 px-3 py-3 text-white/70 hover:text-Alumco-coral hover:bg-Alumco-coral/10 rounded-xl transition-all duration-200 group"
+                            class="admin-sidebar-link worker-focus w-full text-left text-white/70 hover:text-Alumco-coral hover:bg-Alumco-coral/10 group"
                             title="Cerrar sesión">
                         <svg class="w-6 h-6 shrink-0 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
@@ -290,8 +288,8 @@
         // window.toggleSidebar = () => { ... }
     </script>
 
-    @stack('scripts')
     @livewireScripts
+    @stack('scripts')
     @include('partials.accessibility-scripts')
 </body>
 </html>

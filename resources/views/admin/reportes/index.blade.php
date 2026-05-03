@@ -8,38 +8,38 @@
 <div class="mb-8">
     <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
-            <h2 class="text-3xl font-display font-black text-Alumco-blue">Análisis de Cumplimiento</h2>
-            <p class="text-Alumco-gray/50 font-bold uppercase tracking-wider text-[10px] mt-1">Visualización de progreso y resultados por estamentos</p>
+            <h2 class="admin-page-title">Análisis de Cumplimiento</h2>
+            <p class="admin-page-subtitle">Visualización de progreso y resultados por estamentos</p>
         </div>
     </div>
 </div>
 
 {{-- Filtros --}}
 <div class="mb-8">
-    <form action="{{ route('admin.reportes.index') }}" method="GET" class="filter-card">
+    <form action="{{ route('admin.reportes.index') }}" method="GET" class="filter-card admin-surface p-6">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
             
             {{-- Sedes (Multi) --}}
             <div class="lg:col-span-3 space-y-2">
-                <label class="block text-[11px] font-black text-Alumco-blue/70 uppercase tracking-widest">Sedes</label>
+                <label class="admin-page-eyebrow">Sedes</label>
                 <x-picker-multi name="sede_id" :options="$sedes->pluck('nombre', 'id')->toArray()" :selected="$selectedSedes" placeholder="Todas las sedes" />
             </div>
 
             {{-- Estamentos (Multi) --}}
             <div class="lg:col-span-3 space-y-2">
-                <label class="block text-[11px] font-black text-Alumco-blue/70 uppercase tracking-widest">Estamentos</label>
+                <label class="admin-page-eyebrow">Estamentos</label>
                 <x-picker-multi name="estamento_id" :options="$estamentos->pluck('nombre', 'id')->toArray()" :selected="$selectedEstamentos" placeholder="Todos los estamentos" />
             </div>
 
             {{-- Cursos (Multi) --}}
             <div class="lg:col-span-4 space-y-2">
-                <label class="block text-[11px] font-black text-Alumco-blue/70 uppercase tracking-widest">Cursos Aprobados</label>
+                <label class="admin-page-eyebrow">Cursos Aprobados</label>
                 <x-picker-multi name="curso_id" :options="$cursos->pluck('titulo', 'id')->toArray()" :selected="$selectedCursos" placeholder="Cualquier curso" />
             </div>
 
             {{-- Rango Etario --}}
             <div class="lg:col-span-2 space-y-2" id="age-filter-root">
-                <label class="block text-[11px] font-black text-Alumco-blue/70 uppercase tracking-widest">Rango Etario</label>
+                <label class="admin-page-eyebrow">Rango Etario</label>
                 
                 <div class="pt-2 px-1" id="age-slider-wrapper">
                     <div class="relative h-1 bg-gray-100 rounded-full">
@@ -78,14 +78,14 @@
 
                 <div class="flex items-center gap-4 w-full sm:w-auto">
                     <button type="button" onclick="openExportModal()"
-                        class="bg-Alumco-green hover:bg-Alumco-green-vivid text-Alumco-blue font-display font-bold py-3 px-6 rounded-2xl shadow-lg shadow-Alumco-green/20 flex items-center transition-all active:scale-95 text-sm">
+                        class="admin-action-button admin-action-button--success shadow-lg shadow-Alumco-green/20">
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                         </svg>
                         Exportar Excel
                     </button>
                     
-                    <button type="submit" class="flex-1 sm:flex-none bg-Alumco-blue hover:bg-Alumco-blue/90 text-white font-display font-bold py-3 px-10 rounded-2xl shadow-lg shadow-Alumco-blue/20 transition-all active:scale-95">
+                    <button type="submit" class="flex-1 sm:flex-none admin-action-button admin-action-button--primary px-10 shadow-lg shadow-Alumco-blue/20">
                         Aplicar Filtros
                     </button>
                 </div>
@@ -103,7 +103,7 @@
 </div>
 
 <!-- Tabla Card-Style -->
-<div class="bg-white rounded-[24px] shadow-sm border border-gray-100">
+<div class="admin-surface overflow-hidden">
     <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse">
             <thead>

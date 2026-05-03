@@ -6,21 +6,21 @@
 @section('content')
 <div class="max-w-4xl mx-auto">
     <div class="mb-8">
-        <h2 class="text-3xl font-display font-black text-Alumco-blue">Mi Perfil</h2>
-        <p class="text-Alumco-gray/50 font-bold uppercase tracking-wider text-[10px] mt-1">Información de tu cuenta administrativa</p>
+        <h2 class="admin-page-title">Mi Perfil</h2>
+        <p class="admin-page-subtitle">Información de tu cuenta administrativa</p>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <!-- Columna Izquierda: Avatar y Rol -->
         <div class="lg:col-span-1">
-            <div class="bg-white rounded-[24px] p-8 shadow-sm border border-gray-100 text-center">
+            <div class="admin-surface p-8 text-center">
                 @php
                     $initials = collect(explode(' ', trim($user->name)))
                         ->map(fn($w) => strtoupper($w[0] ?? ''))
                         ->take(2)
                         ->join('');
                 @endphp
-                <div class="w-24 h-24 rounded-full bg-Alumco-blue/5 text-Alumco-blue flex items-center justify-center mx-auto mb-6">
+                <div class="w-24 h-24 rounded-full bg-Alumco-blue/5 text-Alumco-blue flex items-center justify-center mx-auto mb-6 shadow-sm">
                     <span class="font-display font-black text-3xl">{{ $initials }}</span>
                 </div>
 
@@ -35,9 +35,9 @@
 
         <!-- Columna Derecha: Detalles -->
         <div class="lg:col-span-2">
-            <div class="bg-white rounded-[24px] shadow-sm border border-gray-100 overflow-hidden">
+            <div class="admin-surface overflow-hidden">
                 <div class="px-8 py-6 border-b border-gray-50 bg-gray-50/30">
-                    <h4 class="text-xs font-display font-black uppercase tracking-[0.2em] text-Alumco-blue/40">Datos Personales</h4>
+                    <h4 class="admin-page-eyebrow">Datos Personales</h4>
                 </div>
                 
                 <div class="p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -67,7 +67,7 @@
                 </div>
 
                 <div class="px-8 py-6 border-b border-t border-gray-50 bg-gray-50/30">
-                    <h4 class="text-xs font-display font-black uppercase tracking-[0.2em] text-Alumco-blue/40">Organización</h4>
+                    <h4 class="admin-page-eyebrow">Organización</h4>
                 </div>
 
                 <div class="p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -95,7 +95,7 @@
                 </div>
             </div>
 
-            <div class="mt-8 rounded-[24px] bg-white p-6 shadow-sm border border-gray-100">
+            <div class="mt-8 admin-surface p-6">
                 <x-accessibility-preferences title="Preferencias de accesibilidad" description="Son las mismas opciones del botón Opciones" />
             </div>
         </div>

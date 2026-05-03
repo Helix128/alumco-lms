@@ -6,6 +6,7 @@
 <!DOCTYPE html>
 <html lang="es"
       style="scrollbar-gutter: stable; --font-base: {{ $accessibilityFontSize }}px;"
+      data-font="{{ $accessibilityPreferences['fontLevel'] }}"
       data-contrast="{{ $accessibilityPreferences['highContrast'] ? 'high' : 'default' }}"
       data-motion="{{ $accessibilityPreferences['reducedMotion'] ? 'reduced' : 'default' }}">
 <head>

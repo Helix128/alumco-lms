@@ -9,7 +9,6 @@
     <div class="accessibility-toggle flex-col !items-stretch gap-3">
         <div>
             <p class="accessibility-toggle-title">Tamaño de texto</p>
-            <p class="accessibility-toggle-help">Actual: {{ $this->fontLabel() }}</p>
         </div>
         <div class="grid grid-cols-3 gap-1 bg-gray-100 p-1 rounded-2xl">
             <button type="button"

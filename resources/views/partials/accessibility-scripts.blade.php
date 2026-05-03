@@ -27,6 +27,7 @@
                 preferences = normalize(preferences);
 
                 document.documentElement.style.setProperty('--font-base', levels[preferences.fontLevel] + 'px');
+                document.documentElement.dataset.font = String(preferences.fontLevel);
                 document.documentElement.dataset.contrast = preferences.highContrast ? 'high' : 'default';
                 document.documentElement.dataset.motion = preferences.reducedMotion ? 'reduced' : 'default';
                 delete document.documentElement.dataset.background;

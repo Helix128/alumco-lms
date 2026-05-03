@@ -64,12 +64,12 @@
     <div class="grid">
         {{-- Contenido Pestaña: Disponibles --}}
         <div x-show="tab === 'disponibles'" 
-             x-transition:enter="transition ease-out duration-150 delay-150" 
-             x-transition:enter-start="opacity-0" 
-             x-transition:enter-end="opacity-100"
-             x-transition:leave="transition ease-in duration-150"
-             x-transition:leave-start="opacity-100"
-             x-transition:leave-end="opacity-0"
+             x-transition:enter="transition ease-out duration-300 delay-150" 
+             x-transition:enter-start="opacity-0 translate-y-4" 
+             x-transition:enter-end="opacity-100 translate-y-0"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100 translate-y-0"
+             x-transition:leave-end="opacity-0 -translate-y-4"
              class="[grid-area:1/1] space-y-12">
             @if($vigentes->isNotEmpty())
                 <section>
@@ -220,12 +220,12 @@
 
         {{-- Contenido Pestaña: Historial --}}
         <div x-cloak x-show="tab === 'historial'" 
-             x-transition:enter="transition ease-out duration-150 delay-150" 
-             x-transition:enter-start="opacity-0" 
-             x-transition:enter-end="opacity-100"
-             x-transition:leave="transition ease-in duration-150"
-             x-transition:leave-start="opacity-100"
-             x-transition:leave-end="opacity-0"
+             x-transition:enter="transition ease-out duration-300 delay-150" 
+             x-transition:enter-start="opacity-0 translate-y-4" 
+             x-transition:enter-end="opacity-100 translate-y-0"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100 translate-y-0"
+             x-transition:leave-end="opacity-0 -translate-y-4"
              class="[grid-area:1/1] space-y-12">
             <section>
                 <div class="mb-5 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
