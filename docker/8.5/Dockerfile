@@ -8,11 +8,6 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=UTC
 ENV LANG=C.UTF-8
 
-# --- PARCHE DE ENRUTAMIENTO (ESPEJO LOCAL CHILE) ---
-# Fuerza el uso del servidor chileno para menor latencia.
-RUN sed -i 's/archive.ubuntu.com/cl.archive.ubuntu.com/g' /etc/apt/sources.list.d/ubuntu.sources
-# ---------------------------------------------------
-
 # --- RESTRICCIÓN DE RED PARA APT ---
 # Se añade Queue-Mode "access" para forzar descargas secuenciales (un hilo a la vez)
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
