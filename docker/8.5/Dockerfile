@@ -52,9 +52,11 @@ RUN apt-get update \
 
 RUN setcap "cap_net_bind_service=+ep" /usr/bin/php8.5
 
+# --- SECCIÓN DE RESCATE DE USUARIO ---
 RUN touch /var/mail/ubuntu && chown ubuntu /var/mail/ubuntu && userdel -r ubuntu ; \
     groupadd --force -g $WWWGROUP sail && \
     useradd -ms /bin/bash --no-user-group -g $WWWGROUP -u $WWWUSER sail
+# -------------------------------------
 
 RUN git config --global --add safe.directory /var/www/html
 
