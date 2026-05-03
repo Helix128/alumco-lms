@@ -8,14 +8,16 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=UTC
 ENV LANG=C.UTF-8
 
-# --- PARCHE DE ENRUTAMIENTO (ESPEJOS US) ---
-# Fuerza el uso de los servidores de EE.UU. para evitar cortes de conexión 
-# o cuellos de botella con los espejos locales de Ubuntu.
-RUN sed -i 's/archive.ubuntu.com/us.archive.ubuntu.com/g' /etc/apt/sources.list.d/ubuntu.sources
-# -------------------------------------------
+# --- PARCHE DE ENRUTAMIENTO (ESPEJO LOCAL CHILE) ---
+# Fuerza el uso del servidor chileno para menor latencia.
+RUN sed -i 's/archive.ubuntu.com/cl.archive.ubuntu.com/g' /etc/apt/sources.list.d/ubuntu.sources
+# ---------------------------------------------------
 
+# --- RESTRICCIÓN DE RED PARA APT ---
+# Se añade Queue-Mode "access" para forzar descargas secuenciales (un hilo a la vez)
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 RUN echo "Acquire::http::Pipeline-Depth 0;" > /etc/apt/apt.conf.d/99custom && \
+    echo "Acquire::Queue-Mode \"access\";" >> /etc/apt/apt.conf.d/99custom && \
     echo "Acquire::http::No-Cache true;" >> /etc/apt/apt.conf.d/99custom && \
     echo "Acquire::BrokenProxy     true;" >> /etc/apt/apt.conf.d/99custom && \
     echo "Acquire::Retries \"5\";" >> /etc/apt/apt.conf.d/99custom && \
