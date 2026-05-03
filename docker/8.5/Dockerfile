@@ -8,57 +8,27 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=UTC
 ENV LANG=C.UTF-8
 
-# =========================================================
-# INFRAESTRUCTURA DE RED Y ALTA DISPONIBILIDAD
-# =========================================================
-
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
-
-# 1. Configuración de APT conservadora y forzado de IPv4
 RUN echo "Acquire::http::Pipeline-Depth 0;" > /etc/apt/apt.conf.d/99custom && \
     echo "Acquire::http::No-Cache true;" >> /etc/apt/apt.conf.d/99custom && \
-    echo "Acquire::BrokenProxy     true;" >> /etc/apt/apt.conf.d/99custom && \
-    echo "Acquire::Retries \"5\";" >> /etc/apt/apt.conf.d/99custom && \
-    echo "Acquire::http::Timeout \"5\";" >> /etc/apt/apt.conf.d/99custom && \
-    echo "Acquire::https::Timeout \"5\";" >> /etc/apt/apt.conf.d/99custom && \
-    echo "Acquire::ForceIPv4 \"true\";" >> /etc/apt/apt.conf.d/99custom
+    echo "Acquire::BrokenProxy     true;" >> /etc/apt/apt.conf.d/99custom
 
-# 2. Estrategia Multiespejo para Ubuntu 24.04 (Noble)
-# Usamos Kernel.org (CDN Global) como principal, y el oficial como respaldo
-RUN printf "Types: deb\n\
-URIs: http://mirrors.kernel.org/ubuntu/ http://archive.ubuntu.com/ubuntu/\n\
-Suites: noble noble-updates noble-backports\n\
-Components: main restricted universe multiverse\n\
-Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg\n\
-\n\
-Types: deb\n\
-URIs: http://mirrors.kernel.org/ubuntu/ http://security.ubuntu.com/ubuntu/\n\
-Suites: noble-security\n\
-Components: main restricted universe multiverse\n\
-Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg\n" > /etc/apt/sources.list.d/ubuntu.sources
-
-# =========================================================
-# BLOQUES DE CONSTRUCCIÓN
-# =========================================================
-
-# BLOQUE 1: Dependencias base (Sin upgrade -y para mayor estabilidad)
-RUN apt-get update \
+RUN apt-get update && apt-get upgrade -y \
     && mkdir -p /etc/apt/keyrings \
-    && apt-get install -y --no-install-recommends gnupg gosu curl ca-certificates zip unzip git sqlite3 libcap2-bin libpng-dev python3 dnsutils librsvg2-bin fswatch ffmpeg nano \
+    && apt-get install -y gnupg gosu curl ca-certificates zip unzip git sqlite3 libcap2-bin libpng-dev python3 dnsutils librsvg2-bin fswatch ffmpeg nano \
     && curl -sS 'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xb8dc7e53946656efbce4c1dd71daeaab4ad4cab6' | gpg --dearmor | tee /etc/apt/keyrings/ppa_ondrej_php.gpg > /dev/null \
     && echo "deb [signed-by=/etc/apt/keyrings/ppa_ondrej_php.gpg] https://ppa.launchpadcontent.net/ondrej/php/ubuntu noble main" > /etc/apt/sources.list.d/ppa_ondrej_php.list \
     && apt-get update \
-    && apt-get install -y --no-install-recommends libgd3 php8.5-cli php8.5-dev php8.5-pgsql php8.5-sqlite3 php8.5-gd php8.5-curl php8.5-mongodb php8.5-imap php8.5-mysql php8.5-mbstring php8.5-xml php8.5-zip php8.5-bcmath php8.5-soap php8.5-intl php8.5-readline php8.5-ldap php8.5-msgpack php8.5-igbinary php8.5-redis php8.5-memcached php8.5-pcov php8.5-imagick \
+    && apt-get install -y libgd3 php8.5-cli php8.5-dev php8.5-pgsql php8.5-sqlite3 php8.5-gd php8.5-curl php8.5-mongodb php8.5-imap php8.5-mysql php8.5-mbstring php8.5-xml php8.5-zip php8.5-bcmath php8.5-soap php8.5-intl php8.5-readline php8.5-ldap php8.5-msgpack php8.5-igbinary php8.5-redis php8.5-memcached php8.5-pcov php8.5-imagick \
     && curl -sLS https://getcomposer.org/installer | php -- --install-dir=/usr/bin/ --filename=composer \
     && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 FROM base AS frontend-builder
 ARG NODE_VERSION=24
 COPY . /var/www/html
-# BLOQUE 2: Frontend Builder
-RUN curl -fsSL --retry 3 --retry-delay 2 --connect-timeout 10 https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
+RUN curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
     && echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_VERSION.x nodistro main" > /etc/apt/sources.list.d/nodesource.list \
-    && apt-get update && apt-get install -y --no-install-recommends nodejs \
+    && apt-get update && apt-get install -y nodejs \
     && npm install && npm run build
 
 FROM base AS development
@@ -72,12 +42,11 @@ ENV SUPERVISOR_PHP_COMMAND="/usr/bin/php -d variables_order=EGPCS /var/www/html/
 ENV SUPERVISOR_PHP_USER="sail"
 ENV PLAYWRIGHT_BROWSERS_PATH=0
 
-# BLOQUE 3: Development
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends php8.5-xdebug supervisor $MYSQL_CLIENT postgresql-client-$POSTGRES_VERSION \
-    && curl -fsSL --retry 3 --retry-delay 2 --connect-timeout 10 https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
+    && apt-get install -y php8.5-xdebug supervisor supervisor $MYSQL_CLIENT postgresql-client-$POSTGRES_VERSION \
+    && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
     && echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_VERSION.x nodistro main" > /etc/apt/sources.list.d/nodesource.list \
-    && apt-get update && apt-get install -y --no-install-recommends nodejs \
+    && apt-get update && apt-get install -y nodejs \
     && npm install -g npm pnpm bun && npx playwright install-deps && corepack enable && corepack prepare yarn@stable --activate \
     && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
@@ -103,22 +72,16 @@ FROM base AS production
 ENV APP_ENV=production
 ENV APP_DEBUG=false
 
-# BLOQUE 4: Producción
-RUN apt-get update && apt-get install -y --no-install-recommends php8.5-fpm \
+RUN apt-get update && apt-get install -y php8.5-fpm \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -p /run/php && \
     sed -i 's/listen = \/run\/php\/php8.5-fpm.sock/listen = 0.0.0.0:9000/' /etc/php/8.5/fpm/pool.d/www.conf
 
-# --- OPTIMIZACIÓN ESTRATÉGICA DE COMPOSER ---
-# Separar los archivos de dependencias ancla la caché de Docker.
-COPY composer.json composer.lock* /var/www/html/
-RUN composer install --no-interaction --prefer-dist --no-scripts --no-autoloader --no-dev
-
 COPY . /var/www/html
 COPY --from=frontend-builder /var/www/html/public/build /var/www/html/public/build
 
-RUN composer dump-autoload --optimize
+RUN composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
 
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
