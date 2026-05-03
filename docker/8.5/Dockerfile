@@ -34,9 +34,9 @@ RUN echo "Acquire::http::Pipeline-Depth 0;" > /etc/apt/apt.conf.d/99custom && \
     echo "Acquire::Queue-Mode \"access\";" >> /etc/apt/apt.conf.d/99custom && \
     echo "Acquire::http::No-Cache true;" >> /etc/apt/apt.conf.d/99custom && \
     echo "Acquire::BrokenProxy     true;" >> /etc/apt/apt.conf.d/99custom && \
-    echo "Acquire::Retries \"10\";" >> /etc/apt/apt.conf.d/99custom && \
-    echo "Acquire::http::Timeout \"5\";" >> /etc/apt/apt.conf.d/99custom && \
-    echo "Acquire::https::Timeout \"5\";" >> /etc/apt/apt.conf.d/99custom && \
+    echo "Acquire::Retries \"3\";" >> /etc/apt/apt.conf.d/99custom && \
+    echo "Acquire::http::Timeout \"3\";" >> /etc/apt/apt.conf.d/99custom && \
+    echo "Acquire::https::Timeout \"3\";" >> /etc/apt/apt.conf.d/99custom && \
     echo "Acquire::ForceIPv4 \"true\";" >> /etc/apt/apt.conf.d/99custom
 
 # =========================================================
