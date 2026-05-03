@@ -8,6 +8,12 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=UTC
 ENV LANG=C.UTF-8
 
+# --- PARCHE DE ENRUTAMIENTO (ESPEJOS US) ---
+# Fuerza el uso de los servidores de EE.UU. para evitar cortes de conexión 
+# o cuellos de botella con los espejos locales de Ubuntu.
+RUN sed -i 's/archive.ubuntu.com/us.archive.ubuntu.com/g' /etc/apt/sources.list.d/ubuntu.sources
+# -------------------------------------------
+
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 RUN echo "Acquire::http::Pipeline-Depth 0;" > /etc/apt/apt.conf.d/99custom && \
     echo "Acquire::http::No-Cache true;" >> /etc/apt/apt.conf.d/99custom && \
