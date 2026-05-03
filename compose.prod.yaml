@@ -12,7 +12,9 @@ services:
             APP_KEY: '${APP_KEY}'
             QUEUE_CONNECTION: '${QUEUE_CONNECTION:-redis}'
             CACHE_STORE: '${CACHE_STORE:-redis}'
-            RUN_LARAVEL_OPTIMIZE: 'true'
+            APP_MAINTENANCE_DRIVER: cache
+            APP_MAINTENANCE_STORE: redis
+            RUN_LARAVEL_OPTIMIZE: 'false'
             RUN_MIGRATIONS: '${RUN_MIGRATIONS:-false}'
             DB_CONNECTION: mysql
             DB_HOST: mysql
@@ -47,6 +49,8 @@ services:
             APP_KEY: '${APP_KEY}'
             QUEUE_CONNECTION: '${QUEUE_CONNECTION:-redis}'
             CACHE_STORE: '${CACHE_STORE:-redis}'
+            APP_MAINTENANCE_DRIVER: cache
+            APP_MAINTENANCE_STORE: redis
             RUN_LARAVEL_OPTIMIZE: 'false'
             RUN_MIGRATIONS: 'false'
             DB_CONNECTION: mysql
@@ -86,6 +90,8 @@ services:
             APP_KEY: '${APP_KEY}'
             QUEUE_CONNECTION: '${QUEUE_CONNECTION:-redis}'
             CACHE_STORE: '${CACHE_STORE:-redis}'
+            APP_MAINTENANCE_DRIVER: cache
+            APP_MAINTENANCE_STORE: redis
             RUN_LARAVEL_OPTIMIZE: 'false'
             RUN_MIGRATIONS: 'false'
             DB_CONNECTION: mysql

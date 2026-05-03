@@ -1,63 +1,208 @@
 #!/bin/bash
+set -euo pipefail
 
-# Configuración
 SAIL="./vendor/bin/sail"
-DOCKER_PROD="docker compose -f compose.prod.yaml"
+DOCKER_PROD=(sudo docker compose -f compose.prod.yaml)
 
-cmd=$1
-shift
+cmd="${1:-help}"
+if [ "$#" -gt 0 ]; then
+    shift
+fi
 
-case $cmd in
+prod_artisan() {
+    "${DOCKER_PROD[@]}" exec app php artisan "$@"
+}
+
+prod_preflight() {
+    local missing=0
+
+    for file in .env compose.prod.yaml docker/8.4-trixie/Dockerfile docker/8.4-trixie/entrypoint.sh; do
+        if [ ! -f "$file" ]; then
+            echo "Falta $file"
+            missing=1
+        fi
+    done
+
+    for binary in curl docker git sudo; do
+        if ! command -v "$binary" >/dev/null 2>&1; then
+            echo "$binary no esta disponible en PATH."
+            missing=1
+        fi
+    done
+
+    if [ "$missing" -ne 0 ]; then
+        exit 1
+    fi
+
+    "${DOCKER_PROD[@]}" config >/dev/null
+}
+
+prod_build() {
+    echo "Compilando imagenes de produccion..."
+    "${DOCKER_PROD[@]}" build "$@" app web
+}
+
+prod_up() {
+    echo "Iniciando contenedores de produccion..."
+    "${DOCKER_PROD[@]}" up -d
+}
+
+prod_down() {
+    echo "Apagando contenedores de produccion..."
+    "${DOCKER_PROD[@]}" down
+}
+
+prod_migrate() {
+    echo "Ejecutando migraciones..."
+    prod_artisan migrate --force
+}
+
+prod_optimize() {
+    echo "Optimizando caches de Laravel..."
+    prod_artisan optimize
+}
+
+prod_reload() {
+    echo "Recargando procesos persistentes..."
+    if ! prod_artisan reload; then
+        prod_artisan queue:restart
+    fi
+}
+
+prod_health() {
+    local port_output
+    local host_port
+
+    port_output="$("${DOCKER_PROD[@]}" port web 80)"
+    host_port="${port_output##*:}"
+
+    if [ -z "$host_port" ]; then
+        echo "No se pudo resolver el puerto publicado del servicio web."
+        exit 1
+    fi
+
+    echo "Verificando http://127.0.0.1:${host_port}/up ..."
+    curl --fail --silent --show-error "http://127.0.0.1:${host_port}/up" >/dev/null
+    echo "Health check OK."
+}
+
+prod_deploy() {
+    prod_preflight
+
+    echo "Obteniendo cambios desde main..."
+    git pull origin main
+
+    prod_build "$@"
+
+    echo "Poniendo la aplicacion en mantenimiento..."
+    prod_artisan down --render="errors::503" || true
+
+    prod_up
+    prod_migrate
+    prod_optimize
+    prod_reload
+
+    echo "Levantando la aplicacion..."
+    prod_artisan up || true
+
+    prod_health
+
+    echo "Despliegue completado con exito."
+}
+
+prod_clean() {
+    echo "Limpiando imagenes huerfanas..."
+    sudo docker image prune -f
+}
+
+show_help() {
+    printf "Uso: ./lms [comando] [argumentos]\n\n"
+    printf "%-15s %s\n" "DEV:" ""
+    printf "  %-15s %s\n" "dev-start" "inicia sail"
+    printf "  %-15s %s\n" "dev-rebuild" "reconstruye sail sin cache"
+    printf "  %-15s %s\n" "dev-stop" "apaga sail"
+    printf "\n%-15s %s\n" "PROD:" ""
+    printf "  %-15s %s\n" "prod-deploy" "pull, build, migrate, optimize, reload y health check"
+    printf "  %-15s %s\n" "prod-build" "compila imagenes app/web; acepta --no-cache"
+    printf "  %-15s %s\n" "prod-up" "levanta contenedores"
+    printf "  %-15s %s\n" "prod-down" "baja contenedores"
+    printf "  %-15s %s\n" "prod-migrate" "ejecuta migraciones"
+    printf "  %-15s %s\n" "prod-optimize" "regenera caches de Laravel"
+    printf "  %-15s %s\n" "prod-reload" "recarga workers y servicios persistentes"
+    printf "  %-15s %s\n" "prod-health" "valida /up"
+    printf "  %-15s %s\n" "prod-clean" "libera imagenes huerfanas"
+    printf "  %-15s %s\n" "prod-artisan" "php artisan (ej: migrate:status)"
+    printf "  %-15s %s\n" "prod-exec" "comando libre en un servicio"
+}
+
+case "$cmd" in
     dev-start)
         echo "Iniciando server dev..."
         $SAIL up -d
         ;;
     dev-rebuild)
-        echo "Reconstruyendo imágenes de dev (sin cache)..."
+        echo "Reconstruyendo imagenes de dev sin cache..."
         $SAIL build --no-cache
         ;;
     dev-stop)
         echo "Apagando server dev..."
         $SAIL stop
         ;;
+    prod-deploy)
+        prod_deploy "$@"
+        ;;
     prod-build)
-        echo "Compilando imagen prod..."
-        $DOCKER_PROD build
+        prod_preflight
+        prod_build "$@"
         ;;
-    prod-start)
-        echo "Iniciando server prod..."
-        $DOCKER_PROD up -d
+    prod-up | prod-start)
+        prod_preflight
+        prod_up
         ;;
-    prod-stop)
-        echo "Apagando server prod..."
-        $DOCKER_PROD down
+    prod-down | prod-stop)
+        prod_preflight
+        prod_down
+        ;;
+    prod-migrate)
+        prod_preflight
+        prod_migrate
+        ;;
+    prod-optimize)
+        prod_preflight
+        prod_optimize
+        ;;
+    prod-reload)
+        prod_preflight
+        prod_reload
+        ;;
+    prod-health)
+        prod_preflight
+        prod_health
         ;;
     prod-clean)
-        echo "Limpiando imagenes huerfanas..."
-        docker image prune -f
+        prod_clean
         ;;
     prod-artisan)
-        echo "Ejecutando artisan en prod..."
-        $DOCKER_PROD exec app php artisan "$@"
+        prod_preflight
+        echo "Ejecutando artisan en produccion..."
+        prod_artisan "$@"
         ;;
     prod-exec)
-        servicio=$1
+        prod_preflight
+        service="${1:-}"
+        if [ -z "$service" ]; then
+            echo "Debes indicar el servicio."
+            exit 1
+        fi
         shift
-        echo "Ejecutando comando en $servicio..."
-        $DOCKER_PROD exec "$servicio" "$@"
+        echo "Ejecutando comando en $service..."
+        "${DOCKER_PROD[@]}" exec "$service" "$@"
+        ;;
+    help | --help | -h)
+        show_help
         ;;
     *)
-        printf "Uso: ./lms [comando] [argumentos]\n\n"
-        printf "%-15s %s\n" "DEV:" ""
-        printf "  %-13s %s\n" "dev-start" "inicia sail"
-        printf "  %-13s %s\n" "dev-rebuild" "reconstruye sail sin cache"
-        printf "  %-13s %s\n" "dev-stop" "apaga sail"
-        printf "\n%-15s %s\n" "PROD:" ""
-        printf "  %-13s %s\n" "prod-build" "compila imagen"
-        printf "  %-13s %s\n" "prod-start" "levanta contenedores"
-        printf "  %-13s %s\n" "prod-stop" "baja contenedores"
-        printf "  %-13s %s\n" "prod-clean" "libera espacio"
-        printf "  %-13s %s\n" "prod-artisan" "php artisan (ej: migrate)"
-        printf "  %-13s %s\n" "prod-exec" "comando libre (ej: mysql bash)"
+        show_help
+        exit 1
         ;;
 esac
