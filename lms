@@ -56,12 +56,13 @@ prod_health() {
     local port_output=""
     local host_port=""
     local attempt
-    local max_attempts=4
+    local max_attempts=5
     local sleep_time=0.5
 
     echo "Obteniendo puerto del servicio web..."
     for attempt in $(seq 1 10); do
-        port_output="$("${DOCKER_PROD[@]}" port web 80 2>/dev/null)" || port_output=""
+        # Timeout de 5s para el comando docker port por si docker daemon no responde
+        port_output=$(timeout 5 "${DOCKER_PROD[@]}" port web 80 2>/dev/null) || port_output=""
         host_port="${port_output##*:}"
         if [ -n "$host_port" ]; then
             break
@@ -90,7 +91,9 @@ prod_health() {
     done
 
     echo "ERROR: El health check falló después de $max_attempts intentos."
-    curl --fail --show-error "$url"
+    echo "Detalle del error final:"
+    curl --fail --show-error --connect-timeout 5 --max-time 5 "$url" || true
+    exit 1
 }
 
 prod_deploy() {
