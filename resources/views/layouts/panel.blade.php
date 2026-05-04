@@ -44,7 +44,10 @@
         }
 
         .sidebar-transition {
-            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1), margin-left 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        [data-motion="reduced"] .sidebar-transition {
+            transition: none !important;
         }
 
         .nav-item-active {
@@ -96,15 +99,26 @@
     @stack('styles')
 </head>
 
-<body class="admin-shell font-sans text-Alumco-gray h-screen flex flex-col overflow-hidden antialiased">
+<body class="admin-shell font-sans text-Alumco-gray h-screen flex flex-col overflow-hidden antialiased"
+      x-data="{ sidebarOpen: true, toggleSidebar() { this.sidebarOpen = !this.sidebarOpen; } }">
     @persist('admin-nav-progress')
         <div class="nav-progress-bar" data-nav-progress data-active="false" aria-hidden="true"></div>
     @endpersist
 
     <!-- Topbar -->
     @persist('admin-topbar')
-    <header class="admin-topbar admin-topbar-persistent border-b border-white/10 px-6 py-3 flex items-center justify-between z-30 shrink-0">
-        <div class="flex items-center gap-8">
+    <header class="admin-topbar admin-topbar-persistent border-b border-white/10 px-6 py-3 flex items-center justify-between z-[80] shrink-0">
+        <div class="flex items-center gap-4">
+            <button
+                @click="toggleSidebar()"
+                :aria-label="sidebarOpen ? 'Ocultar menú lateral' : 'Mostrar menú lateral'"
+                :aria-expanded="sidebarOpen"
+                class="worker-focus admin-topbar-action"
+            >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+            </button>
             <div class="flex items-center">
                 <a href="{{ route('capacitador.dashboard') }}" wire:navigate.hover class="flex items-center text-white">
                     <x-logo-alumco class="h-8 w-auto" width="120" height="32" />
@@ -163,14 +177,14 @@
     </header>
     @endpersist
 
-    <div class="flex-1 flex overflow-hidden" x-data="{ sidebarOpen: true }">
-        
+    <div class="flex-1 flex overflow-hidden">
+
         <!-- Expandable Sidebar -->
-        <aside id="sidebar" 
-               class="admin-sidebar sidebar-transition bg-Alumco-blue flex flex-col z-20 shrink-0 overflow-hidden"
-               :class="sidebarOpen ? 'w-72' : 'w-20'">
+        <aside id="sidebar"
+               class="admin-sidebar sidebar-transition bg-Alumco-blue flex flex-col z-[70] shrink-0 overflow-hidden w-72"
+               :style="sidebarOpen ? '' : 'transform: translateX(-100%); margin-left: -18rem'">
             
-            <div class="flex-1 py-5 px-2 flex flex-col gap-1.5 overflow-y-auto custom-scrollbar border-r border-white/10">
+            <div class="flex-1 py-5 px-2 flex flex-col gap-1.5 overflow-y-auto custom-scrollbar border-r border-white/10 min-w-[18rem]">
                 
                 @if(session('preview_mode'))
                     {{-- Opciones de Trabajador en Vista Previa --}}
@@ -280,7 +294,7 @@
             </div>
 
             <!-- Footer Sidebar: Cerrar sesión -->
-            <div class="p-3 border-t border-white/10">
+            <div class="p-3 border-t border-white/10 min-w-[18rem]">
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
                     <button type="submit"

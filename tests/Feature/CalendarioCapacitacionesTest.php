@@ -309,7 +309,13 @@ class CalendarioCapacitacionesTest extends TestCase
         $this->actingAs($admin);
 
         $curso = Curso::factory()->create(['capacitador_id' => $admin->id]);
-        Curso::factory()->create(['capacitador_id' => $admin->id]);
+        $curso = Curso::factory()->create(['capacitador_id' => $admin->id]);
+
+        PlanificacionCurso::create([
+            'curso_id' => $curso->id,
+            'fecha_inicio' => '2026-01-05',
+            'fecha_fin' => '2026-01-11',
+        ]);
 
         PlanificacionCurso::create([
             'curso_id' => $curso->id,
@@ -416,8 +422,8 @@ class CalendarioCapacitacionesTest extends TestCase
             ->assertSee('cursor-pointer', false)
             ->assertSee('cursor-grab', false)
             ->assertSee('startMove', false)
-            ->assertSee('wire:click.stop="editarPlanificacion', false)
-            ->assertDontSee('@click.stop="$wire.editarPlanificacion', false);
+            ->assertSee('wire:click="editarPlanificacion', false)
+            ->assertSee('@click.stop', false);
     }
 
     public function test_annual_grid_uses_click_handlers_without_self_modifier(): void
@@ -481,6 +487,48 @@ class CalendarioCapacitacionesTest extends TestCase
             ->assertSet('fechaInicioPlan', '2026-01-05')
             ->assertSet('fechaFinPlan', '2026-01-25')
             ->assertSet('mostrarModalPlanificacion', true);
+    }
+
+    public function test_admin_can_create_single_week_annual_planification_from_sidebar_drop(): void
+    {
+        $admin = $this->crearAdmin();
+        $this->actingAs($admin);
+
+        $sede = Sede::create(['nombre' => 'Concepción']);
+        $curso = Curso::factory()->create(['capacitador_id' => $admin->id]);
+
+        Livewire::test(CalendarioCapacitaciones::class)
+            ->set('anioActual', 2026)
+            ->call('cambiarVista', 'anual')
+            ->set('modoPlaneacion', true)
+            ->call('guardarPlanificacionRapidaAnualDesdeSidebar', $curso->id, 4, $sede->id);
+
+        $this->assertDatabaseHas('planificaciones_cursos', [
+            'curso_id' => $curso->id,
+            'sede_id' => $sede->id,
+            'fecha_inicio' => '2026-01-19',
+            'fecha_fin' => '2026-01-25',
+        ]);
+    }
+
+    public function test_annual_drag_and_action_controls_use_livewire_responsive_hooks(): void
+    {
+        $admin = $this->crearAdmin();
+        $this->actingAs($admin);
+
+        Curso::factory()->create(['capacitador_id' => $admin->id]);
+
+        Livewire::test(CalendarioCapacitaciones::class)
+            ->set('anioActual', 2026)
+            ->call('cambiarVista', 'anual')
+            ->set('modoPlaneacion', true)
+            ->call('precalentarCalendario', 'siguiente')
+            ->assertSee('@drop.prevent="dropCourseOnCell', false)
+            ->assertSee('@dragover.prevent="enterCourseCell', false)
+            ->assertSee("preheat('siguiente')", false)
+            ->assertSee('planning-action', false)
+            ->assertSee('data-loading', false)
+            ->assertSee('motion-reduce:transition-none', false);
     }
 
     public function test_admin_can_move_planificacion_between_weeks_and_sedes(): void

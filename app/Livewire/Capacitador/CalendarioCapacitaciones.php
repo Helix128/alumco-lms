@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Livewire\Attributes\Renderless;
 use Livewire\Component;
 
 class CalendarioCapacitaciones extends Component
@@ -328,6 +329,57 @@ class CalendarioCapacitaciones extends Component
         $this->invalidateCalendarCaches();
         $this->cerrarModal();
         $this->cargarDatos();
+    }
+
+    public function guardarPlanificacionRapidaAnualDesdeSidebar(int $cursoId, int $semana, $sedeId = null): void
+    {
+        abort_unless(Auth::user()->hasAdminAccess(), 403);
+        abort_unless($this->modoPlaneacion, 403);
+
+        $total = count($this->semanasDelAnio);
+        if ($total === 0) {
+            $this->cargarDatosAnuales();
+            $total = count($this->semanasDelAnio);
+        }
+
+        $semana = max(1, min($semana, $total));
+        $semanas = $this->semanasDelAnio;
+        $semanaDestino = $semanas[$semana - 1] ?? null;
+
+        if (! $semanaDestino) {
+            return;
+        }
+
+        PlanificacionCurso::create([
+            'curso_id' => $cursoId,
+            'sede_id' => $sedeId ? (int) $sedeId : null,
+            'fecha_inicio' => $semanaDestino['inicio'],
+            'fecha_fin' => $semanaDestino['fin'],
+            'notas' => null,
+        ]);
+
+        $this->invalidateCalendarCaches();
+        $this->cursoId = null;
+        $this->sedeIdPlan = null;
+        $this->cargarDatos();
+        $this->cargarCursosDisponibles();
+    }
+
+    #[Renderless]
+    public function precalentarCalendario(string $objetivo = 'actual'): void
+    {
+        $anio = match ($objetivo) {
+            'anterior' => $this->anioActual - 1,
+            'siguiente' => $this->anioActual + 1,
+            'hoy' => Carbon::now()->year,
+            default => $this->anioActual,
+        };
+
+        $inicio = Carbon::create($anio, 1, 1)->startOfDay();
+        $fin = Carbon::create($anio, 12, 31)->endOfDay();
+
+        $this->obtenerPlanificaciones($inicio, $fin);
+        $this->precalentarCursosDisponibles($anio, $this->mesActual, 'anual');
     }
 
     public function updatedSemanaInicioPlan(): void
@@ -762,26 +814,41 @@ class CalendarioCapacitaciones extends Component
 
     private function cargarCursosDisponibles(): void
     {
+        ['todos' => $todos, 'planificados' => $planificadosIds] = $this->precalentarCursosDisponibles(
+            $this->anioActual,
+            $this->mesActual,
+            $this->modoVista
+        );
+
+        $this->cursosDisponibles = $todos;
+        $this->cursosSinPlanificar = collect($todos)
+            ->filter(fn ($curso) => ! in_array($curso['id'], $planificadosIds, true))
+            ->values()
+            ->all();
+    }
+
+    private function precalentarCursosDisponibles(int $anio, int $mes, string $modoVista): array
+    {
         $user = Auth::user();
         $cacheKey = $this->calendarCacheKey(
             'cursos_disponibles',
             [
-                'vista' => $this->modoVista,
-                'anio' => $this->anioActual,
-                'mes' => $this->mesActual,
+                'vista' => $modoVista,
+                'anio' => $anio,
+                'mes' => $mes,
                 'user' => $user->id,
                 'admin' => (int) $user->hasAdminAccess(),
                 'capacitador' => (int) $user->isCapacitador(),
             ]
         );
 
-        ['todos' => $todos, 'planificados' => $planificadosIds] = Cache::flexible(
+        return Cache::flexible(
             $cacheKey,
             [30, 120],
-            function () use ($user): array {
-                if ($this->modoVista === 'anual') {
-                    $inicioAnio = Carbon::create($this->anioActual, 1, 1)->startOfDay();
-                    $finAnio = Carbon::create($this->anioActual, 12, 31)->endOfDay();
+            function () use ($anio, $mes, $modoVista, $user): array {
+                if ($modoVista === 'anual') {
+                    $inicioAnio = Carbon::create($anio, 1, 1)->startOfDay();
+                    $finAnio = Carbon::create($anio, 12, 31)->endOfDay();
 
                     $planificadosIds = PlanificacionCurso::where('fecha_inicio', '<=', $finAnio)
                         ->where('fecha_fin', '>=', $inicioAnio)
@@ -789,7 +856,7 @@ class CalendarioCapacitaciones extends Component
                         ->unique()
                         ->all();
                 } else {
-                    $primerDia = Carbon::createFromDate($this->anioActual, $this->mesActual, 1)->startOfDay();
+                    $primerDia = Carbon::createFromDate($anio, $mes, 1)->startOfDay();
                     $ultimoDia = $primerDia->copy()->endOfMonth()->startOfDay();
 
                     $planificadosIds = PlanificacionCurso::where('fecha_inicio', '<=', $ultimoDia)
@@ -820,12 +887,6 @@ class CalendarioCapacitaciones extends Component
                 ];
             }
         );
-
-        $this->cursosDisponibles = $todos;
-        $this->cursosSinPlanificar = collect($todos)
-            ->filter(fn ($curso) => ! in_array($curso['id'], $planificadosIds, true))
-            ->values()
-            ->all();
     }
 
     private function obtenerPlanificaciones(Carbon $desde, Carbon $hasta)

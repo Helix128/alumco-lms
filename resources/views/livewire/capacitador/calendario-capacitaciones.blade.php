@@ -7,12 +7,33 @@
     .planning-scroll::-webkit-scrollbar-thumb { background: #dbe3ef; border-radius: 999px; }
     .planning-shell { --planning-week-width: 9rem; }
     .planning-cell { min-width: var(--planning-week-width); }
-    .planning-chip { transition: transform .12s ease, opacity .12s ease, box-shadow .12s ease, filter .12s ease; }
+    .planning-chip { transition: opacity .15s ease, box-shadow .15s ease, filter .15s ease; animation: planning-pop .18s ease-out both; }
+    .planning-action { position: relative; overflow: hidden; transition: transform .15s ease, background-color .15s ease, box-shadow .15s ease, opacity .15s ease, border-color .15s ease; }
+    .planning-action::after { content: ""; position: absolute; inset: auto auto 50% 50%; width: 0; height: 0; border-radius: 999px; background: rgba(0, 86, 179, .10); transform: translate(-50%, 50%); opacity: 0; transition: width .22s ease, height .22s ease, opacity .22s ease; }
+    .planning-action:hover { transform: translateY(-1px); box-shadow: 0 8px 20px -16px rgba(15, 23, 42, .4); }
+    .planning-action:hover::after { width: 120%; height: 120%; opacity: 1; }
+    .planning-action[data-loading] { pointer-events: none; opacity: .55; transform: none; }
+    .planning-cell-active { box-shadow: inset 0 0 0 2px rgba(0, 86, 179, .22); animation: planning-drop-target .7s ease-in-out infinite alternate; }
+    .planning-saving { animation: planning-pulse .9s ease-in-out infinite; }
+    .planning-drop-preview { transition: transform .1s ease, width .1s ease, opacity .1s ease; }
     [data-motion="reduced"] .planning-chip { transition: none !important; }
-    .planning-chip:hover { transform: translateY(-1px); box-shadow: 0 10px 24px -16px rgba(15, 23, 42, .55); }
+    [data-motion="reduced"] .planning-action { transition: none !important; }
+    [data-motion="reduced"] .planning-action:hover { transform: none !important; }
+    .planning-chip:hover { box-shadow: 0 6px 16px -10px rgba(15, 23, 42, .5); }
     .cal-header, .cal-week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
     [x-cloak] { display: none !important; }
     [data-motion="reduced"] .animate-pulse { animation: none !important; }
+    @keyframes planning-pop { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes planning-drop-target { from { background-color: rgba(0, 86, 179, .07); } to { background-color: rgba(0, 86, 179, .14); } }
+    @keyframes planning-pulse { 0%, 100% { filter: saturate(1); } 50% { filter: saturate(1.15) brightness(1.03); } }
+    @keyframes modal-slide-from-right { from { transform: translateX(1.5rem); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    .modal-slide-in { animation: modal-slide-from-right .22s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+    [data-motion="reduced"] .modal-slide-in { animation: none !important; }
+    @media (prefers-reduced-motion: reduce) {
+        .planning-chip, .planning-action, .planning-drop-preview { animation: none !important; transition: none !important; }
+        .planning-chip:hover, .planning-action:hover { transform: none !important; }
+        .planning-action::after { display: none !important; }
+    }
 </style>
 @endpush
 
@@ -38,8 +59,8 @@
             x-show="pointerPreview.show"
             :style="`left: ${pointerPreview.x}px; top: ${pointerPreview.y}px; ${pointerPreview.width ? 'width: ' + pointerPreview.width + 'px;' : ''}`"
             :class="pointerPreview.isOutline
-                ? 'pointer-events-none fixed z-[120] h-9 -translate-y-1/2 rounded-lg border-2 border-dashed border-Alumco-blue bg-Alumco-blue/10 shadow-sm backdrop-blur-sm'
-                : 'pointer-events-none fixed z-[120] rounded-xl bg-Alumco-blue px-3 py-2 text-xs font-black uppercase tracking-wide text-white shadow-xl shadow-Alumco-blue/20 ring-1 ring-white/20'"
+                ? 'planning-drop-preview pointer-events-none fixed z-[120] h-9 -translate-y-1/2 rounded-lg border-2 border-dashed border-Alumco-blue bg-Alumco-blue/10 shadow-sm backdrop-blur-sm'
+                : 'planning-drop-preview pointer-events-none fixed z-[120] rounded-xl bg-Alumco-blue px-3 py-2 text-xs font-black uppercase tracking-wide text-white shadow-xl shadow-Alumco-blue/20 ring-1 ring-white/20'"
         >
             <span x-show="!pointerPreview.isOutline" x-text="pointerPreview.text"></span>
         </div>
@@ -64,13 +85,13 @@
 
         <div class="flex flex-wrap items-center gap-2">
             <div class="flex items-center rounded-xl bg-white p-1 shadow-sm ring-1 ring-gray-100">
-                <button wire:click="cambiarVista('anual')" @class([
-                    'rounded-lg px-3 py-2 text-xs font-black uppercase tracking-widest transition',
+                <button wire:click.preserve-scroll="cambiarVista('anual')" @mouseenter="preheat('actual')" @focus="preheat('actual')" @class([
+                    'planning-action rounded-lg px-3 py-2 text-xs font-black uppercase tracking-widest data-loading:pointer-events-none data-loading:opacity-55 motion-reduce:transition-none',
                     'bg-Alumco-blue text-white shadow-sm' => $modoVista === 'anual',
                     'text-gray-500 hover:bg-gray-50' => $modoVista !== 'anual',
                 ])>Anual</button>
-                <button wire:click="cambiarVista('mensual')" @class([
-                    'rounded-lg px-3 py-2 text-xs font-black uppercase tracking-widest transition',
+                <button wire:click.preserve-scroll="cambiarVista('mensual')" @mouseenter="preheat('actual')" @focus="preheat('actual')" @class([
+                    'planning-action rounded-lg px-3 py-2 text-xs font-black uppercase tracking-widest data-loading:pointer-events-none data-loading:opacity-55 motion-reduce:transition-none',
                     'bg-Alumco-blue text-white shadow-sm' => $modoVista === 'mensual',
                     'text-gray-500 hover:bg-gray-50' => $modoVista !== 'mensual',
                 ])>Mensual</button>
@@ -78,9 +99,11 @@
 
             @if($esAdmin && $modoVista === 'anual')
                 <button
-                    wire:click="toggleModoPlaneacion"
+                    wire:click.preserve-scroll="toggleModoPlaneacion"
+                    @mouseenter="preheat('actual')"
+                    @focus="preheat('actual')"
                     @class([
-                        'inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-black transition shadow-sm ring-1',
+                        'planning-action inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-black shadow-sm ring-1 data-loading:pointer-events-none data-loading:opacity-55 motion-reduce:transition-none',
                         'bg-Alumco-blue text-white ring-Alumco-blue' => $modoPlaneacion,
                         'bg-white text-Alumco-blue ring-gray-100 hover:ring-Alumco-blue/25' => ! $modoPlaneacion,
                     ])
@@ -96,22 +119,22 @@
         <div class="rounded-2xl bg-white p-3 shadow-sm ring-1 ring-gray-100">
             <div class="flex flex-col gap-3 2xl:flex-row 2xl:items-center 2xl:justify-between">
                 <div class="flex flex-wrap items-center gap-2">
-                    <button wire:click="irAnioAnterior" class="rounded-xl bg-gray-50 px-3 py-2 text-sm font-black text-gray-500 hover:bg-gray-100">Anterior</button>
+                    <button wire:click.preserve-scroll="irAnioAnterior" @mouseenter="preheat('anterior')" @focus="preheat('anterior')" class="planning-action rounded-xl bg-gray-50 px-3 py-2 text-sm font-black text-gray-500 hover:bg-gray-100 motion-reduce:transition-none">Anterior</button>
                     <div class="min-w-24 text-center">
                         <span class="block text-[10px] font-black uppercase tracking-widest text-gray-400">Año</span>
                         <span class="text-xl font-display font-black text-Alumco-blue">{{ $anioActual }}</span>
                     </div>
-                    <button wire:click="irAnioSiguiente" class="rounded-xl bg-gray-50 px-3 py-2 text-sm font-black text-gray-500 hover:bg-gray-100">Siguiente</button>
+                    <button wire:click.preserve-scroll="irAnioSiguiente" @mouseenter="preheat('siguiente')" @focus="preheat('siguiente')" class="planning-action rounded-xl bg-gray-50 px-3 py-2 text-sm font-black text-gray-500 hover:bg-gray-100 motion-reduce:transition-none">Siguiente</button>
 
                     <div class="mx-1 hidden h-8 w-px bg-gray-100 sm:block"></div>
 
-                    <button @click="scrollToToday()" class="rounded-xl bg-Alumco-blue/5 px-3 py-2 text-sm font-black text-Alumco-blue">Ir a hoy</button>
+                    <button @mouseenter="preheat('hoy')" @focus="preheat('hoy')" @click="goToToday()" class="planning-action rounded-xl bg-Alumco-blue/5 px-3 py-2 text-sm font-black text-Alumco-blue motion-reduce:transition-none">Ir a hoy</button>
                 </div>
 
                 <div class="flex flex-wrap items-center gap-2">
                     <label class="flex items-center gap-2 rounded-xl bg-gray-50 px-3 py-2">
                         <span class="text-[10px] font-black uppercase tracking-widest text-gray-400">Ir a mes</span>
-                        <select @change="scrollToMonth($event.target.value)" class="bg-transparent text-sm font-black text-gray-600 outline-none">
+                        <select @focus="preheat('actual')" @change="scrollToMonth($event.target.value)" class="bg-transparent text-sm font-black text-gray-600 outline-none">
                             <option value="">Seleccionar...</option>
                             @foreach($mesesHeaderVentana as $mInfo)
                                 <option value="{{ $mInfo['semanaInicio'] }}">{{ $nombresMeses[$mInfo['mes'] - 1] }}</option>
@@ -120,7 +143,7 @@
                     </label>
 
                     @if($esAdmin)
-                        <button wire:click="abrirModalCopiarAnio" class="rounded-xl bg-white px-4 py-2 text-sm font-black text-Alumco-blue shadow-sm ring-1 ring-Alumco-blue/15 transition hover:bg-Alumco-blue/5 hover:ring-Alumco-blue/30">
+                        <button wire:click="abrirModalCopiarAnio" @mouseenter="preheat('siguiente')" @focus="preheat('siguiente')" class="planning-action rounded-xl bg-white px-4 py-2 text-sm font-black text-Alumco-blue shadow-sm ring-1 ring-Alumco-blue/15 hover:bg-Alumco-blue/5 hover:ring-Alumco-blue/30 motion-reduce:transition-none">
                             Copiar año
                         </button>
                     @endif
@@ -139,7 +162,7 @@
             'xl:grid-cols-[18rem_minmax(0,1fr)]' => $esAdmin && $modoPlaneacion,
         ])>
             @if($esAdmin && $modoPlaneacion)
-                <aside class="rounded-2xl bg-white shadow-sm ring-1 ring-gray-100">
+                <aside class="sticky top-4 z-[55] self-start rounded-2xl bg-white shadow-sm ring-1 ring-gray-100">
                     <div class="border-b border-gray-100 p-4">
                         <h3 class="font-display text-lg font-black text-Alumco-blue">Cursos disponibles</h3>
                         <input
@@ -168,7 +191,7 @@
                             >Todos</button>
                         </div>
                     </div>
-                    <div class="planning-scroll max-h-[34rem] space-y-2 overflow-y-auto p-3">
+                    <div class="planning-scroll max-h-[calc(100vh-16rem)] space-y-2 overflow-y-auto p-3">
                         @forelse($sidebarList as $curso)
                             <button
                                 type="button"
@@ -177,7 +200,8 @@
                                 @dragstart="startCourseDrag({{ $curso['id'] }}, $event)"
                                 @dragend="resetCourseDrag()"
                                 @click="abrirCursoManual({{ $curso['id'] }})"
-                                class="flex w-full cursor-grab select-none items-center gap-3 rounded-xl border border-gray-100 bg-white px-3 py-2 text-left transition hover:border-Alumco-blue/20 hover:bg-Alumco-blue/5 active:cursor-grabbing"
+                                :class="{ 'planning-saving opacity-55 pointer-events-none': isSavingDrop && draggedCourseId === {{ $curso['id'] }} }"
+                                class="planning-action flex w-full cursor-grab select-none items-center gap-3 rounded-xl border border-gray-100 bg-white px-3 py-2 text-left hover:border-Alumco-blue/20 hover:bg-Alumco-blue/5 active:cursor-grabbing motion-reduce:transition-none"
                             >
                                 <span class="pointer-events-none h-3 w-3 shrink-0 rounded-full {{ $curso['bg'] }}"></span>
                                 <span class="pointer-events-none truncate text-xs font-black uppercase tracking-tight text-gray-600">{{ $curso['titulo'] }}</span>
@@ -246,7 +270,8 @@
                                     data-week="{{ $semanaNumero }}"
                                     data-sede="{{ $sedeKey }}"
                                     @class([
-                                        'planning-cell relative min-h-24 border-b border-r border-gray-100 p-1.5 transition',
+                                        'planning-cell relative min-h-24 border-b border-r border-gray-100 p-1.5',
+                                        'z-[2]' => count($cursosInicio) > 0,
                                         'cursor-pointer' => $esAdmin && $modoPlaneacion,
                                         'bg-amber-50' => $datosSemana['conflicto'],
                                         'bg-white' => ! $datosSemana['conflicto'] && ! $semana['esHoy'],
@@ -275,17 +300,21 @@
                                                 wire:key="planner-chip-{{ $curso['id'] }}-{{ $sedeKey }}-{{ $semanaNumero }}"
                                                 data-planning-chip
                                                 :class="chipClass({{ $curso['id'] }})"
-                                                class="planning-chip group relative z-10 flex h-9 items-center overflow-hidden rounded-lg text-white shadow-sm ring-1 ring-black/5 {{ $curso['bg'] }}"
+                                                class="planning-chip group relative z-10 flex h-9 items-center overflow-hidden rounded-lg text-white shadow-sm ring-1 ring-black/5 motion-reduce:transition-none {{ $curso['bg'] }} {{ $esAdmin && $modoPlaneacion ? 'cursor-pointer' : '' }}"
                                                 style="width: calc({{ $spanVisible }} * var(--planning-week-width) - .75rem)"
+                                                @if($esAdmin && $modoPlaneacion)
+                                                    wire:click="editarPlanificacion({{ $curso['id'] }})"
+                                                @endif
                                             >
                                                 @if($esAdmin && $modoPlaneacion)
-                                                    <button type="button" data-planning-control class="h-full w-2 cursor-ew-resize bg-white/20 hover:bg-white/40" @mousedown.stop.prevent="startResize({{ $curso['id'] }}, {{ $curso['semaInicio'] }}, 'inicio', $event)"></button>
+                                                    <button type="button" data-planning-control class="h-full w-2 cursor-ew-resize bg-white/20 hover:bg-white/40" @mousedown.stop.prevent="startResize({{ $curso['id'] }}, {{ $curso['semaInicio'] }}, 'inicio', $event)" @click.stop></button>
                                                     <button
                                                         type="button"
                                                         data-planning-control
                                                         class="flex h-full w-7 cursor-grab items-center justify-center bg-black/10 text-white transition hover:bg-black/20 active:cursor-grabbing"
                                                         title="Mover planificación"
                                                         @mousedown.stop.prevent="startMove({{ $curso['id'] }}, {{ $curso['semaInicio'] }}, {{ $duracion - 1 }}, {{ $sedeKey }}, $event)"
+                                                        @click.stop
                                                     >
                                                         <span class="pointer-events-none flex flex-col gap-0.5">
                                                             <span class="block h-0.5 w-3 rounded-full bg-white/90"></span>
@@ -295,25 +324,18 @@
                                                     </button>
                                                 @endif
 
-                                                <button
-                                                    type="button"
-                                                    class="min-w-0 flex-1 cursor-pointer px-2 text-left text-[10px] font-black uppercase tracking-tight hover:bg-white/10"
+                                                <div
+                                                    class="min-w-0 flex-1 px-2 text-left text-[10px] font-black uppercase tracking-tight"
                                                     @mouseenter="showCourseTooltip($event, '{{ addslashes($curso['titulo']) }}')"
                                                     @mousemove="showCourseTooltip($event, '{{ addslashes($curso['titulo']) }}')"
                                                     @mouseleave="hideCourseTooltip()"
-                                                    @if($esAdmin && $modoPlaneacion)
-                                                        wire:click.stop="editarPlanificacion({{ $curso['id'] }})"
-                                                    @endif
                                                 >
                                                     <span class="block truncate">{{ $curso['titulo'] }}</span>
-                                                </button>
+                                                </div>
 
                                                 @if($esAdmin && $modoPlaneacion)
-                                                    <button type="button" data-planning-control class="h-full w-7 bg-black/10 text-white opacity-0 transition hover:bg-red-600 group-hover:opacity-100" wire:click.stop="abrirModalBorrado({{ $curso['id'] }})">x</button>
-                                                @endif
-
-                                                @if($esAdmin && $modoPlaneacion)
-                                                    <button type="button" data-planning-control class="h-full w-2 cursor-ew-resize bg-white/20 hover:bg-white/40" @mousedown.stop.prevent="startResize({{ $curso['id'] }}, {{ $curso['semaFin'] }}, 'fin', $event)"></button>
+                                                    <button type="button" data-planning-control class="h-full w-7 bg-black/10 text-white opacity-0 transition hover:bg-red-600 group-hover:opacity-100" wire:click.stop="abrirModalBorrado({{ $curso['id'] }})" @click.stop>×</button>
+                                                    <button type="button" data-planning-control class="h-full w-2 cursor-ew-resize bg-white/20 hover:bg-white/40" @mousedown.stop.prevent="startResize({{ $curso['id'] }}, {{ $curso['semaFin'] }}, 'fin', $event)" @click.stop></button>
                                                 @endif
                                             </div>
                                         @endforeach
@@ -329,14 +351,14 @@
         <section class="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-100">
             <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 p-4">
                 <div class="flex items-center gap-2">
-                    <button wire:click="mesAnterior" class="rounded-xl bg-gray-50 px-3 py-2 text-sm font-black text-gray-500 hover:bg-gray-100">Anterior</button>
+                    <button wire:click="mesAnterior" class="planning-action rounded-xl bg-gray-50 px-3 py-2 text-sm font-black text-gray-500 hover:bg-gray-100 motion-reduce:transition-none">Anterior</button>
                     <span class="min-w-44 text-center text-sm font-black uppercase tracking-widest text-Alumco-blue">
                         {{ ucfirst(\Carbon\Carbon::create()->month($mesActual)->locale('es')->translatedFormat('F')) }} {{ $anioActual }}
                     </span>
-                    <button wire:click="mesSiguiente" class="rounded-xl bg-gray-50 px-3 py-2 text-sm font-black text-gray-500 hover:bg-gray-100">Siguiente</button>
+                    <button wire:click="mesSiguiente" class="planning-action rounded-xl bg-gray-50 px-3 py-2 text-sm font-black text-gray-500 hover:bg-gray-100 motion-reduce:transition-none">Siguiente</button>
                 </div>
                 @if(!$esMesActual)
-                    <button wire:click="irAHoy" class="rounded-xl bg-Alumco-blue/5 px-3 py-2 text-sm font-black text-Alumco-blue">Hoy</button>
+                    <button wire:click="irAHoy" class="planning-action rounded-xl bg-Alumco-blue/5 px-3 py-2 text-sm font-black text-Alumco-blue motion-reduce:transition-none">Hoy</button>
                 @endif
             </div>
 
@@ -378,146 +400,212 @@
     @endif
 
     @teleport('body')
-        <div>
-            @if($mostrarModalPlanificacion)
-        <div class="fixed inset-0 z-[100] flex min-h-screen justify-end bg-Alumco-blue/25 backdrop-blur-sm" wire:click="cerrarModal">
-            <aside class="flex h-screen w-full max-w-2xl flex-col bg-white shadow-2xl" onclick="event.stopPropagation()">
-                <div class="border-b border-gray-100 bg-Alumco-blue/5 p-6">
-                    <div class="flex items-start justify-between gap-4">
-                        <div>
-                            <h3 class="font-display text-2xl font-black text-Alumco-blue">{{ $editandoId ? 'Editar bloque' : 'Nueva planificación' }}</h3>
-                            <p class="mt-1 text-xs font-black uppercase tracking-widest text-Alumco-blue/40">Cursos por semana y sede</p>
+        <div id="calendar-modals-container">
+            {{-- Modal Planificacion (Side Panel) --}}
+            <div x-data="{ show: @entangle('mostrarModalPlanificacion') }">
+                <div
+                    x-cloak
+                    x-show="show"
+                    class="fixed inset-0 z-[290] flex min-h-screen justify-end bg-black/40 backdrop-blur-[2px]"
+                    x-transition:enter="transition ease-out duration-300"
+                    x-transition:enter-start="opacity-0"
+                    x-transition:enter-end="opacity-100"
+                    x-transition:leave="transition ease-in duration-200"
+                    x-transition:leave-start="opacity-100"
+                    x-transition:leave-end="opacity-0"
+                    @click="show = false; $wire.cerrarModal()"
+                >
+                    <aside
+                        x-show="show"
+                        x-transition:enter="transition ease-out duration-300"
+                        x-transition:enter-start="translate-x-full"
+                        x-transition:enter-end="translate-x-0"
+                        x-transition:leave="transition ease-in duration-200"
+                        x-transition:leave-start="translate-x-0"
+                        x-transition:leave-end="translate-x-full"
+                        class="flex h-screen w-full max-w-2xl flex-col bg-white shadow-2xl"
+                        @click.stop
+                    >
+                        <div class="border-b border-gray-100 bg-Alumco-blue/5 p-6">
+                            <div class="flex items-start justify-between gap-4">
+                                <div>
+                                    <h3 class="font-display text-2xl font-black text-Alumco-blue">{{ $editandoId ? 'Editar bloque' : 'Nueva planificación' }}</h3>
+                                    <p class="mt-1 text-xs font-black uppercase tracking-widest text-Alumco-blue/40">Cursos por semana y sede</p>
+                                </div>
+                                <button wire:click="cerrarModal" class="rounded-xl bg-white px-3 py-2 text-sm font-black text-gray-400 shadow-sm ring-1 ring-gray-100">Cerrar</button>
+                            </div>
                         </div>
-                        <button wire:click="cerrarModal" class="rounded-xl bg-white px-3 py-2 text-sm font-black text-gray-400 shadow-sm ring-1 ring-gray-100">Cerrar</button>
-                    </div>
-                </div>
 
-                <div class="planning-scroll flex-1 space-y-6 overflow-y-auto p-6">
-                    <div>
-                        <label class="text-[10px] font-black uppercase tracking-widest text-gray-400">Curso</label>
-                        <input type="search" wire:model.live.debounce.200ms="queryModal" placeholder="Buscar curso" class="mt-2 w-full rounded-xl border border-gray-100 bg-gray-50 px-3 py-3 text-sm font-bold text-Alumco-blue outline-none focus:ring-4 focus:ring-Alumco-blue/10">
-                        <div class="planning-scroll mt-2 max-h-48 space-y-1 overflow-y-auto rounded-xl bg-gray-50 p-2">
-                            @forelse($modalList as $curso)
-                                <button type="button" wire:click="seleccionarCurso({{ $curso['id'] }})" @class([
-                                    'flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-black uppercase tracking-tight transition',
-                                    'bg-white text-Alumco-blue shadow-sm' => (int) $cursoId === $curso['id'],
-                                    'text-gray-500 hover:bg-white/70' => (int) $cursoId !== $curso['id'],
-                                ])>
-                                    <span class="h-2.5 w-2.5 rounded-full {{ $curso['bg'] }}"></span>
-                                    <span class="truncate">{{ $curso['titulo'] }}</span>
-                                </button>
-                            @empty
-                                <p class="py-6 text-center text-xs font-black uppercase tracking-widest text-gray-300">Sin resultados</p>
-                            @endforelse
+                        <div class="planning-scroll flex-1 space-y-6 overflow-y-auto p-6">
+                            <div>
+                                <label class="text-[10px] font-black uppercase tracking-widest text-gray-400">Curso</label>
+                                <input type="search" wire:model.live.debounce.200ms="queryModal" placeholder="Buscar curso" class="mt-2 w-full rounded-xl border border-gray-100 bg-gray-50 px-3 py-3 text-sm font-bold text-Alumco-blue outline-none focus:ring-4 focus:ring-Alumco-blue/10">
+                                <div class="planning-scroll mt-2 max-h-48 space-y-1 overflow-y-auto rounded-xl bg-gray-50 p-2">
+                                    @forelse($modalList as $curso)
+                                        <button type="button" wire:click="seleccionarCurso({{ $curso['id'] }})" @class([
+                                            'flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-black uppercase tracking-tight transition',
+                                            'bg-white text-Alumco-blue shadow-sm' => (int) $cursoId === $curso['id'],
+                                            'text-gray-500 hover:bg-white/70' => (int) $cursoId !== $curso['id'],
+                                        ])>
+                                            <span class="h-2.5 w-2.5 rounded-full {{ $curso['bg'] }}"></span>
+                                            <span class="truncate">{{ $curso['titulo'] }}</span>
+                                        </button>
+                                    @empty
+                                        <p class="py-6 text-center text-xs font-black uppercase tracking-widest text-gray-300">Sin resultados</p>
+                                    @endforelse
+                                </div>
+                                @error('cursoId') <p class="mt-2 text-xs font-bold text-red-600">{{ $message }}</p> @enderror
+                            </div>
+
+                            <div>
+                                <label class="text-[10px] font-black uppercase tracking-widest text-gray-400">Sede</label>
+                                <div class="mt-2 flex flex-wrap gap-2">
+                                    <button type="button" wire:click="$set('sedeIdPlan', null)" @class([
+                                        'rounded-xl px-3 py-2 text-xs font-black uppercase tracking-widest ring-1 transition',
+                                        'bg-Alumco-blue text-white ring-Alumco-blue' => $sedeIdPlan === null,
+                                        'bg-white text-gray-500 ring-gray-100' => $sedeIdPlan !== null,
+                                    ])>Todas</button>
+                                    @foreach($sedes as $sede)
+                                        <button type="button" wire:click="$set('sedeIdPlan', {{ $sede['id'] }})" @class([
+                                            'rounded-xl px-3 py-2 text-xs font-black uppercase tracking-widest ring-1 transition',
+                                            'bg-Alumco-blue text-white ring-Alumco-blue' => (int) $sedeIdPlan === $sede['id'],
+                                            'bg-white text-gray-500 ring-gray-100' => (int) $sedeIdPlan !== $sede['id'],
+                                        ])>{{ $sede['nombre'] }}</button>
+                                    @endforeach
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-3">
+                                <label class="block">
+                                    <span class="text-[10px] font-black uppercase tracking-widest text-gray-400">Inicio</span>
+                                    <input type="date" wire:model.live="fechaInicioPlan" class="mt-2 w-full rounded-xl border border-gray-100 bg-gray-50 px-3 py-3 text-sm font-bold text-Alumco-blue outline-none focus:ring-4 focus:ring-Alumco-blue/10">
+                                </label>
+                                <label class="block">
+                                    <span class="text-[10px] font-black uppercase tracking-widest text-gray-400">Fin</span>
+                                    <input type="date" wire:model.live="fechaFinPlan" class="mt-2 w-full rounded-xl border border-gray-100 bg-gray-50 px-3 py-3 text-sm font-bold text-Alumco-blue outline-none focus:ring-4 focus:ring-Alumco-blue/10">
+                                </label>
+                                @error('fechaInicioPlan') <p class="text-xs font-bold text-red-600">{{ $message }}</p> @enderror
+                                @error('fechaFinPlan') <p class="text-xs font-bold text-red-600">{{ $message }}</p> @enderror
+                            </div>
+
+                            <label class="block">
+                                <span class="text-[10px] font-black uppercase tracking-widest text-gray-400">Notas</span>
+                                <textarea wire:model="notas" rows="3" class="mt-2 w-full resize-none rounded-xl border border-gray-100 bg-gray-50 px-3 py-3 text-sm font-bold text-Alumco-blue outline-none focus:ring-4 focus:ring-Alumco-blue/10"></textarea>
+                            </label>
                         </div>
-                        @error('cursoId') <p class="mt-2 text-xs font-bold text-red-600">{{ $message }}</p> @enderror
-                    </div>
 
-                    <div>
-                        <label class="text-[10px] font-black uppercase tracking-widest text-gray-400">Sede</label>
-                        <div class="mt-2 flex flex-wrap gap-2">
-                            <button type="button" wire:click="$set('sedeIdPlan', null)" @class([
-                                'rounded-xl px-3 py-2 text-xs font-black uppercase tracking-widest ring-1 transition',
-                                'bg-Alumco-blue text-white ring-Alumco-blue' => $sedeIdPlan === null,
-                                'bg-white text-gray-500 ring-gray-100' => $sedeIdPlan !== null,
-                            ])>Todas</button>
-                            @foreach($sedes as $sede)
-                                <button type="button" wire:click="$set('sedeIdPlan', {{ $sede['id'] }})" @class([
-                                    'rounded-xl px-3 py-2 text-xs font-black uppercase tracking-widest ring-1 transition',
-                                    'bg-Alumco-blue text-white ring-Alumco-blue' => (int) $sedeIdPlan === $sede['id'],
-                                    'bg-white text-gray-500 ring-gray-100' => (int) $sedeIdPlan !== $sede['id'],
-                                ])>{{ $sede['nombre'] }}</button>
-                            @endforeach
+                        <div class="sticky bottom-0 flex gap-2 border-t border-gray-100 bg-white p-6">
+                            <button wire:click="cerrarModal" class="flex-1 rounded-xl bg-gray-100 px-4 py-3 text-xs font-black uppercase tracking-widest text-gray-500">Cancelar</button>
+                            <button wire:click="guardarPlanificacion" wire:loading.attr="disabled" class="flex-[2] rounded-xl bg-Alumco-blue px-4 py-3 text-xs font-black uppercase tracking-widest text-white shadow-lg shadow-Alumco-blue/20 disabled:opacity-50">
+                                {{ $editandoId ? 'Guardar cambios' : 'Crear planificación' }}
+                            </button>
                         </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-3">
-                        <label class="block">
-                            <span class="text-[10px] font-black uppercase tracking-widest text-gray-400">Inicio</span>
-                            <input type="date" wire:model.live="fechaInicioPlan" class="mt-2 w-full rounded-xl border border-gray-100 bg-gray-50 px-3 py-3 text-sm font-bold text-Alumco-blue outline-none focus:ring-4 focus:ring-Alumco-blue/10">
-                        </label>
-                        <label class="block">
-                            <span class="text-[10px] font-black uppercase tracking-widest text-gray-400">Fin</span>
-                            <input type="date" wire:model.live="fechaFinPlan" class="mt-2 w-full rounded-xl border border-gray-100 bg-gray-50 px-3 py-3 text-sm font-bold text-Alumco-blue outline-none focus:ring-4 focus:ring-Alumco-blue/10">
-                        </label>
-                        @error('fechaInicioPlan') <p class="text-xs font-bold text-red-600">{{ $message }}</p> @enderror
-                        @error('fechaFinPlan') <p class="text-xs font-bold text-red-600">{{ $message }}</p> @enderror
-                    </div>
-
-                    <label class="block">
-                        <span class="text-[10px] font-black uppercase tracking-widest text-gray-400">Notas</span>
-                        <textarea wire:model="notas" rows="3" class="mt-2 w-full resize-none rounded-xl border border-gray-100 bg-gray-50 px-3 py-3 text-sm font-bold text-Alumco-blue outline-none focus:ring-4 focus:ring-Alumco-blue/10"></textarea>
-                    </label>
-                </div>
-
-                <div class="sticky bottom-0 flex gap-2 border-t border-gray-100 bg-white p-6">
-                    <button wire:click="cerrarModal" class="flex-1 rounded-xl bg-gray-100 px-4 py-3 text-xs font-black uppercase tracking-widest text-gray-500">Cancelar</button>
-                    <button wire:click="guardarPlanificacion" wire:loading.attr="disabled" class="flex-[2] rounded-xl bg-Alumco-blue px-4 py-3 text-xs font-black uppercase tracking-widest text-white shadow-lg shadow-Alumco-blue/20 disabled:opacity-50">
-                        {{ $editandoId ? 'Guardar cambios' : 'Crear planificación' }}
-                    </button>
-                </div>
-            </aside>
-        </div>
-            @endif
-
-            @if($mostrarModalCopiarAnio)
-        <div class="fixed inset-0 z-[100] flex min-h-screen items-center justify-center bg-black/45 p-4 backdrop-blur-sm" wire:click="cerrarModalCopiarAnio">
-            <div class="w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-2xl" onclick="event.stopPropagation()">
-                <div class="border-b border-gray-100 p-6">
-                    <h3 class="font-display text-2xl font-black text-Alumco-blue">Copiar planificación anual</h3>
-                    <p class="mt-1 text-sm font-semibold text-gray-500">Elige un año origen y cómo aplicar la copia en el año destino.</p>
-                </div>
-
-                <div class="space-y-4 p-6">
-                    <div class="grid gap-3 sm:grid-cols-2">
-                        <label class="block">
-                            <span class="text-[10px] font-black uppercase tracking-widest text-gray-400">Año origen</span>
-                            <input type="number" wire:model.live="anioOrigen" min="2020" max="2099" class="mt-2 w-full rounded-xl border border-gray-100 bg-gray-50 px-3 py-3 text-sm font-bold text-Alumco-blue outline-none focus:ring-4 focus:ring-Alumco-blue/10">
-                        </label>
-
-                        <label class="block">
-                            <span class="text-[10px] font-black uppercase tracking-widest text-gray-400">Año destino</span>
-                            <input type="number" wire:model.live="anioDestino" min="2020" max="2099" class="mt-2 w-full rounded-xl border border-gray-100 bg-gray-50 px-3 py-3 text-sm font-bold text-Alumco-blue outline-none focus:ring-4 focus:ring-Alumco-blue/10">
-                        </label>
-                    </div>
-                    @error('anioOrigen') <p class="text-sm font-bold text-red-600">{{ $message }}</p> @enderror
-                    @error('anioDestino') <p class="text-sm font-bold text-red-600">{{ $message }}</p> @enderror
-
-                    @if($anioDestinoTienePlanificaciones)
-                        <div class="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold text-amber-800">
-                            El año {{ $anioDestino }} ya tiene planificaciones. Puedes añadir los cursos de {{ $anioOrigen }} o reemplazar primero la planificación del destino.
-                        </div>
-                    @else
-                        <p class="text-sm font-medium text-gray-500">El año {{ $anioDestino }} no tiene planificaciones solapadas. La copia se puede aplicar directamente desde {{ $anioOrigen }}.</p>
-                    @endif
-                </div>
-
-                <div class="flex flex-wrap justify-end gap-2 border-t border-gray-100 bg-gray-50 p-4">
-                    <button wire:click="cerrarModalCopiarAnio" class="rounded-xl bg-white px-4 py-2 text-sm font-black text-gray-500 ring-1 ring-gray-100">Cancelar</button>
-
-                    @if($anioDestinoTienePlanificaciones)
-                        <button wire:click="copiarAnio('append')" wire:loading.attr="disabled" class="rounded-xl bg-Alumco-blue/10 px-4 py-2 text-sm font-black text-Alumco-blue disabled:opacity-50">Añadir al año objetivo</button>
-                        <button wire:click="copiarAnio('replace')" wire:loading.attr="disabled" class="rounded-xl bg-amber-600 px-4 py-2 text-sm font-black text-white disabled:opacity-50">Reemplazar destino</button>
-                    @else
-                        <button wire:click="copiarAnio" wire:loading.attr="disabled" class="rounded-xl bg-Alumco-blue px-4 py-2 text-sm font-black text-white disabled:opacity-50">Copiar</button>
-                    @endif
+                    </aside>
                 </div>
             </div>
-        </div>
-            @endif
 
-            @if($mostrarModalBorrado)
-        <div class="fixed inset-0 z-[110] flex items-center justify-center bg-black/45 p-4 backdrop-blur-sm" wire:click="cerrarModalBorrado">
-            <div class="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl" onclick="event.stopPropagation()">
-                <h3 class="font-display text-xl font-black text-Alumco-blue">Eliminar planificación</h3>
-                <p class="mt-2 text-sm font-semibold text-gray-500">Esta acción eliminará el bloque del calendario.</p>
-                <div class="mt-6 flex justify-end gap-2">
-                    <button class="rounded-xl bg-gray-100 px-4 py-2 text-sm font-black text-gray-500" wire:click="cerrarModalBorrado">Cancelar</button>
-                    <button class="rounded-xl bg-red-600 px-4 py-2 text-sm font-black text-white" wire:click="confirmarBorrado" wire:loading.attr="disabled">Eliminar</button>
+            {{-- Modal Copiar Anio --}}
+            <div x-data="{ show: @entangle('mostrarModalCopiarAnio') }">
+                <div
+                    x-cloak
+                    x-show="show"
+                    class="fixed inset-0 z-[290] flex min-h-screen items-center justify-center bg-black/45 p-4 backdrop-blur-sm"
+                    x-transition:enter="transition ease-out duration-300"
+                    x-transition:enter-start="opacity-0"
+                    x-transition:enter-end="opacity-100"
+                    x-transition:leave="transition ease-in duration-200"
+                    x-transition:leave-start="opacity-100"
+                    x-transition:leave-end="opacity-0"
+                    @click="show = false; $wire.cerrarModalCopiarAnio()"
+                >
+                    <div
+                        x-show="show"
+                        x-transition:enter="transition ease-out duration-300"
+                        x-transition:enter-start="opacity-0 scale-95"
+                        x-transition:enter-end="opacity-100 scale-100"
+                        x-transition:leave="transition ease-in duration-200"
+                        x-transition:leave-start="opacity-100 scale-100"
+                        x-transition:leave-end="opacity-0 scale-95"
+                        class="w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-2xl"
+                        @click.stop
+                    >
+                        <div class="border-b border-gray-100 p-6">
+                            <h3 class="font-display text-2xl font-black text-Alumco-blue">Copiar planificación anual</h3>
+                            <p class="mt-1 text-sm font-semibold text-gray-500">Elige un año origen y cómo aplicar la copia en el año destino.</p>
+                        </div>
+
+                        <div class="space-y-4 p-6">
+                            <div class="grid gap-3 sm:grid-cols-2">
+                                <label class="block">
+                                    <span class="text-[10px] font-black uppercase tracking-widest text-gray-400">Año origen</span>
+                                    <input type="number" wire:model.live="anioOrigen" min="2020" max="2099" class="mt-2 w-full rounded-xl border border-gray-100 bg-gray-50 px-3 py-3 text-sm font-bold text-Alumco-blue outline-none focus:ring-4 focus:ring-Alumco-blue/10">
+                                </label>
+
+                                <label class="block">
+                                    <span class="text-[10px] font-black uppercase tracking-widest text-gray-400">Año destino</span>
+                                    <input type="number" wire:model.live="anioDestino" min="2020" max="2099" class="mt-2 w-full rounded-xl border border-gray-100 bg-gray-50 px-3 py-3 text-sm font-bold text-Alumco-blue outline-none focus:ring-4 focus:ring-Alumco-blue/10">
+                                </label>
+                            </div>
+                            @error('anioOrigen') <p class="text-sm font-bold text-red-600">{{ $message }}</p> @enderror
+                            @error('anioDestino') <p class="text-sm font-bold text-red-600">{{ $message }}</p> @enderror
+
+                            @if($anioDestinoTienePlanificaciones)
+                                <div class="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold text-amber-800">
+                                    El año {{ $anioDestino }} ya tiene planificaciones. Puedes añadir los cursos de {{ $anioOrigen }} o reemplazar primero la planificación del destino.
+                                </div>
+                            @else
+                                <p class="text-sm font-medium text-gray-500">El año {{ $anioDestino }} no tiene planificaciones solapadas. La copia se puede aplicar directamente desde {{ $anioOrigen }}.</p>
+                            @endif
+                        </div>
+
+                        <div class="flex flex-wrap justify-end gap-2 border-t border-gray-100 bg-gray-50 p-4">
+                            <button wire:click="cerrarModalCopiarAnio" class="rounded-xl bg-white px-4 py-2 text-sm font-black text-gray-500 ring-1 ring-gray-100">Cancelar</button>
+
+                            @if($anioDestinoTienePlanificaciones)
+                                <button wire:click="copiarAnio('append')" wire:loading.attr="disabled" class="rounded-xl bg-Alumco-blue/10 px-4 py-2 text-sm font-black text-Alumco-blue disabled:opacity-50">Añadir al año objetivo</button>
+                                <button wire:click="copiarAnio('replace')" wire:loading.attr="disabled" class="rounded-xl bg-amber-600 px-4 py-2 text-sm font-black text-white disabled:opacity-50">Reemplazar destino</button>
+                            @else
+                                <button wire:click="copiarAnio" wire:loading.attr="disabled" class="rounded-xl bg-Alumco-blue px-4 py-2 text-sm font-black text-white disabled:opacity-50">Copiar</button>
+                            @endif
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-            @endif
+
+            {{-- Modal Borrado --}}
+            <div x-data="{ show: @entangle('mostrarModalBorrado') }">
+                <div
+                    x-cloak
+                    x-show="show"
+                    class="fixed inset-0 z-[290] flex items-center justify-center bg-black/45 p-4 backdrop-blur-sm"
+                    x-transition:enter="transition ease-out duration-300"
+                    x-transition:enter-start="opacity-0"
+                    x-transition:enter-end="opacity-100"
+                    x-transition:leave="transition ease-in duration-200"
+                    x-transition:leave-start="opacity-100"
+                    x-transition:leave-end="opacity-0"
+                    @click="show = false; $wire.cerrarModalBorrado()"
+                >
+                    <div
+                        x-show="show"
+                        x-transition:enter="transition ease-out duration-300"
+                        x-transition:enter-start="opacity-0 scale-95"
+                        x-transition:enter-end="opacity-100 scale-100"
+                        x-transition:leave="transition ease-in duration-200"
+                        x-transition:leave-start="opacity-100 scale-100"
+                        x-transition:leave-end="opacity-0 scale-95"
+                        class="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl"
+                        @click.stop
+                    >
+                        <h3 class="font-display text-xl font-black text-Alumco-blue">Eliminar planificación</h3>
+                        <p class="mt-2 text-sm font-semibold text-gray-500">Esta acción eliminará el bloque del calendario.</p>
+                        <div class="mt-6 flex justify-end gap-2">
+                            <button class="rounded-xl bg-gray-100 px-4 py-2 text-sm font-black text-gray-500" @click="show = false; $wire.cerrarModalBorrado()">Cancelar</button>
+                            <button class="rounded-xl bg-red-600 px-4 py-2 text-sm font-black text-white" wire:click="confirmarBorrado" wire:loading.attr="disabled">Eliminar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     @endteleport
 </div>
@@ -536,6 +624,8 @@
             currentSede: null,
             planId: null,
             draggedCourseId: null,
+            isSavingDrop: false,
+            preheated: new Set(),
             span: 0,
             edge: null,
             moved: false,
@@ -576,6 +666,15 @@
                 this.$wire.abrirModalConCurso(courseId);
             },
 
+            preheat(target) {
+                if (this.readonly || this.preheated.has(target)) return;
+
+                this.preheated.add(target);
+                Promise.resolve(this.$wire.precalentarCalendario(target)).catch(() => {
+                    this.preheated.delete(target);
+                });
+            },
+
             startCourseDrag(courseId, event) {
                 if (!this.canEdit()) return;
                 this.action = 'course';
@@ -597,7 +696,6 @@
             enterCourseCell(week, sede) {
                 if (!this.canEdit() || this.action !== 'course') return;
 
-                // Al arrastrar un curso externo, siempre seleccionamos solo una semana por defecto
                 this.startWeek = week;
                 this.currentWeek = week;
                 this.startSede = sede;
@@ -622,9 +720,12 @@
                 this.currentWeek = week;
                 this.currentSede = sede;
 
-                // Para arrastrar cursos externos, guardamos directamente sin abrir modal
-                this.$wire.guardarPlanificacionRapidaAnual(courseId, this.currentWeek, this.startSede);
-                this.resetCourseDrag();
+                this.isSavingDrop = true;
+                Promise.resolve(this.$wire.guardarPlanificacionRapidaAnualDesdeSidebar(courseId, this.currentWeek, this.currentSede))
+                    .finally(() => {
+                        this.isSavingDrop = false;
+                        this.resetCourseDrag();
+                    });
             },
 
             resetCourseDrag() {
@@ -773,7 +874,7 @@
                 const weekCell = container?.querySelector(`[data-week-header="${weekNumber}"], [data-week="${weekNumber}"]`);
                 if (container && weekCell) {
                     const offset = weekCell.offsetLeft - 192; // 192px is 12rem (the sticky sidebar width)
-                    container.scrollTo({ left: offset, behavior: 'smooth' });
+                    container.scrollTo({ left: offset, behavior: this.scrollBehavior() });
                 }
             },
 
@@ -782,8 +883,18 @@
                 const todayCell = container?.querySelector('[data-week-today="true"]');
                 if (container && todayCell) {
                     const offset = todayCell.offsetLeft - 192;
-                    container.scrollTo({ left: offset, behavior: 'smooth' });
+                    container.scrollTo({ left: offset, behavior: this.scrollBehavior() });
                 }
+            },
+
+            goToToday() {
+                Promise.resolve(this.$wire.irAHoy()).then(() => {
+                    this.$nextTick(() => this.scrollToToday());
+                });
+            },
+
+            scrollBehavior() {
+                return window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
             },
 
             updatePointerPreview(event, fallbackText = null) {
@@ -798,8 +909,8 @@
 
                 const isOutline = this.action === 'move';
                 const spanWeeks = this.span + 1;
-                // 9rem is 144px. 0.75rem is 12px.
-                const outlineWidth = isOutline ? (spanWeeks * 144 - 12) : null;
+                const weekWidth = parseFloat(getComputedStyle(this.$root).getPropertyValue('--planning-week-width')) || 144;
+                const outlineWidth = isOutline ? (spanWeeks * weekWidth - 12) : null;
 
                 let x = event.clientX + 14;
                 let y = event.clientY + 14;
@@ -823,7 +934,7 @@
 
             chipClass(id) {
                 if ((this.action === 'move' || this.action === 'resize') && this.planId === id) {
-                    return 'scale-[0.98] opacity-45 ring-2 ring-white/80 brightness-110';
+                    return 'opacity-30 brightness-75';
                 }
 
                 return '';
@@ -835,13 +946,13 @@
                 if (this.action === 'course' && this.startSede === sede) {
                     const start = Math.min(this.startWeek, this.currentWeek);
                     const end = Math.max(this.startWeek, this.currentWeek);
-                    return week >= start && week <= end ? 'bg-Alumco-blue/10 ring-2 ring-inset ring-Alumco-blue/20' : '';
+                    return week >= start && week <= end ? 'planning-cell-active bg-Alumco-blue/10' : '';
                 }
 
                 if (this.action === 'create' && this.startSede === sede) {
                     const start = Math.min(this.startWeek, this.currentWeek);
                     const end = Math.max(this.startWeek, this.currentWeek);
-                    return week >= start && week <= end ? 'bg-Alumco-blue/10 ring-2 ring-inset ring-Alumco-blue/20' : '';
+                    return week >= start && week <= end ? 'planning-cell-active bg-Alumco-blue/10' : '';
                 }
 
                 if (this.action === 'move' && this.currentSede === sede) {
@@ -849,7 +960,7 @@
                 }
 
                 if (this.action === 'resize') {
-                    return week === this.currentWeek ? 'bg-Alumco-blue/10 ring-2 ring-inset ring-Alumco-blue/20' : '';
+                    return week === this.currentWeek ? 'planning-cell-active bg-Alumco-blue/10' : '';
                 }
 
                 return '';
