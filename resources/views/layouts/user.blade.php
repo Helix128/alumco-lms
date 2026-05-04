@@ -49,11 +49,12 @@
     </div>
     @endif
 
-    {{-- HEADER: Logo + identidad del trabajador --}}
+    {{-- HEADER: Logo + nav + identidad del trabajador --}}
     @persist('worker-topbar')
     <header class="worker-topbar sticky top-0 z-40 border-b border-white/70 py-3 shrink-0">
-        <div class="max-w-2xl mx-auto px-5 flex items-center justify-between gap-4 lg:max-w-[90rem] lg:px-8">
-            <a href="{{ route('cursos.index') }}" wire:navigate.hover class="worker-focus worker-pill inline-flex items-center gap-3">
+        {{-- Desktop: grid [logo | nav centrado | usuario] — garantiza centrado real del nav --}}
+        <div class="max-w-2xl mx-auto px-5 flex items-center gap-4 lg:max-w-[90rem] lg:px-8 lg:grid lg:grid-cols-[1fr_auto_1fr] lg:gap-0">
+            <a href="{{ route('cursos.index') }}" wire:navigate.hover class="worker-focus worker-pill inline-flex items-center gap-3 shrink-0">
                 <img src="{{ asset('images/logo/alumco-full.svg') }}"
                      alt="Logo Alumco"
                      width="120"
@@ -68,22 +69,67 @@
                     ->take(2)
                     ->join('');
             @endphp
-            <div class="hidden lg:flex lg:items-center lg:gap-3">
-                {{-- Link Directo al Perfil (PC) --}}
+
+            {{-- Nav col 2 — Alpine gestiona active state porque el header es @persisted --}}
+            <nav x-data="{
+                     path: window.location.pathname,
+                     get isCursos() { return this.path.startsWith('/cursos') || this.path.startsWith('/modulos'); },
+                     get isCalendario() { return this.path.startsWith('/calendario-cursos'); },
+                     get isCertificados() { return this.path.startsWith('/mis-certificados'); }
+                 }"
+                 x-on:livewire:navigated.document="path = window.location.pathname"
+                 class="hidden lg:flex items-center gap-1"
+                 aria-label="Navegación principal">
+
+                <a href="{{ route('cursos.index') }}"
+                   wire:navigate.hover
+                   :class="isCursos ? 'bg-Alumco-blue/10 text-Alumco-blue' : 'text-Alumco-gray/60 hover:bg-Alumco-blue/5 hover:text-Alumco-gray'"
+                   class="worker-focus inline-flex items-center gap-2.5 rounded-2xl px-4 py-2.5 text-sm font-bold transition-all"
+                   :aria-current="isCursos ? 'page' : 'false'">
+                    <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.967 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.967 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
+                    </svg>
+                    Mis cursos
+                </a>
+
+                <a href="{{ route('calendario-cursos.index') }}"
+                   wire:navigate.hover
+                   :class="isCalendario ? 'bg-Alumco-blue/10 text-Alumco-blue' : 'text-Alumco-gray/60 hover:bg-Alumco-blue/5 hover:text-Alumco-gray'"
+                   class="worker-focus inline-flex items-center gap-2.5 rounded-2xl px-4 py-2.5 text-sm font-bold transition-all"
+                   :aria-current="isCalendario ? 'page' : 'false'">
+                    <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Zm0 3h.008v.008H12V18Zm-3-6h.008v.008H9v-.008ZM9 15h.008v.008H9V15Zm0 3h.008v.008H9V18Zm6-6h.008v.008H15v-.008ZM15 15h.008v.008H15V15Zm0 3h.008v.008H15V18Z" />
+                    </svg>
+                    Calendario
+                </a>
+
+                <a href="{{ route('mis-certificados.index') }}"
+                   wire:navigate.hover
+                   :class="isCertificados ? 'bg-Alumco-blue/10 text-Alumco-blue' : 'text-Alumco-gray/60 hover:bg-Alumco-blue/5 hover:text-Alumco-gray'"
+                   class="worker-focus inline-flex items-center gap-2.5 rounded-2xl px-4 py-2.5 text-sm font-bold transition-all"
+                   :aria-current="isCertificados ? 'page' : 'false'">
+                    <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                    </svg>
+                    Certificados
+                </a>
+            </nav>
+
+            {{-- Lado derecho col 3: desktop (perfil+salir) y mobile (avatar) --}}
+            <div class="flex items-center gap-2 ml-auto lg:ml-0 lg:justify-end lg:gap-3">
                 <a href="{{ route('perfil.index') }}"
                    wire:navigate.hover
-                   class="worker-focus worker-pill group flex items-center gap-3 bg-white/90 px-3 py-2 shadow-sm ring-1 ring-Alumco-blue/10 transition-all hover:bg-white hover:ring-Alumco-blue/30 hover:shadow-md"
+                   class="worker-focus worker-pill group hidden lg:flex items-center gap-3 bg-white/90 px-3 py-2 shadow-sm ring-1 ring-Alumco-blue/10 transition-all hover:bg-white hover:ring-Alumco-blue/30 hover:shadow-md"
                    title="Ver mi perfil">
                     <span class="min-w-0 text-right">
-                        <span class="block max-w-64 truncate text-sm font-bold leading-tight text-Alumco-gray group-hover:text-Alumco-blue transition-colors">{{ auth()->user()->name }}</span>
+                        <span class="block max-w-48 truncate text-sm font-bold leading-tight text-Alumco-gray group-hover:text-Alumco-blue transition-colors">{{ auth()->user()->name }}</span>
                     </span>
                     <span class="avatar-btn flex h-11 w-11 items-center justify-center rounded-full bg-Alumco-blue text-sm font-black text-white shadow-sm select-none transition-transform group-hover:scale-[1.02]">
                         {{ $initials }}
                     </span>
                 </a>
 
-                {{-- Botón Salir Directo (PC) --}}
-                <form action="{{ route('logout') }}" method="POST" class="shrink-0">
+                <form action="{{ route('logout') }}" method="POST" class="hidden lg:block shrink-0">
                     @csrf
                     <button type="submit"
                             title="Cerrar sesión"
@@ -94,12 +140,10 @@
                         <span>Salir</span>
                     </button>
                 </form>
-            </div>
-            <div class="flex items-center gap-2 lg:hidden">
+
                 <a href="{{ route('perfil.index') }}"
                    wire:navigate.hover
-                   class="avatar-btn worker-focus w-10 h-10 rounded-full bg-Alumco-blue text-white font-display font-black text-sm
-                          flex items-center justify-center shadow-sm select-none"
+                   class="avatar-btn worker-focus lg:hidden w-10 h-10 rounded-full bg-Alumco-blue text-white font-display font-black text-sm flex items-center justify-center shadow-sm select-none"
                    aria-label="Ir a mi perfil">
                     {{ $initials }}
                 </a>
@@ -109,8 +153,8 @@
     </header>
     @endpersist
 
-    <div class="worker-page flex-1 lg:flex lg:flex-row lg:gap-8 lg:max-w-[90rem] lg:mx-auto lg:px-8 lg:items-start">
-        {{-- SIDEBAR EN PC / BOTTOM EN MOVIL --}}
+    <div class="worker-page flex-1">
+        {{-- Bottom nav mobile (overridable para páginas como evaluaciones) --}}
         @hasSection('bottom-nav')
             @yield('bottom-nav')
         @endif
@@ -120,7 +164,7 @@
         @endif
 
         {{-- CONTENIDO PRINCIPAL --}}
-        <main class="flex-1 pb-28 w-full max-w-2xl mx-auto lg:max-w-none lg:pb-12 lg:px-0">
+        <main class="pb-28 w-full max-w-2xl mx-auto lg:max-w-[90rem] lg:pb-12 lg:px-8">
             @php
                 $navigationPageKind = trim($__env->yieldContent('page_kind')) ?: 'default';
             @endphp

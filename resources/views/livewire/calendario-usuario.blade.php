@@ -1,6 +1,6 @@
 <div class="worker-calendar min-h-screen bg-Alumco-cream">
 
-    <div class="max-w-4xl mx-auto px-4 py-6 sm:px-6 space-y-8">
+    <div class="max-w-4xl mx-auto px-4 py-6 sm:px-6 lg:max-w-none lg:px-0 space-y-8">
 
         {{-- ── Cabecera ──────────────────────────────────────────────────────── --}}
         <div class="worker-soft-panel px-4 py-5 sm:px-6 flex flex-wrap items-center justify-between gap-4">
