@@ -7,6 +7,7 @@ use App\Models\PlanificacionCurso;
 use App\Models\Sede;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 
@@ -324,6 +325,7 @@ class CalendarioCapacitaciones extends Component
             'notas' => null,
         ]);
 
+        $this->invalidateCalendarCaches();
         $this->cerrarModal();
         $this->cargarDatos();
     }
@@ -439,6 +441,7 @@ class CalendarioCapacitaciones extends Component
             'notas' => null,
         ]);
 
+        $this->invalidateCalendarCaches();
         $this->mostrarQuickAdd = false;
         $this->cursoId = null;
         $this->sedeIdPlan = null;
@@ -487,6 +490,7 @@ class CalendarioCapacitaciones extends Component
             PlanificacionCurso::create($datos);
         }
 
+        $this->invalidateCalendarCaches();
         $this->cerrarModal();
         $this->filtroSedesIds = []; // Mostrar todas las sedes para que el ítem guardado sea visible
         $this->cargarDatos();
@@ -500,6 +504,7 @@ class CalendarioCapacitaciones extends Component
         }
 
         PlanificacionCurso::whereKey($id)->delete();
+        $this->invalidateCalendarCaches();
         $this->cargarDatos();
     }
 
@@ -555,6 +560,7 @@ class CalendarioCapacitaciones extends Component
             $plan->update(['fecha_fin' => $nuevaFechaFin->toDateString()]);
         }
 
+        $this->invalidateCalendarCaches();
         $this->cargarDatos();
     }
 
@@ -579,6 +585,7 @@ class CalendarioCapacitaciones extends Component
             'fecha_fin' => Carbon::createFromDate($this->anioActual, $this->mesActual, $nuevoDiaFin)->toDateString(),
         ]);
 
+        $this->invalidateCalendarCaches();
         $this->cargarDatos();
     }
 
@@ -634,6 +641,7 @@ class CalendarioCapacitaciones extends Component
 
         $plan->update($updates);
 
+        $this->invalidateCalendarCaches();
         $this->cargarDatos();
     }
 
@@ -661,6 +669,7 @@ class CalendarioCapacitaciones extends Component
             $plan->update(['fecha_fin' => $semanas[$semana - 1]['fin']]);
         }
 
+        $this->invalidateCalendarCaches();
         $this->cargarDatos();
     }
 
@@ -696,6 +705,7 @@ class CalendarioCapacitaciones extends Component
         }
 
         $plan->update($updates);
+        $this->invalidateCalendarCaches();
         $this->cargarDatos();
     }
 
@@ -720,6 +730,7 @@ class CalendarioCapacitaciones extends Component
             $plan->update(['fecha_fin' => Carbon::create($this->anioActual, $mes, 1)->endOfMonth()->toDateString()]);
         }
 
+        $this->invalidateCalendarCaches();
         $this->cargarDatos();
     }
 
@@ -751,77 +762,141 @@ class CalendarioCapacitaciones extends Component
 
     private function cargarCursosDisponibles(): void
     {
-        if ($this->modoVista === 'anual') {
-            // En vista anual: cursos planificados en el año actual
-            $inicioAnio = Carbon::create($this->anioActual, 1, 1)->startOfDay();
-            $finAnio = Carbon::create($this->anioActual, 12, 31)->endOfDay();
-
-            $planificadosIds = PlanificacionCurso::where('fecha_inicio', '<=', $finAnio)
-                ->where('fecha_fin', '>=', $inicioAnio)
-                ->pluck('curso_id')
-                ->unique()
-                ->all();
-        } else {
-            $primerDia = Carbon::createFromDate($this->anioActual, $this->mesActual, 1)->startOfDay();
-            $ultimoDia = $primerDia->copy()->endOfMonth()->startOfDay();
-
-            $planificadosIds = PlanificacionCurso::where('fecha_inicio', '<=', $ultimoDia)
-                ->where('fecha_fin', '>=', $primerDia)
-                ->pluck('curso_id')
-                ->unique()
-                ->all();
-        }
-
         $user = Auth::user();
-        $query = Curso::orderBy('titulo');
+        $cacheKey = $this->calendarCacheKey(
+            'cursos_disponibles',
+            [
+                'vista' => $this->modoVista,
+                'anio' => $this->anioActual,
+                'mes' => $this->mesActual,
+                'user' => $user->id,
+                'admin' => (int) $user->hasAdminAccess(),
+                'capacitador' => (int) $user->isCapacitador(),
+            ]
+        );
 
-        if ($user->isCapacitador() && ! $user->hasAdminAccess()) {
-            $query->where('capacitador_id', $user->id);
-        }
+        ['todos' => $todos, 'planificados' => $planificadosIds] = Cache::flexible(
+            $cacheKey,
+            [30, 120],
+            function () use ($user): array {
+                if ($this->modoVista === 'anual') {
+                    $inicioAnio = Carbon::create($this->anioActual, 1, 1)->startOfDay();
+                    $finAnio = Carbon::create($this->anioActual, 12, 31)->endOfDay();
 
-        $todos = $query
-            ->get(['id', 'titulo'])
-            ->map(fn ($c) => [
-                'id' => $c->id,
-                'titulo' => $c->titulo,
-                'bg' => self::PALETTE[$c->id % count(self::PALETTE)],
-            ]);
+                    $planificadosIds = PlanificacionCurso::where('fecha_inicio', '<=', $finAnio)
+                        ->where('fecha_fin', '>=', $inicioAnio)
+                        ->pluck('curso_id')
+                        ->unique()
+                        ->all();
+                } else {
+                    $primerDia = Carbon::createFromDate($this->anioActual, $this->mesActual, 1)->startOfDay();
+                    $ultimoDia = $primerDia->copy()->endOfMonth()->startOfDay();
 
-        $this->cursosDisponibles = $todos->all();
-        $this->cursosSinPlanificar = $todos
-            ->filter(fn ($c) => ! in_array($c['id'], $planificadosIds, true))
+                    $planificadosIds = PlanificacionCurso::where('fecha_inicio', '<=', $ultimoDia)
+                        ->where('fecha_fin', '>=', $primerDia)
+                        ->pluck('curso_id')
+                        ->unique()
+                        ->all();
+                }
+
+                $query = Curso::query()->orderBy('titulo');
+
+                if ($user->isCapacitador() && ! $user->hasAdminAccess()) {
+                    $query->where('capacitador_id', $user->id);
+                }
+
+                $todos = $query
+                    ->get(['id', 'titulo'])
+                    ->map(fn ($curso) => [
+                        'id' => $curso->id,
+                        'titulo' => $curso->titulo,
+                        'bg' => self::PALETTE[$curso->id % count(self::PALETTE)],
+                    ])
+                    ->all();
+
+                return [
+                    'todos' => $todos,
+                    'planificados' => $planificadosIds,
+                ];
+            }
+        );
+
+        $this->cursosDisponibles = $todos;
+        $this->cursosSinPlanificar = collect($todos)
+            ->filter(fn ($curso) => ! in_array($curso['id'], $planificadosIds, true))
             ->values()
             ->all();
     }
 
     private function obtenerPlanificaciones(Carbon $desde, Carbon $hasta)
     {
-        $query = PlanificacionCurso::with('curso:id,titulo,capacitador_id', 'sede:id,nombre')
-            ->where('fecha_inicio', '<=', $hasta)
-            ->where('fecha_fin', '>=', $desde);
-
         $user = Auth::user();
+        $cacheKey = $this->calendarCacheKey(
+            'planificaciones_ids',
+            [
+                'desde' => $desde->toDateString(),
+                'hasta' => $hasta->toDateString(),
+                'user' => $user->id,
+                'admin' => (int) $user->hasAdminAccess(),
+                'capacitador' => (int) $user->isCapacitador(),
+                'estamento' => $user->estamento_id,
+                'sede' => $user->sede_id,
+                'filtro_sedes' => implode(',', $this->filtroSedesIds),
+            ]
+        );
 
-        if ($user->isCapacitador() && ! $user->hasAdminAccess()) {
-            $query->whereHas('curso', fn ($q) => $q->where('capacitador_id', $user->id));
-        } elseif (! $user->hasAdminAccess()) {
-            $estamentoId = $user->estamento_id;
-            $query->whereHas(
-                'curso.estamentos',
-                fn ($q) => $q->where('estamentos.id', $estamentoId)
-            );
-            // Colaboradores: solo su sede + planificaciones globales
-            if ($user->sede_id) {
-                $query->where(fn ($q) => $q->whereNull('sede_id')->orWhere('sede_id', $user->sede_id));
+        $planificacionIds = Cache::flexible($cacheKey, [30, 120], function () use ($desde, $hasta, $user): array {
+            $query = PlanificacionCurso::query()
+                ->where('fecha_inicio', '<=', $hasta)
+                ->where('fecha_fin', '>=', $desde);
+
+            if ($user->isCapacitador() && ! $user->hasAdminAccess()) {
+                $query->whereHas('curso', fn ($subquery) => $subquery->where('capacitador_id', $user->id));
+            } elseif (! $user->hasAdminAccess()) {
+                $query->whereHas(
+                    'curso.estamentos',
+                    fn ($subquery) => $subquery->where('estamentos.id', $user->estamento_id)
+                );
+
+                if ($user->sede_id) {
+                    $query->where(fn ($subquery) => $subquery->whereNull('sede_id')->orWhere('sede_id', $user->sede_id));
+                }
             }
+
+            if (! empty($this->filtroSedesIds)) {
+                $query->where(fn ($subquery) => $subquery->whereNull('sede_id')->orWhereIn('sede_id', $this->filtroSedesIds));
+            }
+
+            return $query->orderBy('fecha_inicio')->pluck('id')->all();
+        });
+
+        if (empty($planificacionIds)) {
+            return collect();
         }
 
-        // Filtro global de sede (header dropdown)
-        if (! empty($this->filtroSedesIds)) {
-            $query->where(fn ($q) => $q->whereNull('sede_id')->orWhereIn('sede_id', $this->filtroSedesIds));
-        }
+        return PlanificacionCurso::query()
+            ->with('curso:id,titulo,capacitador_id', 'sede:id,nombre')
+            ->whereIn('id', $planificacionIds)
+            ->orderBy('fecha_inicio')
+            ->get();
+    }
 
-        return $query->orderBy('fecha_inicio')->get();
+    private function invalidateCalendarCaches(): void
+    {
+        Cache::increment('calendar_cache_version');
+    }
+
+    private function calendarCacheKey(string $scope, array $segments): string
+    {
+        $version = (string) Cache::get('calendar_cache_version', 1);
+        ksort($segments);
+
+        return sprintf(
+            'calendar:%s:v%s:%s',
+            $scope,
+            $version,
+            md5(json_encode($segments, JSON_THROW_ON_ERROR))
+        );
     }
 
     /* ────────────────────────────────────────────────────────────────────── */
@@ -1355,6 +1430,7 @@ class CalendarioCapacitaciones extends Component
             }
         });
 
+        $this->invalidateCalendarCaches();
         $this->cerrarModalCopiarAnio();
         $this->anioActual = $this->anioDestino;
         $this->cargarDatos();

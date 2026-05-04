@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Certificado;
 use App\Models\Curso;
 use App\Models\ProgresoModulo;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
@@ -13,32 +14,45 @@ class DashboardController extends Controller
     public function index(): View
     {
         $user = auth()->user();
+        $cacheScope = $user->hasAdminAccess() ? 'admin' : "capacitador_{$user->id}";
+        $cacheKey = "dashboard_summary_{$cacheScope}";
 
-        $cursosQuery = $user->hasAdminAccess()
-            ? Curso::query()
-            : $user->cursosImpartidos();
+        ['stats' => $stats, 'ultimosCursos' => $ultimosCursos] = Cache::flexible(
+            $cacheKey,
+            [30, 120],
+            function () use ($user): array {
+                $cursosQuery = $user->hasAdminAccess()
+                    ? Curso::query()
+                    : $user->cursosImpartidos();
 
-        $cursos = $cursosQuery
-            ->withCount(['modulos', 'estamentos'])
-            ->orderByDesc('created_at')
-            ->get();
+                $cursos = $cursosQuery
+                    ->withCount(['modulos', 'estamentos'])
+                    ->with(['planificaciones' => fn ($query) => $query->select('id', 'curso_id')])
+                    ->orderByDesc('created_at')
+                    ->get();
 
-        // Participantes únicos con algún progreso en los cursos del capacitador
-        $cursoIds = $cursos->pluck('id');
-        $totalParticipantes = ProgresoModulo::whereHas('modulo', fn ($q) => $q->whereIn('curso_id', $cursoIds))
-            ->distinct('user_id')
-            ->count('user_id');
+                $cursoIds = $cursos->pluck('id');
+                $totalParticipantes = $cursoIds->isEmpty()
+                    ? 0
+                    : ProgresoModulo::whereHas('modulo', fn ($query) => $query->whereIn('curso_id', $cursoIds))
+                        ->distinct('user_id')
+                        ->count('user_id');
 
-        $totalCertificados = Certificado::whereIn('curso_id', $cursoIds)->count();
+                $totalCertificados = $cursoIds->isEmpty()
+                    ? 0
+                    : Certificado::whereIn('curso_id', $cursoIds)->count();
 
-        $stats = [
-            'cursos' => $cursos->count(),
-            'participantes' => $totalParticipantes,
-            'certificados' => $totalCertificados,
-        ];
+                return [
+                    'stats' => [
+                        'cursos' => $cursos->count(),
+                        'participantes' => $totalParticipantes,
+                        'certificados' => $totalCertificados,
+                    ],
+                    'ultimosCursos' => $cursos->take(5),
+                ];
+            }
+        );
 
-        $ultimosCursos = $cursos->take(5);
-
-        return view('capacitador.dashboard', compact('stats', 'ultimosCursos', 'cursos'));
+        return view('capacitador.dashboard', compact('stats', 'ultimosCursos'));
     }
 }

@@ -82,6 +82,7 @@
 </head>
 
 <body class="admin-shell font-sans text-Alumco-gray h-screen flex flex-col overflow-hidden antialiased">
+    <div class="nav-progress-bar" data-nav-progress data-active="false" aria-hidden="true"></div>
 
     <!-- Topbar -->
     <header class="admin-topbar admin-topbar-persistent border-b border-white/10 px-6 py-3 flex items-center justify-between z-30 shrink-0">

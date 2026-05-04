@@ -143,3 +143,45 @@ const initializeModulePdfViewers = async () => {
 
 document.addEventListener('DOMContentLoaded', initializeModulePdfViewers);
 document.addEventListener('livewire:navigated', initializeModulePdfViewers);
+
+const setupNavigationProgress = () => {
+    const bar = document.querySelector('[data-nav-progress]');
+
+    if (! bar) {
+        return;
+    }
+
+    let timer = null;
+    let progress = 10;
+
+    const setProgress = (value) => {
+        progress = clamp(value, 0, 100);
+        bar.style.transform = `scaleX(${progress / 100})`;
+    };
+
+    const start = () => {
+        clearInterval(timer);
+        bar.dataset.active = 'true';
+        setProgress(12);
+
+        timer = setInterval(() => {
+            if (progress < 85) {
+                setProgress(progress + (progress < 40 ? 12 : 6));
+            }
+        }, 120);
+    };
+
+    const finish = () => {
+        clearInterval(timer);
+        setProgress(100);
+        setTimeout(() => {
+            bar.dataset.active = 'false';
+            setProgress(0);
+        }, 180);
+    };
+
+    document.addEventListener('livewire:navigate', start);
+    document.addEventListener('livewire:navigated', finish);
+};
+
+document.addEventListener('DOMContentLoaded', setupNavigationProgress);

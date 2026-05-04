@@ -63,6 +63,22 @@ html {
 
 [x-cloak] { display: none !important; }
 
+.nav-progress-bar {
+    position: fixed;
+    inset: 0 0 auto 0;
+    height: 3px;
+    background: var(--color-Alumco-yellow);
+    transform-origin: left center;
+    transform: scaleX(0);
+    opacity: 0;
+    transition: transform 0.18s ease-out, opacity 0.18s ease-out;
+    z-index: 120;
+}
+
+.nav-progress-bar[data-active='true'] {
+    opacity: 1;
+}
+
 /* Trabajador: layout accesible y consistente */
 .worker-shell {
     background:

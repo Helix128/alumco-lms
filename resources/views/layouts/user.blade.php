@@ -20,6 +20,7 @@
     @stack('styles')
 </head>
 <body class="worker-shell font-sans text-Alumco-gray antialiased min-h-screen flex flex-col">
+    <div class="nav-progress-bar" data-nav-progress data-active="false" aria-hidden="true"></div>
 
     {{-- Popup de Modo Vista Previa para Admins/Capacitadores --}}
     @if(session('preview_mode') && (auth()->user()->hasAdminAccess() || auth()->user()->isCapacitador()))

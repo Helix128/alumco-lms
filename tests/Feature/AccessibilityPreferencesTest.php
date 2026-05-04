@@ -176,10 +176,9 @@ class AccessibilityPreferencesTest extends TestCase
 
         Livewire::actingAs($user)
             ->test(AccessibilityPreferences::class)
-            ->set('highContrast', true)
-            ->set('reducedMotion', true)
-            ->call('increaseFont')
-            ->call('increaseFont')
+            ->call('toggleHighContrast')
+            ->call('toggleReducedMotion')
+            ->call('setFontLevel', 2)
             ->assertSet('fontLevel', 2)
             ->assertDispatched('accessibility-preferences-updated')
             ->assertHasNoErrors();
@@ -189,6 +188,38 @@ class AccessibilityPreferencesTest extends TestCase
             'highContrast' => true,
             'reducedMotion' => true,
         ], $user->refresh()->accessibility_preferences);
+    }
+
+    public function test_livewire_component_applies_cooldown_to_prevent_spam(): void
+    {
+        $user = User::factory()->create();
+
+        Livewire::actingAs($user)
+            ->test(AccessibilityPreferences::class)
+            ->call('setFontLevel', 1)
+            ->call('setFontLevel', 2)
+            ->assertSet('fontLevel', 1)
+            ->assertHasNoErrors();
+    }
+
+    public function test_livewire_component_applies_cooldown_to_toggle_spam(): void
+    {
+        $user = User::factory()->create([
+            'accessibility_preferences' => [
+                'fontLevel' => 0,
+                'highContrast' => false,
+                'reducedMotion' => false,
+            ],
+        ]);
+
+        Livewire::actingAs($user)
+            ->test(AccessibilityPreferences::class)
+            ->call('toggleHighContrast')
+            ->call('toggleHighContrast')
+            ->assertSet('highContrast', true)
+            ->assertHasNoErrors();
+
+        $this->assertTrue($user->refresh()->accessibility_preferences['highContrast']);
     }
 
     public function test_auth_pages_do_not_render_account_accessibility_preferences(): void

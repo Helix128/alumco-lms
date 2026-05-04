@@ -32,6 +32,35 @@
                 document.documentElement.dataset.motion = preferences.reducedMotion ? 'reduced' : 'default';
                 delete document.documentElement.dataset.background;
                 delete document.documentElement.dataset.cards;
+            },
+            _cooldowns: {
+                font: 0,
+                highContrast: 0,
+                reducedMotion: 0,
+            },
+            beginCooldown: function (control, milliseconds) {
+                var now = Date.now();
+                var current = this._cooldowns[control] || 0;
+
+                if (now < current) {
+                    return false;
+                }
+
+                this._cooldowns[control] = now + milliseconds;
+
+                return true;
+            },
+            current: function () {
+                return normalize({
+                    fontLevel: document.documentElement.dataset.font,
+                    highContrast: document.documentElement.dataset.contrast === 'high',
+                    reducedMotion: document.documentElement.dataset.motion === 'reduced'
+                });
+            },
+            fromEvent: function (event) {
+                var detail = event.detail || {};
+
+                return normalize(detail.preferences || (Array.isArray(detail) && detail[0] ? detail[0].preferences : null) || detail);
             }
         };
 
