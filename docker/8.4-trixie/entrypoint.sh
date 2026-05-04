@@ -18,11 +18,14 @@ has_app_key() {
     return 1
 }
 
-echo "verificando conexión con la base de datos..."
+echo "Verificando conexión con la base de datos..."
+attempt=0
 until php artisan db:monitor > /dev/null 2>&1; do
-  echo "esperando a mysql..."
-  sleep 2
+  attempt=$((attempt+1))
+  echo "Esperando a MySQL (intento $attempt)..."
+  sleep 1
 done
+echo "Conexión establecida."
 
 if ! has_app_key; then
     echo "APP_KEY no está configurada. Define una clave estable antes de iniciar producción."

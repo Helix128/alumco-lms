@@ -53,54 +53,73 @@ prod_down() {
 }
 
 prod_health() {
-    local port_output
-    local host_port
+    local port_output=""
+    local host_port=""
     local attempt
+    local max_attempts=30
+    local sleep_time=0.5
 
-    port_output="$("${DOCKER_PROD[@]}" port web 80)"
-    host_port="${port_output##*:}"
+    echo "Obteniendo puerto del servicio web..."
+    for attempt in $(seq 1 10); do
+        port_output="$("${DOCKER_PROD[@]}" port web 80 2>/dev/null)" || port_output=""
+        host_port="${port_output##*:}"
+        if [ -n "$host_port" ]; then
+            break
+        fi
+        printf "."
+        sleep 1
+    done
+    echo ""
 
     if [ -z "$host_port" ]; then
-        echo "No se pudo resolver el puerto publicado del servicio web."
+        echo "Error: No se pudo resolver el puerto publicado del servicio web."
         exit 1
     fi
 
-    echo "Verificando http://127.0.0.1:${host_port}/up ..."
-    for attempt in {1..4}; do
-        if curl --fail --silent --show-error "http://127.0.0.1:${host_port}/up" >/dev/null; then
-            echo "Health check OK."
+    local url="http://127.0.0.1:${host_port}/up"
+    echo "Verificando salud en $url..."
+    
+    for attempt in $(seq 1 "$max_attempts"); do
+        printf "Intento %02d/%d: " "$attempt" "$max_attempts"
+        if curl --fail --silent --connect-timeout 5 --max-time 5 "$url" >/dev/null; then
+            echo "EXITO"
             return 0
         fi
-
-        sleep 2
+        echo "esperando..."
+        sleep "$sleep_time"
     done
 
-    curl --fail --silent --show-error "http://127.0.0.1:${host_port}/up" >/dev/null
-    echo "Health check OK."
+    echo "ERROR: El health check falló después de $max_attempts intentos."
+    curl --fail --show-error "$url"
 }
 
 prod_deploy() {
     prod_preflight
 
-    echo "Obteniendo cambios desde main..."
+    echo ">>> Iniciando despliegue de producción..."
+
+    echo ">>> [1/7] Actualizando código fuente..."
     git pull origin main
 
+    echo ">>> [2/7] Compilando imágenes..."
     prod_build "$@"
 
-    echo "Poniendo la aplicacion en mantenimiento..."
+    echo ">>> [3/7] Modo mantenimiento: ON"
     prod_artisan down --render="errors::503" || true
 
+    echo ">>> [4/7] Reiniciando contenedores..."
     prod_up
 
-    echo "Recargando workers..."
+    echo ">>> [5/7] Reiniciando colas..."
     prod_artisan queue:restart || true
 
-    echo "Levantando la aplicacion..."
+    echo ">>> [6/7] Modo mantenimiento: OFF"
     prod_artisan up || true
 
+    echo ">>> [7/7] Verificando salud del sistema..."
     prod_health
 
-    echo "Despliegue completado con exito."
+    echo ">>> DESPLIEGUE FINALIZADO CORRECTAMENTE."
 }
 
 prod_clean() {
