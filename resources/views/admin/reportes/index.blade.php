@@ -420,11 +420,12 @@
 
 @push('scripts')
 <script>
+(() => {
     const expBackdrop = document.getElementById('export-modal-backdrop');
     const expModal = document.getElementById('export-modal');
     let isExpOpen = false;
 
-    function openExportModal() {
+    window.openExportModal = function () {
         if (!expBackdrop || !expModal) return;
         window.dispatchEvent(new CustomEvent('open-export-modal'));
         expBackdrop.classList.remove('hidden');
@@ -434,9 +435,9 @@
         expModal.classList.remove('opacity-0', 'pointer-events-none', 'scale-95');
         expModal.classList.add('scale-100');
         isExpOpen = true;
-    }
+    };
 
-    function closeExportModal() {
+    window.closeExportModal = function () {
         if (!expBackdrop || !expModal) return;
         expBackdrop.classList.add('opacity-0', 'pointer-events-none');
         expModal.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
@@ -448,12 +449,12 @@
             }
         }, 300);
         isExpOpen = false;
-    }
+    };
 
-    expBackdrop?.addEventListener('click', closeExportModal);
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && isExpOpen) closeExportModal(); });
+    expBackdrop?.addEventListener('click', window.closeExportModal);
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && isExpOpen) window.closeExportModal(); });
 
-    document.addEventListener('DOMContentLoaded', function () {
+    const initializeAgeRangeFilter = () => {
         // --- RANGO ETARIO ---
         const ageRoot = document.getElementById('age-filter-root');
         if (ageRoot) {
@@ -493,6 +494,9 @@
             // Inicializar
             updateRange();
         }
-    });
+    };
+
+    initializeAgeRangeFilter();
+})();
 </script>
 @endpush

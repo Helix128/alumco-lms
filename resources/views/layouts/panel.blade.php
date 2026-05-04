@@ -285,13 +285,6 @@
 
     @yield('modals')
 
-    <!-- Toggle Sidebar Script -->
-    <script>
-        const sidebar = document.getElementById('sidebar');
-        // Por ahora lo mantendremos fijo expandido, pero preparado para colapsar
-        // window.toggleSidebar = () => { ... }
-    </script>
-
     @livewireScripts
     @stack('scripts')
     @include('partials.accessibility-scripts')
