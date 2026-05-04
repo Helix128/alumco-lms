@@ -20,7 +20,9 @@
     @stack('styles')
 </head>
 <body class="worker-shell font-sans text-Alumco-gray antialiased min-h-screen flex flex-col">
-    <div class="nav-progress-bar" data-nav-progress data-active="false" aria-hidden="true"></div>
+    @persist('worker-nav-progress')
+        <div class="nav-progress-bar" data-nav-progress data-active="false" aria-hidden="true"></div>
+    @endpersist
 
     {{-- Popup de Modo Vista Previa para Admins/Capacitadores --}}
     @if(session('preview_mode') && (auth()->user()->hasAdminAccess() || auth()->user()->isCapacitador()))
@@ -48,9 +50,10 @@
     @endif
 
     {{-- HEADER: Logo + identidad del trabajador --}}
+    @persist('worker-topbar')
     <header class="worker-topbar sticky top-0 z-40 border-b border-white/70 py-3 shrink-0">
         <div class="max-w-2xl mx-auto px-5 flex items-center justify-between gap-4 lg:max-w-[90rem] lg:px-8">
-            <a href="{{ route('cursos.index') }}" wire:navigate class="worker-focus worker-pill inline-flex items-center gap-3">
+            <a href="{{ route('cursos.index') }}" wire:navigate.hover class="worker-focus worker-pill inline-flex items-center gap-3">
                 <img src="{{ asset('images/logo/alumco-full.svg') }}"
                      alt="Logo Alumco"
                      width="120"
@@ -68,7 +71,7 @@
             <div class="hidden lg:flex lg:items-center lg:gap-3">
                 {{-- Link Directo al Perfil (PC) --}}
                 <a href="{{ route('perfil.index') }}"
-                   wire:navigate
+                   wire:navigate.hover
                    class="worker-focus worker-pill group flex items-center gap-3 bg-white/90 px-3 py-2 shadow-sm ring-1 ring-Alumco-blue/10 transition-all hover:bg-white hover:ring-Alumco-blue/30 hover:shadow-md"
                    title="Ver mi perfil">
                     <span class="min-w-0 text-right">
@@ -94,6 +97,7 @@
             </div>
             <div class="flex items-center gap-2 lg:hidden">
                 <a href="{{ route('perfil.index') }}"
+                   wire:navigate.hover
                    class="avatar-btn worker-focus w-10 h-10 rounded-full bg-Alumco-blue text-white font-display font-black text-sm
                           flex items-center justify-center shadow-sm select-none"
                    aria-label="Ir a mi perfil">
@@ -103,6 +107,7 @@
             @endauth
         </div>
     </header>
+    @endpersist
 
     <div class="worker-page flex-1 lg:flex lg:flex-row lg:gap-8 lg:max-w-[90rem] lg:mx-auto lg:px-8 lg:items-start">
         {{-- SIDEBAR EN PC / BOTTOM EN MOVIL --}}
@@ -116,8 +121,23 @@
 
         {{-- CONTENIDO PRINCIPAL --}}
         <main class="flex-1 pb-28 w-full max-w-2xl mx-auto lg:max-w-none lg:pb-12 lg:px-0">
+            @php
+                $navigationPageKind = trim($__env->yieldContent('page_kind')) ?: 'default';
+            @endphp
             {{-- El ID dinámico fuerza a Firefox/Safari a re-ejecutar la animación CSS en cada navegación --}}
-            <div id="page-content-{{ md5(request()->fullUrl()) }}" class="animate-page-entry">
+            <div id="page-content-{{ md5(request()->fullUrl()) }}"
+                 class="animate-page-entry"
+                 data-nav-content
+                 data-page-kind="{{ $navigationPageKind }}"
+                 aria-busy="false">
+                <div class="nav-skeleton" data-nav-skeleton aria-hidden="true">
+                    <div class="nav-skeleton__row nav-skeleton__hero"></div>
+                    <div class="nav-skeleton__grid">
+                        <div class="nav-skeleton__row"></div>
+                        <div class="nav-skeleton__row"></div>
+                        <div class="nav-skeleton__row"></div>
+                    </div>
+                </div>
                 {{-- BANNER CONTEXTUAL (cada vista inyecta el suyo) --}}
                 @yield('course-banner')
 

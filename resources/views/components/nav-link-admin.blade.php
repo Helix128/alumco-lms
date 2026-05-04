@@ -6,7 +6,7 @@ $classes = ($active ?? false)
             : 'admin-sidebar-link group';
 @endphp
 
-<a href="{{ $href }}" wire:navigate {{ $attributes->merge(['class' => $classes]) }} title="{{ $title }}">
+<a href="{{ $href }}" wire:navigate.hover {{ $attributes->merge(['class' => $classes]) }} title="{{ $title }}">
     <div class="admin-sidebar-link-icon {{ ($active ?? false) ? 'text-Alumco-cyan' : 'group-hover:text-Alumco-cyan' }} transition-colors duration-200">
         {{ $icon }}
     </div>

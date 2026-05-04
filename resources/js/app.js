@@ -152,17 +152,47 @@ const setupNavigationProgress = () => {
     }
 
     let timer = null;
+    let skeletonTimer = null;
     let progress = 10;
+    let navigationStartedAt = null;
+    let slowTransitionCount = 0;
+    let cachedTransitionCount = 0;
 
     const setProgress = (value) => {
         progress = clamp(value, 0, 100);
         bar.style.transform = `scaleX(${progress / 100})`;
     };
 
-    const start = () => {
+    const toggleSkeleton = (active) => {
+        const content = document.querySelector('[data-nav-content]');
+        const skeleton = document.querySelector('[data-nav-skeleton]');
+
+        if (! content || ! skeleton) {
+            return;
+        }
+
+        content.setAttribute('aria-busy', active ? 'true' : 'false');
+        content.dataset.loading = active ? 'true' : 'false';
+    };
+
+    const start = (event) => {
         clearInterval(timer);
+        clearTimeout(skeletonTimer);
+
+        navigationStartedAt = performance.now();
+        const isCachedNavigation = Boolean(event?.detail?.cached);
+
+        if (isCachedNavigation) {
+            cachedTransitionCount += 1;
+        }
+
         bar.dataset.active = 'true';
         setProgress(12);
+
+        skeletonTimer = setTimeout(() => {
+            toggleSkeleton(true);
+            slowTransitionCount += 1;
+        }, isCachedNavigation ? 130 : 70);
 
         timer = setInterval(() => {
             if (progress < 85) {
@@ -173,7 +203,19 @@ const setupNavigationProgress = () => {
 
     const finish = () => {
         clearInterval(timer);
+        clearTimeout(skeletonTimer);
+        toggleSkeleton(false);
         setProgress(100);
+
+        const elapsed = navigationStartedAt ? Math.round(performance.now() - navigationStartedAt) : null;
+        if (elapsed !== null) {
+            console.debug('[nav-perf]', {
+                elapsedMs: elapsed,
+                slowTransitions: slowTransitionCount,
+                cachedTransitions: cachedTransitionCount,
+            });
+        }
+
         setTimeout(() => {
             bar.dataset.active = 'false';
             setProgress(0);

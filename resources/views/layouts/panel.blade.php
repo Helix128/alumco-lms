@@ -82,13 +82,16 @@
 </head>
 
 <body class="admin-shell font-sans text-Alumco-gray h-screen flex flex-col overflow-hidden antialiased">
-    <div class="nav-progress-bar" data-nav-progress data-active="false" aria-hidden="true"></div>
+    @persist('admin-nav-progress')
+        <div class="nav-progress-bar" data-nav-progress data-active="false" aria-hidden="true"></div>
+    @endpersist
 
     <!-- Topbar -->
+    @persist('admin-topbar')
     <header class="admin-topbar admin-topbar-persistent border-b border-white/10 px-6 py-3 flex items-center justify-between z-30 shrink-0">
         <div class="flex items-center gap-8">
             <div class="flex items-center">
-                <a href="{{ route('capacitador.dashboard') }}" wire:navigate class="flex items-center text-white">
+                <a href="{{ route('capacitador.dashboard') }}" wire:navigate.hover class="flex items-center text-white">
                     <x-logo-alumco class="h-8 w-auto" width="120" height="32" />
                 </a>
             </div>
@@ -130,7 +133,7 @@
                     ->join('');
             @endphp
             <a href="{{ route('admin.perfil.index') }}"
-               wire:navigate
+               wire:navigate.hover
                class="worker-focus admin-avatar-button select-none">
                 {{ $initials }}
             </a>
@@ -143,6 +146,7 @@
             @endauth
         </div>
     </header>
+    @endpersist
 
     <div class="flex-1 flex overflow-hidden" x-data="{ sidebarOpen: true }">
         
@@ -278,7 +282,23 @@
 
         <!-- Main Content -->
         <main class="flex-1 overflow-x-hidden overflow-y-auto p-6 lg:p-10">
-            <div id="admin-content-{{ md5(request()->fullUrl()) }}" class="max-w-[1600px] mx-auto animate-page-entry">
+            @php
+                $navigationPageKind = trim($__env->yieldContent('page_kind')) ?: 'dashboard';
+            @endphp
+            <div id="admin-content-{{ md5(request()->fullUrl()) }}"
+                 class="max-w-[1600px] mx-auto animate-page-entry"
+                 data-nav-content
+                 data-page-kind="{{ $navigationPageKind }}"
+                 aria-busy="false">
+                <div class="nav-skeleton nav-skeleton--dense" data-nav-skeleton aria-hidden="true">
+                    <div class="nav-skeleton__row nav-skeleton__title"></div>
+                    <div class="nav-skeleton__grid nav-skeleton__grid--three">
+                        <div class="nav-skeleton__row"></div>
+                        <div class="nav-skeleton__row"></div>
+                        <div class="nav-skeleton__row"></div>
+                    </div>
+                    <div class="nav-skeleton__row nav-skeleton__table"></div>
+                </div>
                 @yield('content')
             </div>
         </main>
