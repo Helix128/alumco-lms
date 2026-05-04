@@ -14,6 +14,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Alumco')</title>
     <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
+    
+    <script>
+        (function() {
+            try {
+                var prefs = JSON.parse(localStorage.getItem('alumco-accessibility'));
+                if (prefs) {
+                    var levels = [18, 20, 22];
+                    document.documentElement.style.setProperty('--font-base', levels[prefs.fontLevel || 0] + 'px');
+                    document.documentElement.dataset.font = String(prefs.fontLevel || 0);
+                    document.documentElement.dataset.contrast = prefs.highContrast ? 'high' : 'default';
+                    document.documentElement.dataset.motion = prefs.reducedMotion ? 'reduced' : 'default';
+                }
+            } catch (e) {}
+        })();
+    </script>
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
     @stack('css')

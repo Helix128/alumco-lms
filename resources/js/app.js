@@ -179,6 +179,7 @@ const setupNavigationProgress = () => {
         clearInterval(timer);
         clearTimeout(skeletonTimer);
 
+        const isReducedMotion = window.AlumcoAccessibility?.isReducedMotion();
         navigationStartedAt = performance.now();
         const isCachedNavigation = Boolean(event?.detail?.cached);
 
@@ -187,6 +188,12 @@ const setupNavigationProgress = () => {
         }
 
         bar.dataset.active = 'true';
+        
+        if (isReducedMotion) {
+            setProgress(100);
+            return;
+        }
+
         setProgress(12);
 
         skeletonTimer = setTimeout(() => {

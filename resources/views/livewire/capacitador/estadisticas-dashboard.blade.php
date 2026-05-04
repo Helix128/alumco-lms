@@ -13,6 +13,7 @@
                 const data = @json($chartData);
                 const labels = data.map(d => d.label.length > 20 ? d.label.substring(0, 20) + '…' : d.label);
                 const values = data.map(d => d.value);
+                const isReducedMotion = window.AlumcoAccessibility?.isReducedMotion();
 
                 new Chart(document.getElementById('estadisticasChart'), {
                     type: 'bar',
@@ -26,9 +27,9 @@
                         }]
                     },
                     options: {
+                        animation: isReducedMotion ? false : { duration: 1000 },
                         responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
+                        maintainAspectRatio: false,                        scales: {
                             y: { beginAtZero: true, max: 100, ticks: { callback: v => v + '%' } }
                         },
                         plugins: { legend: { display: false } }

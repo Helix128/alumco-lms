@@ -8,9 +8,11 @@
     .planning-shell { --planning-week-width: 9rem; }
     .planning-cell { min-width: var(--planning-week-width); }
     .planning-chip { transition: transform .12s ease, opacity .12s ease, box-shadow .12s ease, filter .12s ease; }
+    [data-motion="reduced"] .planning-chip { transition: none !important; }
     .planning-chip:hover { transform: translateY(-1px); box-shadow: 0 10px 24px -16px rgba(15, 23, 42, .55); }
     .cal-header, .cal-week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
     [x-cloak] { display: none !important; }
+    [data-motion="reduced"] .animate-pulse { animation: none !important; }
 </style>
 @endpush
 

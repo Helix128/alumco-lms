@@ -50,6 +50,10 @@
             transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
+        [data-motion="reduced"] #drawer-usuario {
+            transition: none !important;
+        }
+
         #drawer-usuario.is-open {
             transform: translateX(0);
         }
