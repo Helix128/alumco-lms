@@ -66,7 +66,7 @@ prod_health() {
     fi
 
     echo "Verificando http://127.0.0.1:${host_port}/up ..."
-    for attempt in {1..30}; do
+    for attempt in {1..4}; do
         if curl --fail --silent --show-error "http://127.0.0.1:${host_port}/up" >/dev/null; then
             echo "Health check OK."
             return 0
