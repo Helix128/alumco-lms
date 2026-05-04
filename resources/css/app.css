@@ -44,22 +44,22 @@ html {
     font-size: var(--font-base, 16px) !important;
 }
 
-[data-font="1"] :where(.admin-shell, .worker-shell) .text-\[9px\] { font-size: 0.5625rem !important; }
-[data-font="1"] :where(.admin-shell, .worker-shell) .text-\[10px\] { font-size: 0.625rem !important; }
-[data-font="1"] :where(.admin-shell, .worker-shell) .text-\[11px\] { font-size: 0.6875rem !important; }
-[data-font="1"] :where(.admin-shell, .worker-shell) .text-\[12px\] { font-size: 0.75rem !important; }
-[data-font="1"] :where(.admin-shell, .worker-shell) .text-\[13px\] { font-size: 0.8125rem !important; }
-[data-font="1"] :where(.admin-shell, .worker-shell) .text-\[14px\] { font-size: 0.875rem !important; }
-[data-font="1"] :where(.admin-shell, .worker-shell) .text-\[15px\] { font-size: 0.9375rem !important; }
-[data-font="1"] :where(.admin-shell, .worker-shell) .text-\[16px\] { font-size: 1rem !important; }
-[data-font="2"] :where(.admin-shell, .worker-shell) .text-\[9px\] { font-size: 0.5625rem !important; }
-[data-font="2"] :where(.admin-shell, .worker-shell) .text-\[10px\] { font-size: 0.625rem !important; }
-[data-font="2"] :where(.admin-shell, .worker-shell) .text-\[11px\] { font-size: 0.6875rem !important; }
-[data-font="2"] :where(.admin-shell, .worker-shell) .text-\[12px\] { font-size: 0.75rem !important; }
-[data-font="2"] :where(.admin-shell, .worker-shell) .text-\[13px\] { font-size: 0.8125rem !important; }
-[data-font="2"] :where(.admin-shell, .worker-shell) .text-\[14px\] { font-size: 0.875rem !important; }
-[data-font="2"] :where(.admin-shell, .worker-shell) .text-\[15px\] { font-size: 0.9375rem !important; }
-[data-font="2"] :where(.admin-shell, .worker-shell) .text-\[16px\] { font-size: 1rem !important; }
+[data-font="1"] :where(.admin-shell, .worker-shell) .text-\[9px\] { font-size: 11px !important; }
+[data-font="1"] :where(.admin-shell, .worker-shell) .text-\[10px\] { font-size: 12px !important; }
+[data-font="1"] :where(.admin-shell, .worker-shell) .text-\[11px\] { font-size: 13px !important; }
+[data-font="1"] :where(.admin-shell, .worker-shell) .text-\[12px\] { font-size: 14px !important; }
+[data-font="1"] :where(.admin-shell, .worker-shell) .text-\[13px\] { font-size: 15px !important; }
+[data-font="1"] :where(.admin-shell, .worker-shell) .text-\[14px\] { font-size: 16px !important; }
+[data-font="1"] :where(.admin-shell, .worker-shell) .text-\[15px\] { font-size: 17px !important; }
+[data-font="1"] :where(.admin-shell, .worker-shell) .text-\[16px\] { font-size: 18px !important; }
+[data-font="2"] :where(.admin-shell, .worker-shell) .text-\[9px\] { font-size: 12px !important; }
+[data-font="2"] :where(.admin-shell, .worker-shell) .text-\[10px\] { font-size: 13px !important; }
+[data-font="2"] :where(.admin-shell, .worker-shell) .text-\[11px\] { font-size: 14px !important; }
+[data-font="2"] :where(.admin-shell, .worker-shell) .text-\[12px\] { font-size: 15px !important; }
+[data-font="2"] :where(.admin-shell, .worker-shell) .text-\[13px\] { font-size: 16px !important; }
+[data-font="2"] :where(.admin-shell, .worker-shell) .text-\[14px\] { font-size: 18px !important; }
+[data-font="2"] :where(.admin-shell, .worker-shell) .text-\[15px\] { font-size: 20px !important; }
+[data-font="2"] :where(.admin-shell, .worker-shell) .text-\[16px\] { font-size: 22px !important; }
 
 [x-cloak] { display: none !important; }
 

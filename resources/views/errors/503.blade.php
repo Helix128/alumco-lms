@@ -6,8 +6,8 @@
 
 @section('content')
     <p class="text-lg font-medium text-Alumco-gray/80">
-        @if (!empty($exception->getMessage()))
-            {{ $exception->getMessage() }}
+        @if (($exceptionMessage = ($exception ?? null)?->getMessage()) !== null && $exceptionMessage !== '')
+            {{ $exceptionMessage }}
         @else
             El sitio se encuentra temporalmente en mantenimiento. Vuelve a intentarlo en unos minutos.
         @endif

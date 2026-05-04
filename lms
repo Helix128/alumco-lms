@@ -52,26 +52,10 @@ prod_down() {
     "${DOCKER_PROD[@]}" down
 }
 
-prod_migrate() {
-    echo "Ejecutando migraciones..."
-    prod_artisan migrate --force
-}
-
-prod_optimize() {
-    echo "Optimizando caches de Laravel..."
-    prod_artisan optimize
-}
-
-prod_reload() {
-    echo "Recargando procesos persistentes..."
-    if ! prod_artisan reload; then
-        prod_artisan queue:restart
-    fi
-}
-
 prod_health() {
     local port_output
     local host_port
+    local attempt
 
     port_output="$("${DOCKER_PROD[@]}" port web 80)"
     host_port="${port_output##*:}"
@@ -82,6 +66,15 @@ prod_health() {
     fi
 
     echo "Verificando http://127.0.0.1:${host_port}/up ..."
+    for attempt in {1..30}; do
+        if curl --fail --silent --show-error "http://127.0.0.1:${host_port}/up" >/dev/null; then
+            echo "Health check OK."
+            return 0
+        fi
+
+        sleep 2
+    done
+
     curl --fail --silent --show-error "http://127.0.0.1:${host_port}/up" >/dev/null
     echo "Health check OK."
 }
@@ -98,9 +91,9 @@ prod_deploy() {
     prod_artisan down --render="errors::503" || true
 
     prod_up
-    prod_migrate
-    prod_optimize
-    prod_reload
+
+    echo "Recargando workers..."
+    prod_artisan queue:restart || true
 
     echo "Levantando la aplicacion..."
     prod_artisan up || true
@@ -122,17 +115,19 @@ show_help() {
     printf "  %-15s %s\n" "dev-rebuild" "reconstruye sail sin cache"
     printf "  %-15s %s\n" "dev-stop" "apaga sail"
     printf "\n%-15s %s\n" "PROD:" ""
-    printf "  %-15s %s\n" "prod-deploy" "pull, build, migrate, optimize, reload y health check"
+    printf "  %-15s %s\n" "prod-deploy" "pull, build, up, queue restart y health check"
     printf "  %-15s %s\n" "prod-build" "compila imagenes app/web; acepta --no-cache"
     printf "  %-15s %s\n" "prod-up" "levanta contenedores"
     printf "  %-15s %s\n" "prod-down" "baja contenedores"
-    printf "  %-15s %s\n" "prod-migrate" "ejecuta migraciones"
-    printf "  %-15s %s\n" "prod-optimize" "regenera caches de Laravel"
-    printf "  %-15s %s\n" "prod-reload" "recarga workers y servicios persistentes"
     printf "  %-15s %s\n" "prod-health" "valida /up"
-    printf "  %-15s %s\n" "prod-clean" "libera imagenes huerfanas"
     printf "  %-15s %s\n" "prod-artisan" "php artisan (ej: migrate:status)"
     printf "  %-15s %s\n" "prod-exec" "comando libre en un servicio"
+    printf "  %-15s %s\n" "prod-clean" "libera imagenes huerfanas"
+    printf "\nEjemplos:\n"
+    printf "  ./lms prod-artisan migrate:status\n"
+    printf "  ./lms prod-artisan db:seed --force\n"
+    printf "  ./lms prod-artisan storage:link\n"
+    printf "  ./lms prod-artisan route:list --path=livewire\n"
 }
 
 case "$cmd" in
@@ -162,18 +157,6 @@ case "$cmd" in
     prod-down | prod-stop)
         prod_preflight
         prod_down
-        ;;
-    prod-migrate)
-        prod_preflight
-        prod_migrate
-        ;;
-    prod-optimize)
-        prod_preflight
-        prod_optimize
-        ;;
-    prod-reload)
-        prod_preflight
-        prod_reload
         ;;
     prod-health)
         prod_preflight

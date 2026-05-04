@@ -173,7 +173,7 @@
                 </thead>
                 <tbody class="divide-y divide-gray-100">
                     @forelse($usuarios as $user)
-                    <tr class="hover:bg-gray-50/50 transition-colors user-row group cursor-default">
+                    <tr wire:key="user-row-{{ $user->id }}" class="hover:bg-gray-50/50 transition-colors user-row group cursor-default">
                         
                         <td class="px-6 py-5">
                             <div class="flex items-center gap-3">
@@ -252,7 +252,7 @@
                                 </svg>
                             </button>
 
-                            <template x-teleport="body">
+                            @teleport('body')
                                 <div x-cloak
                                      x-show="open"
                                      @click.away="closeMenu()"
@@ -287,7 +287,7 @@
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                         Eliminar registro
                                     </button>                                </div>
-                            </template>
+                            @endteleport
                             @endif
                         </td>
                     </tr>
@@ -312,7 +312,7 @@
     </div>
 
     <!-- DRAWER: BACKDROP Y PANEL LATERAL (Teleport a body para evitar conflictos de posicionamiento) -->
-    <template x-teleport="body">
+    @teleport('body')
         <div>
             <!-- Backdrop -->
             <div id="drawer-backdrop" :class="{ 'is-open': $wire.showDrawer }" aria-hidden="true" @click="$wire.showDrawer = false"></div>
@@ -460,10 +460,10 @@
                 </form>
             </div>
         </div>
-    </template>
+    @endteleport
 
     {{-- Modal de Confirmación Homogéneo --}}
-    <template x-teleport="body">
+    @teleport('body')
         <div x-show="confirmModal.open" 
              x-cloak
              class="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -512,5 +512,5 @@
                 </div>
             </div>
         </div>
-    </template>
+    @endteleport
 </div>
