@@ -56,7 +56,7 @@ prod_health() {
     local port_output=""
     local host_port=""
     local attempt
-    local max_attempts=30
+    local max_attempts=4
     local sleep_time=0.5
 
     echo "Obteniendo puerto del servicio web..."
