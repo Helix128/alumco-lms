@@ -72,16 +72,16 @@
                     <tbody class="divide-y divide-gray-50">
                         @forelse ($ultimosCursos as $curso)
                             @php
-                                $tienePlanActiva = $curso->planificaciones->count() > 0;
+                                $tienePlanActiva = $curso['planificaciones_count'] > 0;
                                 $estado = $tienePlanActiva ? 'Programado' : 'Sin Programar';
                                 $badgeColor = $tienePlanActiva ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400';
                             @endphp
                             <tr class="group">
                                 <td class="py-4 pr-4">
-                                    <a href="{{ route('capacitador.cursos.show', $curso) }}" class="font-display font-bold text-Alumco-gray group-hover:text-Alumco-blue transition-colors leading-tight block">
-                                        {{ $curso->titulo }}
+                                    <a href="{{ route('capacitador.cursos.show', $curso['id']) }}" class="font-display font-bold text-Alumco-gray group-hover:text-Alumco-blue transition-colors leading-tight block">
+                                        {{ $curso['titulo'] }}
                                     </a>
-                                    <span class="text-[10px] text-Alumco-gray/40 font-bold uppercase">{{ $curso->modulos_count }} módulos</span>
+                                    <span class="text-[10px] text-Alumco-gray/40 font-bold uppercase">{{ $curso['modulos_count'] }} módulos</span>
                                 </td>
                                 <td class="py-4 text-right">
                                     <span class="inline-block px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-tighter {{ $badgeColor }}">

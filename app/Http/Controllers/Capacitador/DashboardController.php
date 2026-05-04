@@ -15,7 +15,7 @@ class DashboardController extends Controller
     {
         $user = auth()->user();
         $cacheScope = $user->hasAdminAccess() ? 'admin' : "capacitador_{$user->id}";
-        $cacheKey = "dashboard_summary_{$cacheScope}";
+        $cacheKey = "dashboard_summary_v2_{$cacheScope}";
 
         ['stats' => $stats, 'ultimosCursos' => $ultimosCursos] = Cache::flexible(
             $cacheKey,
@@ -26,8 +26,7 @@ class DashboardController extends Controller
                     : $user->cursosImpartidos();
 
                 $cursos = $cursosQuery
-                    ->withCount(['modulos', 'estamentos'])
-                    ->with(['planificaciones' => fn ($query) => $query->select('id', 'curso_id')])
+                    ->withCount(['modulos', 'estamentos', 'planificaciones'])
                     ->orderByDesc('created_at')
                     ->get();
 
@@ -48,7 +47,16 @@ class DashboardController extends Controller
                         'participantes' => $totalParticipantes,
                         'certificados' => $totalCertificados,
                     ],
-                    'ultimosCursos' => $cursos->take(5),
+                    'ultimosCursos' => $cursos
+                        ->take(5)
+                        ->map(fn (Curso $curso): array => [
+                            'id' => $curso->id,
+                            'titulo' => $curso->titulo,
+                            'modulos_count' => $curso->modulos_count,
+                            'planificaciones_count' => $curso->planificaciones_count,
+                        ])
+                        ->values()
+                        ->all(),
                 ];
             }
         );
