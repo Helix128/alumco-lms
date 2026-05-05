@@ -4,10 +4,8 @@ namespace App\Livewire\Admin;
 
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
-use Livewire\Attributes\Defer;
 use Livewire\Component;
 
-#[Defer]
 class GraficoPorSede extends Component
 {
     public array $chartData = [];

@@ -5,10 +5,8 @@ namespace App\Livewire\Admin;
 use App\Models\User;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
-use Livewire\Attributes\Defer;
 use Livewire\Component;
 
-#[Defer]
 class GraficoComposicion extends Component
 {
     public array $porEstamento = [];

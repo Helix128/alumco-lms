@@ -3,6 +3,48 @@ import Chart from 'chart.js/auto';
 
 window.Chart = Chart;
 
+const chartRegistry = new Map();
+
+window.AlumcoCharts = {
+    render(canvasId, config) {
+        const canvas = document.getElementById(canvasId);
+
+        if (! canvas) {
+            return null;
+        }
+
+        const existingChart = chartRegistry.get(canvasId);
+        if (existingChart) {
+            existingChart.destroy();
+        }
+
+        const context = canvas.getContext('2d');
+        if (! context) {
+            return null;
+        }
+
+        const chart = new Chart(context, config);
+        chartRegistry.set(canvasId, chart);
+
+        return chart;
+    },
+
+    destroy(canvasId) {
+        const existingChart = chartRegistry.get(canvasId);
+        if (! existingChart) {
+            return;
+        }
+
+        existingChart.destroy();
+        chartRegistry.delete(canvasId);
+    },
+
+    destroyAll() {
+        chartRegistry.forEach((chart) => chart.destroy());
+        chartRegistry.clear();
+    },
+};
+
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
 class ModulePdfViewer {
@@ -143,6 +185,9 @@ const initializeModulePdfViewers = async () => {
 
 document.addEventListener('DOMContentLoaded', initializeModulePdfViewers);
 document.addEventListener('livewire:navigated', initializeModulePdfViewers);
+document.addEventListener('livewire:navigating', () => {
+    window.AlumcoCharts?.destroyAll();
+});
 
 const setupNavigationProgress = () => {
     const bar = document.querySelector('[data-nav-progress]');

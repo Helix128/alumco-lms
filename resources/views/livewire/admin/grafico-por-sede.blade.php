@@ -1,10 +1,18 @@
-<div style="height: 300px;">
+<x-admin.chart-panel
+    title="Aprobación por sede"
+    description="Porcentaje de usuarios certificados sobre el total activo en cada sede."
+    :badge="count($chartData['labels'] ?? []) . ' sedes'"
+    accent="205 116 44"
+    canvas-class="chart-panel__canvas chart-panel__canvas--lg"
+>
     @if(empty($chartData['labels']))
-        <p class="text-center text-gray-500 py-8">No hay datos disponibles</p>
+        <div class="chart-panel__placeholder">No hay datos disponibles para sedes.</div>
     @else
-        <canvas id="graficoPorSedeChart"></canvas>
+        <div wire:ignore class="relative h-full">
+            <canvas id="graficoPorSedeChart"></canvas>
+        </div>
     @endif
-</div>
+</x-admin.chart-panel>
 
 @script
 <script>
@@ -12,10 +20,7 @@
         const chartData = @json($chartData);
         if (!chartData.labels || chartData.labels.length === 0) return;
 
-        const ctx = document.getElementById('graficoPorSedeChart')?.getContext('2d');
-        if (!ctx) return;
-
-        new Chart(ctx, {
+        window.AlumcoCharts?.render('graficoPorSedeChart', {
             type: 'bar',
             data: {
                 labels: chartData.labels,
@@ -23,7 +28,7 @@
                     label: 'Porcentaje de Aprobación',
                     data: chartData.aprobados,
                     backgroundColor: '#205099',
-                    borderRadius: 6,
+                    borderRadius: 10,
                     borderSkipped: false,
                 }]
             },
@@ -31,13 +36,17 @@
                 indexAxis: 'y',
                 responsive: true,
                 maintainAspectRatio: false,
+                interaction: {
+                    mode: 'nearest',
+                    intersect: false,
+                },
                 plugins: {
                     legend: {
-                        display: true,
+                        display: false,
                         labels: {
                             padding: 15,
                             font: { size: 12 },
-                        }
+                        },
                     },
                     tooltip: {
                         callbacks: {
@@ -52,13 +61,23 @@
                         beginAtZero: true,
                         max: 100,
                         ticks: {
-                            callback: function(value) {
+                            callback(value) {
                                 return value + '%';
-                            }
-                        }
+                            },
+                            color: '#6b7280',
+                            font: {
+                                weight: '700',
+                            },
+                        },
+                        grid: {
+                            color: 'rgba(148, 163, 184, 0.16)',
+                        },
                     }
                 },
-                animation: window.AlumcoAccessibility?.isReducedMotion?.() ? false : undefined,
+                animation: window.AlumcoAccessibility?.isReducedMotion?.() ? false : {
+                    duration: 900,
+                    easing: 'easeOutQuart',
+                },
             }
         });
     })();

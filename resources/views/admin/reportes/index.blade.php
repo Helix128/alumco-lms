@@ -260,9 +260,9 @@
 
 @section('modals')
 <!-- Modal Configuración Exportación -->
-<div id="export-modal-backdrop" class="fixed inset-0 bg-Alumco-gray/40 backdrop-blur-sm z-50 hidden opacity-0 pointer-events-none transition-opacity duration-300" 
+<div id="export-modal-backdrop" class="fixed inset-0 bg-Alumco-gray/40 backdrop-blur-sm z-[80] hidden opacity-0 pointer-events-none transition-opacity duration-300" 
      :class="{ 'transition-none': window.AlumcoAccessibility?.isReducedMotion() }" aria-hidden="true"></div>
-<div id="export-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden opacity-0 pointer-events-none transition-all duration-300 scale-95" 
+<div id="export-modal" class="fixed inset-0 z-[80] flex items-center justify-center p-4 hidden opacity-0 pointer-events-none transition-all duration-300 scale-95" 
      :class="{ 'transition-none': window.AlumcoAccessibility?.isReducedMotion() }" aria-hidden="true">
     <div class="bg-white w-full max-w-7xl rounded-3xl shadow-xl overflow-hidden" 
          x-data="{
