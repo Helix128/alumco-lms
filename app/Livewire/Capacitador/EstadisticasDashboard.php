@@ -58,7 +58,7 @@ class EstadisticasDashboard extends Component
 
         $courseIds = $cursos->pluck('id')->all();
 
-        $progresoPorUsuario = DB::table('progreso_modulos as progreso')
+        $progresoPorUsuario = DB::table('progresos_modulo as progreso')
             ->join('modulos as modulo', 'modulo.id', '=', 'progreso.modulo_id')
             ->whereIn('modulo.curso_id', $courseIds)
             ->selectRaw('modulo.curso_id as curso_id')
