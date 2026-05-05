@@ -1,10 +1,12 @@
 <?php
 
+use App\Http\Controllers\Admin\DashboardController as AdminDashboard;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Capacitador\CertificadoController as CapacitadorCertificado;
 use App\Http\Controllers\Capacitador\CursoController as CapacitadorCurso;
 use App\Http\Controllers\Capacitador\DashboardController as CapacitadorDashboard;
+use App\Http\Controllers\Capacitador\EstadisticasController as CapacitadorEstadisticas;
 use App\Http\Controllers\Capacitador\ModuloController as CapacitadorModulo;
 use App\Http\Controllers\Capacitador\ParticipanteController as CapacitadorParticipante;
 use App\Http\Controllers\Capacitador\SeccionCursoController;
@@ -125,6 +127,9 @@ Route::middleware('auth')->group(function () {
         // Calendario Institucional
         Route::get('/calendario', CalendarioCapacitaciones::class)->name('calendario.index');
 
+        // Estadísticas
+        Route::get('/estadisticas', [CapacitadorEstadisticas::class, 'index'])->name('estadisticas.index');
+
         // Solo Capacitador Interno
         Route::middleware(['capacitador.interno'])->group(function () {
             Route::post('/cursos/{curso}/estamentos', [CapacitadorParticipante::class, 'syncEstamentos'])->name('cursos.estamentos.sync');
@@ -143,6 +148,9 @@ Route::middleware('auth')->group(function () {
 
     // RUTAS DE ADMINISTRACIÓN
     Route::middleware(['admin'])->prefix('admin')->name('admin.')->group(function () {
+        // Dashboard
+        Route::get('/dashboard', [AdminDashboard::class, 'index'])->name('dashboard.index');
+
         // Reportes
         Route::get('/reportes', [ReporteController::class, 'index'])->name('reportes.index');
         Route::get('/reportes/exportar', [ReporteController::class, 'exportar'])->name('reportes.exportar');

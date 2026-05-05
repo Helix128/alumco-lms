@@ -47,15 +47,8 @@
         </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
-        {{-- Chart --}}
-        <div class="lg:col-span-7 bg-white p-8 rounded-[32px] border border-gray-200 shadow-none overflow-hidden">
-            <h3 class="text-lg font-display font-black text-Alumco-blue mb-6">Rendimiento por Curso</h3>
-            @livewire('capacitador.estadisticas-dashboard', ['capacitadorId' => auth()->id()])
-        </div>
-
-        {{-- Últimos cursos --}}
-        <div class="lg:col-span-5 bg-white p-8 rounded-[32px] border border-gray-200 shadow-none flex flex-col overflow-hidden">
+    {{-- Últimos cursos --}}
+    <div class="bg-white p-8 rounded-[32px] border border-gray-200 shadow-none flex flex-col overflow-hidden">
             <div class="flex items-center justify-between mb-6">
                 <h3 class="text-lg font-display font-black text-Alumco-blue">Últimos Cursos</h3>
                 <a href="{{ route('capacitador.cursos.index') }}" class="text-xs font-bold text-Alumco-blue hover:underline">Ver todos</a>
@@ -96,5 +89,4 @@
                 </table>
             </div>
         </div>
-    </div>
 @endsection

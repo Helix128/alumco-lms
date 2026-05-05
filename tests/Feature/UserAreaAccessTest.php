@@ -35,7 +35,7 @@ class UserAreaAccessTest extends TestCase
         $this->post('/login', [
             'email' => $user->email,
             'password' => 'password',
-        ])->assertRedirect(route('admin.reportes.index'));
+        ])->assertRedirect(route('admin.dashboard.index'));
     }
 
     public function test_developer_login_redirects_to_admin_reports(): void
@@ -45,7 +45,7 @@ class UserAreaAccessTest extends TestCase
         $this->post('/login', [
             'email' => $user->email,
             'password' => 'password',
-        ])->assertRedirect(route('admin.reportes.index'));
+        ])->assertRedirect(route('admin.dashboard.index'));
     }
 
     public function test_capacitador_login_redirects_to_capacitador_dashboard(): void
@@ -68,7 +68,7 @@ class UserAreaAccessTest extends TestCase
                 'email' => $user->email,
                 'password' => 'password',
             ])
-            ->assertRedirect(route('admin.reportes.index'));
+            ->assertRedirect(route('admin.dashboard.index'));
     }
 
     public function test_trabajador_with_worker_intended_redirects_to_worker_portal(): void
@@ -91,7 +91,7 @@ class UserAreaAccessTest extends TestCase
         $this
             ->actingAs($user)
             ->get(route('cursos.index'))
-            ->assertRedirect(route('admin.reportes.index'));
+            ->assertRedirect(route('admin.dashboard.index'));
     }
 
     public function test_capacitador_without_preview_is_redirected_from_worker_portal(): void
@@ -141,7 +141,7 @@ class UserAreaAccessTest extends TestCase
         $this
             ->actingAs($this->createUserWithRole('Administrador'))
             ->get('/')
-            ->assertRedirect(route('admin.reportes.index'));
+            ->assertRedirect(route('admin.dashboard.index'));
 
         $this
             ->actingAs($this->createUserWithRole('Capacitador Interno'))
@@ -173,7 +173,7 @@ class UserAreaAccessTest extends TestCase
             ->actingAs($user)
             ->withSession(['preview_mode' => true])
             ->post(route('admin.preview.toggle'))
-            ->assertRedirect(route('admin.reportes.index'));
+            ->assertRedirect(route('admin.dashboard.index'));
     }
 
     public function test_disabling_preview_returns_capacitador_to_dashboard(): void

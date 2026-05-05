@@ -15,7 +15,7 @@ class UserAreaRedirector
         }
 
         if ($user->hasAdminAccess()) {
-            return 'admin.reportes.index';
+            return 'admin.dashboard.index';
         }
 
         if ($user->isCapacitador()) {
@@ -53,7 +53,7 @@ class UserAreaRedirector
     public static function userAreaFallbackRouteName(User $user): string
     {
         if ($user->hasAdminAccess()) {
-            return 'admin.reportes.index';
+            return 'admin.dashboard.index';
         }
 
         if ($user->isCapacitador()) {

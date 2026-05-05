@@ -101,6 +101,8 @@ class AccessibilityPreferencesTest extends TestCase
             ->assertSee('Normal')
             ->assertSee('Grande')
             ->assertSee('Extragrande')
+            ->assertDontSee('Ocultar menú lateral')
+            ->assertDontSee('Mostrar menú lateral')
             ->assertDontSee('Actual:')
             ->assertDontSee('18 px')
             ->assertDontSee('20 px')

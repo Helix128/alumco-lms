@@ -109,18 +109,8 @@
     @persist('admin-topbar')
     <header class="admin-topbar admin-topbar-persistent border-b border-white/10 px-6 py-3 flex items-center justify-between z-[80] shrink-0">
         <div class="flex items-center gap-4">
-            <button
-                @click="toggleSidebar()"
-                :aria-label="sidebarOpen ? 'Ocultar menú lateral' : 'Mostrar menú lateral'"
-                :aria-expanded="sidebarOpen"
-                class="worker-focus admin-topbar-action"
-            >
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-                </svg>
-            </button>
             <div class="flex items-center">
-                <a href="{{ route('capacitador.dashboard') }}" wire:navigate.hover class="flex items-center text-white">
+                <a href="{{ auth()->user()->hasAdminAccess() ? route('admin.dashboard.index') : route('capacitador.dashboard') }}" wire:navigate.hover class="flex items-center text-white">
                     <x-logo-alumco class="h-8 w-auto" width="120" height="32" />
                 </a>
             </div>
@@ -218,8 +208,20 @@
                     </x-nav-link-admin>
 
                 @else
-                {{-- Dashboard --}}
-                @if(auth()->user()->isCapacitador() || auth()->user()->hasAdminAccess())
+                {{-- Dashboard Admin --}}
+                @if(auth()->user()->hasAdminAccess())
+                <x-nav-link-admin href="{{ route('admin.dashboard.index') }}" :active="request()->routeIs('admin.dashboard.*')" title="Dashboard">
+                    <x-slot name="icon">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                        </svg>
+                    </x-slot>
+                    Dashboard Analítico
+                </x-nav-link-admin>
+                @endif
+
+                {{-- Dashboard Capacitador --}}
+                @if(auth()->user()->isCapacitador())
                 <x-nav-link-admin href="{{ route('capacitador.dashboard') }}" :active="request()->routeIs('capacitador.dashboard')" title="Dashboard">
                     <x-slot name="icon">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -227,6 +229,18 @@
                         </svg>
                     </x-slot>
                     Dashboard
+                </x-nav-link-admin>
+                @endif
+
+                {{-- Estadísticas --}}
+                @if(auth()->user()->isCapacitador())
+                <x-nav-link-admin href="{{ route('capacitador.estadisticas.index') }}" :active="request()->routeIs('capacitador.estadisticas.*')" title="Estadísticas">
+                    <x-slot name="icon">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                        </svg>
+                    </x-slot>
+                    Estadísticas
                 </x-nav-link-admin>
                 @endif
 

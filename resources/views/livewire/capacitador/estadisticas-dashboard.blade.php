@@ -7,7 +7,7 @@
         <div class="relative" style="height: 260px;">
             <canvas id="estadisticasChart"></canvas>
         </div>
-        @push('scripts')
+        @script
         <script>
             (function() {
                 const data = @json($chartData);
@@ -37,6 +37,6 @@
                 });
             })();
         </script>
-        @endpush
+        @endscript
     @endif
 </div>
