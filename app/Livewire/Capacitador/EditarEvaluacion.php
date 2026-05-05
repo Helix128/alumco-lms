@@ -7,6 +7,7 @@ use App\Models\Evaluacion;
 use App\Models\GlobalSetting;
 use App\Models\Opcion;
 use App\Models\Pregunta;
+use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
@@ -97,7 +98,10 @@ class EditarEvaluacion extends Component
 
     public function eliminarPregunta(int $preguntaId): void
     {
-        Pregunta::destroy($preguntaId);
+        Pregunta::query()
+            ->whereKey($preguntaId)
+            ->where('evaluacion_id', $this->evaluacion->id)
+            ->delete();
 
         $this->preguntas = array_values(
             array_filter($this->preguntas, fn ($p) => $p['id'] !== $preguntaId)
@@ -110,6 +114,11 @@ class EditarEvaluacion extends Component
 
     public function agregarOpcion(int $preguntaId): void
     {
+        abort_unless(
+            Pregunta::where('id', $preguntaId)->where('evaluacion_id', $this->evaluacion->id)->exists(),
+            403
+        );
+
         $newOrden = 1;
         foreach ($this->preguntas as $p) {
             if ($p['id'] === $preguntaId) {
@@ -142,7 +151,10 @@ class EditarEvaluacion extends Component
 
     public function eliminarOpcion(int $opcionId): void
     {
-        Opcion::destroy($opcionId);
+        Opcion::query()
+            ->whereKey($opcionId)
+            ->whereHas('pregunta', fn ($q) => $q->where('evaluacion_id', $this->evaluacion->id))
+            ->delete();
 
         foreach ($this->preguntas as &$p) {
             $p['opciones'] = array_values(
@@ -156,10 +168,12 @@ class EditarEvaluacion extends Component
         foreach ($this->preguntas as &$p) {
             foreach ($p['opciones'] as $o) {
                 if ($o['id'] === $opcionId) {
-                    foreach ($p['opciones'] as &$op) {
-                        $op['es_correcta'] = ($op['id'] === $opcionId);
-                        Opcion::where('id', $op['id'])->update(['es_correcta' => $op['es_correcta']]);
-                    }
+                    DB::transaction(function () use ($opcionId, &$p) {
+                        foreach ($p['opciones'] as &$op) {
+                            $op['es_correcta'] = ($op['id'] === $opcionId);
+                            Opcion::where('id', $op['id'])->update(['es_correcta' => $op['es_correcta']]);
+                        }
+                    });
                     break 2;
                 }
             }

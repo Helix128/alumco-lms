@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Capacitador;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Capacitador\StoreModuloRequest;
+use App\Http\Requests\Capacitador\UpdateModuloRequest;
 use App\Models\Curso;
 use App\Models\Evaluacion;
 use App\Models\Modulo;
@@ -15,28 +17,9 @@ use Illuminate\View\View;
 
 class ModuloController extends Controller
 {
-    private function authorizeCurso(Curso $curso): void
-    {
-        if (auth()->user()->hasAdminAccess()) {
-            return;
-        }
-        abort_unless($curso->capacitador_id === auth()->id(), 403);
-    }
-
-    private function getMimeRules(string $tipoContenido): string
-    {
-        return match ($tipoContenido) {
-            'video' => 'mimes:mp4',
-            'pdf' => 'mimes:pdf',
-            'ppt' => 'mimes:ppt,pptx',
-            'imagen' => 'mimes:jpeg,png,jpg,gif,webp',
-            default => '',
-        };
-    }
-
     public function create(Curso $curso): View
     {
-        $this->authorizeCurso($curso);
+        $this->authorize('manage', $curso);
 
         return view('capacitador.modulos.crear', [
             'curso' => $curso,
@@ -44,21 +27,9 @@ class ModuloController extends Controller
         ]);
     }
 
-    public function store(Request $request, Curso $curso): RedirectResponse
+    public function store(StoreModuloRequest $request, Curso $curso): RedirectResponse
     {
-        $this->authorizeCurso($curso);
-
-        $mimeRules = $this->getMimeRules($request->input('tipo_contenido', ''));
-        $fileRule = 'nullable|file|max:512000'.($mimeRules ? '|'.$mimeRules : '');
-
-        $data = $request->validate([
-            'titulo' => 'required|string|max:255',
-            'tipo_contenido' => 'required|in:'.implode(',', Modulo::TIPOS),
-            'duracion_minutos' => 'nullable|integer|min:1',
-            'contenido' => 'nullable|string',
-            'ruta_archivo' => $fileRule,
-        ]);
-
+        $data = $request->validated();
         $data['curso_id'] = $curso->id;
         $data['orden'] = ($curso->modulos()->max('orden') ?? 0) + 1;
 
@@ -72,16 +43,12 @@ class ModuloController extends Controller
             $data['nombre_archivo_original'] = $file->getClientOriginalName();
         }
 
-        $modulo = DB::transaction(function () use ($data) {
+        DB::transaction(function () use ($data) {
             $modulo = Modulo::create($data);
 
             if ($modulo->tipo_contenido === 'evaluacion') {
-                Evaluacion::create([
-                    'modulo_id' => $modulo->id,
-                ]);
+                Evaluacion::create(['modulo_id' => $modulo->id]);
             }
-
-            return $modulo;
         });
 
         return redirect()->route('capacitador.cursos.show', $curso)
@@ -90,7 +57,7 @@ class ModuloController extends Controller
 
     public function edit(Curso $curso, Modulo $modulo): View
     {
-        $this->authorizeCurso($curso);
+        $this->authorize('manage', $curso);
         abort_unless($modulo->curso_id === $curso->id, 404);
 
         return view('capacitador.modulos.editar', [
@@ -100,20 +67,11 @@ class ModuloController extends Controller
         ]);
     }
 
-    public function update(Request $request, Curso $curso, Modulo $modulo): RedirectResponse
+    public function update(UpdateModuloRequest $request, Curso $curso, Modulo $modulo): RedirectResponse
     {
-        $this->authorizeCurso($curso);
         abort_unless($modulo->curso_id === $curso->id, 404);
 
-        $mimeRules = $this->getMimeRules($modulo->tipo_contenido);
-        $fileRule = 'nullable|file|max:512000'.($mimeRules ? '|'.$mimeRules : '');
-
-        $data = $request->validate([
-            'titulo' => 'required|string|max:255',
-            'duracion_minutos' => 'nullable|integer|min:1',
-            'contenido' => 'nullable|string',
-            'ruta_archivo' => $fileRule,
-        ]);
+        $data = $request->validated();
 
         if (isset($data['contenido'])) {
             $data['contenido'] = clean($data['contenido']);
@@ -136,23 +94,26 @@ class ModuloController extends Controller
 
     public function destroy(Curso $curso, Modulo $modulo): RedirectResponse
     {
-        $this->authorizeCurso($curso);
+        $this->authorize('manage', $curso);
         abort_unless($modulo->curso_id === $curso->id, 404);
 
-        if ($modulo->ruta_archivo) {
-            Storage::disk('public')->delete($modulo->ruta_archivo);
-        }
-
+        $rutaArchivo = $modulo->ruta_archivo;
         $orden = $modulo->orden;
-        $modulo->delete();
 
-        // Reordenar los módulos restantes
-        $curso->modulos()
-            ->where('orden', '>', $orden)
-            ->orderBy('orden')
-            ->each(function (Modulo $m, int $i) use ($orden) {
-                $m->update(['orden' => $orden + $i]);
-            });
+        DB::transaction(function () use ($curso, $modulo, $orden) {
+            $modulo->delete();
+
+            $curso->modulos()
+                ->where('orden', '>', $orden)
+                ->orderBy('orden')
+                ->each(function (Modulo $m, int $i) use ($orden) {
+                    $m->update(['orden' => $orden + $i]);
+                });
+        });
+
+        if ($rutaArchivo) {
+            Storage::disk('public')->delete($rutaArchivo);
+        }
 
         return redirect()->route('capacitador.cursos.show', $curso)
             ->with('success', 'Módulo eliminado correctamente.');
@@ -160,7 +121,7 @@ class ModuloController extends Controller
 
     public function evaluacion(Curso $curso, Modulo $modulo): View
     {
-        $this->authorizeCurso($curso);
+        $this->authorize('manage', $curso);
         abort_unless($modulo->curso_id === $curso->id, 404);
         abort_unless($modulo->tipo_contenido === 'evaluacion', 404);
 
@@ -175,7 +136,7 @@ class ModuloController extends Controller
 
     public function reordenar(Request $request, Curso $curso): JsonResponse
     {
-        $this->authorizeCurso($curso);
+        $this->authorize('manage', $curso);
 
         $request->validate(['orden' => 'required|array']);
 

@@ -8,17 +8,13 @@
     .planning-shell { --planning-week-width: 9rem; }
     .planning-cell { min-width: var(--planning-week-width); }
     .planning-chip { transition: opacity .15s ease, box-shadow .15s ease, filter .15s ease; animation: planning-pop .18s ease-out both; }
-    .planning-action { position: relative; overflow: hidden; transition: transform .15s ease, background-color .15s ease, box-shadow .15s ease, opacity .15s ease, border-color .15s ease; }
-    .planning-action::after { content: ""; position: absolute; inset: auto auto 50% 50%; width: 0; height: 0; border-radius: 999px; background: rgba(0, 86, 179, .10); transform: translate(-50%, 50%); opacity: 0; transition: width .22s ease, height .22s ease, opacity .22s ease; }
-    .planning-action:hover { transform: translateY(-1px); box-shadow: 0 8px 20px -16px rgba(15, 23, 42, .4); }
-    .planning-action:hover::after { width: 120%; height: 120%; opacity: 1; }
-    .planning-action[data-loading] { pointer-events: none; opacity: .55; transform: none; }
+    .planning-action { position: relative; overflow: hidden; transition: background-color .15s ease, opacity .15s ease, border-color .15s ease; }
+    .planning-action[data-loading] { pointer-events: none; opacity: .55; }
     .planning-cell-active { box-shadow: inset 0 0 0 2px rgba(0, 86, 179, .22); animation: planning-drop-target .7s ease-in-out infinite alternate; }
     .planning-saving { animation: planning-pulse .9s ease-in-out infinite; }
     .planning-drop-preview { transition: transform .1s ease, width .1s ease, opacity .1s ease; }
     [data-motion="reduced"] .planning-chip { transition: none !important; }
     [data-motion="reduced"] .planning-action { transition: none !important; }
-    [data-motion="reduced"] .planning-action:hover { transform: none !important; }
     .planning-chip:hover { box-shadow: 0 6px 16px -10px rgba(15, 23, 42, .5); }
     .cal-header, .cal-week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
     [x-cloak] { display: none !important; }
@@ -31,8 +27,6 @@
     [data-motion="reduced"] .modal-slide-in { animation: none !important; }
     @media (prefers-reduced-motion: reduce) {
         .planning-chip, .planning-action, .planning-drop-preview { animation: none !important; transition: none !important; }
-        .planning-chip:hover, .planning-action:hover { transform: none !important; }
-        .planning-action::after { display: none !important; }
     }
 </style>
 @endpush
@@ -85,12 +79,12 @@
 
         <div class="flex flex-wrap items-center gap-2">
             <div class="flex items-center rounded-xl bg-white p-1 shadow-sm ring-1 ring-gray-100">
-                <button wire:click.preserve-scroll="cambiarVista('anual')" @mouseenter="preheat('actual')" @focus="preheat('actual')" @class([
+                <button wire:click="cambiarVista('anual')" @mouseenter="preheat('actual')" @focus="preheat('actual')" @class([
                     'planning-action rounded-lg px-3 py-2 text-xs font-black uppercase tracking-widest data-loading:pointer-events-none data-loading:opacity-55 motion-reduce:transition-none',
                     'bg-Alumco-blue text-white shadow-sm' => $modoVista === 'anual',
                     'text-gray-500 hover:bg-gray-50' => $modoVista !== 'anual',
                 ])>Anual</button>
-                <button wire:click.preserve-scroll="cambiarVista('mensual')" @mouseenter="preheat('actual')" @focus="preheat('actual')" @class([
+                <button wire:click="cambiarVista('mensual')" @mouseenter="preheat('actual')" @focus="preheat('actual')" @class([
                     'planning-action rounded-lg px-3 py-2 text-xs font-black uppercase tracking-widest data-loading:pointer-events-none data-loading:opacity-55 motion-reduce:transition-none',
                     'bg-Alumco-blue text-white shadow-sm' => $modoVista === 'mensual',
                     'text-gray-500 hover:bg-gray-50' => $modoVista !== 'mensual',
@@ -99,7 +93,7 @@
 
             @if($esAdmin && $modoVista === 'anual')
                 <button
-                    wire:click.preserve-scroll="toggleModoPlaneacion"
+                    wire:click="toggleModoPlaneacion"
                     @mouseenter="preheat('actual')"
                     @focus="preheat('actual')"
                     @class([
@@ -119,16 +113,24 @@
         <div class="rounded-2xl bg-white p-3 shadow-sm ring-1 ring-gray-100">
             <div class="flex flex-col gap-3 2xl:flex-row 2xl:items-center 2xl:justify-between">
                 <div class="flex flex-wrap items-center gap-2">
-                    <button wire:click.preserve-scroll="irAnioAnterior" @mouseenter="preheat('anterior')" @focus="preheat('anterior')" class="planning-action rounded-xl bg-gray-50 px-3 py-2 text-sm font-black text-gray-500 hover:bg-gray-100 motion-reduce:transition-none">Anterior</button>
+                    <button wire:click="irAnioAnterior" wire:loading.attr="disabled" @mouseenter="preheat('anterior')" @focus="preheat('anterior')" class="planning-action rounded-xl bg-gray-50 px-3 py-2 text-sm font-black text-gray-500 hover:bg-gray-100 motion-reduce:transition-none disabled:opacity-50">
+                        <span wire:loading.remove wire:target="irAnioAnterior">Anterior</span>
+                        <span wire:loading wire:target="irAnioAnterior">...</span>
+                    </button>
                     <div class="min-w-24 text-center">
                         <span class="block text-[10px] font-black uppercase tracking-widest text-gray-400">Año</span>
                         <span class="text-xl font-display font-black text-Alumco-blue">{{ $anioActual }}</span>
                     </div>
-                    <button wire:click.preserve-scroll="irAnioSiguiente" @mouseenter="preheat('siguiente')" @focus="preheat('siguiente')" class="planning-action rounded-xl bg-gray-50 px-3 py-2 text-sm font-black text-gray-500 hover:bg-gray-100 motion-reduce:transition-none">Siguiente</button>
+                    <button wire:click="irAnioSiguiente" wire:loading.attr="disabled" @mouseenter="preheat('siguiente')" @focus="preheat('siguiente')" class="planning-action rounded-xl bg-gray-50 px-3 py-2 text-sm font-black text-gray-500 hover:bg-gray-100 motion-reduce:transition-none disabled:opacity-50">
+                        <span wire:loading.remove wire:target="irAnioSiguiente">Siguiente</span>
+                        <span wire:loading wire:target="irAnioSiguiente">...</span>
+                    </button>
 
                     <div class="mx-1 hidden h-8 w-px bg-gray-100 sm:block"></div>
 
-                    <button @mouseenter="preheat('hoy')" @focus="preheat('hoy')" @click="goToToday()" class="planning-action rounded-xl bg-Alumco-blue/5 px-3 py-2 text-sm font-black text-Alumco-blue motion-reduce:transition-none">Ir a hoy</button>
+                    <button type="button" @click="goToToday()" @mouseenter="preheat('hoy')" @focus="preheat('hoy')" class="planning-action rounded-xl bg-Alumco-blue/5 px-3 py-2 text-sm font-black text-Alumco-blue motion-reduce:transition-none">
+                        Ir a hoy
+                    </button>
                 </div>
 
                 <div class="flex flex-wrap items-center gap-2">
@@ -167,7 +169,7 @@
                         <h3 class="font-display text-lg font-black text-Alumco-blue">Cursos disponibles</h3>
                         <input
                             type="search"
-                            wire:model.live.debounce.200ms="busquedaSidebar"
+                            wire:model.live.debounce.500ms="busquedaSidebar"
                             placeholder="Buscar curso"
                             class="mt-3 w-full rounded-xl border border-gray-100 bg-gray-50 px-3 py-2 text-sm font-semibold text-Alumco-blue outline-none focus:border-Alumco-blue/30 focus:ring-4 focus:ring-Alumco-blue/10"
                         >
@@ -220,8 +222,12 @@
                     <div class="grid min-w-max" style="grid-template-columns: 12rem repeat({{ count($semanasVisibles) }}, var(--planning-week-width))">
                         {{-- Fila de Meses --}}
                         <div class="sticky left-0 z-50 border-b border-r border-gray-100 bg-white p-2 text-[10px] font-black uppercase tracking-widest text-gray-400">Mes</div>
-                        @foreach($mesesHeaderVentana as $mesObj)
-                            <div class="z-10 border-b border-r border-gray-100 bg-white p-2 text-center text-[10px] font-black uppercase tracking-widest text-Alumco-blue" style="grid-column: span {{ $mesObj['span'] }}">
+                        @foreach($mesesHeaderVentana as $mIdx => $mesObj)
+                            <div
+                                wire:key="header-month-{{ $mIdx }}-{{ $mesObj['mes'] }}"
+                                class="z-10 border-b border-r border-gray-100 bg-white p-2 text-center text-[10px] font-black uppercase tracking-widest text-Alumco-blue"
+                                style="grid-column: span {{ $mesObj['span'] }}"
+                            >
                                 {{ $nombresMeses[$mesObj['mes'] - 1] }}
                             </div>
                         @endforeach
@@ -230,6 +236,7 @@
 
                         @foreach($semanasVisibles as $semana)
                             <div
+                                wire:key="header-week-{{ $semana['numero'] }}"
                                 data-week-header="{{ $semana['numero'] }}"
                                 data-week-today="{{ $semana['esHoy'] ? 'true' : 'false' }}"
                                 @class([
@@ -243,14 +250,17 @@
                             </div>
                         @endforeach
 
-                        @foreach($filasAnuales as $fila)
+                        @foreach($filasAnuales as $fIdx => $fila)
                             @if($readonly && $fila['sede_id'] !== null && $fila['sede_id'] !== $userSedeId)
                                 @continue
                             @endif
 
                             @php $sedeKey = $fila['sede_id'] ?? 0; @endphp
 
-                            <div class="sticky left-0 z-20 flex min-h-24 items-center border-b border-r border-gray-100 bg-white p-3">
+                            <div
+                                wire:key="row-sede-label-{{ $sedeKey }}"
+                                class="sticky left-0 z-20 flex min-h-24 items-center border-b border-r border-gray-100 bg-white p-3"
+                            >
                                 <div class="min-w-0">
                                     <p class="truncate text-xs font-black uppercase tracking-tight text-Alumco-blue">{{ $fila['nombre'] }}</p>
                                     <p class="mt-1 text-[10px] font-bold text-gray-400">{{ $fila['sede_id'] ? 'Sede específica' : 'Plan global' }}</p>
@@ -696,6 +706,10 @@
             enterCourseCell(week, sede) {
                 if (!this.canEdit() || this.action !== 'course') return;
 
+                // Throttle manual
+                if (this.lastCellEnter && Date.now() - this.lastCellEnter < 16) return;
+                this.lastCellEnter = Date.now();
+
                 this.startWeek = week;
                 this.currentWeek = week;
                 this.startSede = sede;
@@ -732,6 +746,7 @@
                 if (this.action !== 'course') return;
                 this.resetPointer();
                 this.draggedCourseId = null;
+                this.lastCellEnter = 0;
             },
 
             shouldIgnoreCellEvent(event) {
@@ -801,6 +816,11 @@
 
             enterCell(week, sede) {
                 if (!this.action || this.action === 'course') return;
+
+                // Throttle manual
+                if (this.lastCellEnter && Date.now() - this.lastCellEnter < 16) return;
+                this.lastCellEnter = Date.now();
+
                 this.currentWeek = week;
                 this.currentSede = sede;
                 const sedeChanged = this.action !== 'resize' && sede !== this.startSede;
@@ -809,8 +829,17 @@
 
             trackPointer(event) {
                 if (!this.action) return;
+
+                // Throttle visual del preview
+                if (this.lastPointerTrack && Date.now() - this.lastPointerTrack < 10) {
+                    // No return here to avoid jumpy behavior, but limit complex logic
+                }
+                this.lastPointerTrack = Date.now();
+
                 this.updatePointerPreview(event);
                 if (this.action === 'course') return;
+
+                // Solo buscar celda si el cursor se movió significativamente o pasó tiempo
                 const cell = document.elementFromPoint(event.clientX, event.clientY)?.closest('[data-planner-cell]');
                 if (!cell) return;
                 this.enterCell(parseInt(cell.dataset.week), parseInt(cell.dataset.sede));
@@ -870,26 +899,30 @@
 
             scrollToMonth(weekNumber) {
                 if (!weekNumber) return;
-                const container = this.$refs.calendarScroller;
-                const weekCell = container?.querySelector(`[data-week-header="${weekNumber}"], [data-week="${weekNumber}"]`);
-                if (container && weekCell) {
-                    const offset = weekCell.offsetLeft - 192; // 192px is 12rem (the sticky sidebar width)
-                    container.scrollTo({ left: offset, behavior: this.scrollBehavior() });
-                }
+                this.$nextTick(() => {
+                    const container = this.$refs.calendarScroller;
+                    const weekCell = container?.querySelector(`[data-week-header="${weekNumber}"], [data-week="${weekNumber}"]`);
+                    if (container && weekCell) {
+                        const offset = weekCell.offsetLeft - 192;
+                        container.scrollTo({ left: offset, behavior: this.scrollBehavior() });
+                    }
+                });
             },
 
             scrollToToday() {
-                const container = this.$refs.calendarScroller;
-                const todayCell = container?.querySelector('[data-week-today="true"]');
-                if (container && todayCell) {
-                    const offset = todayCell.offsetLeft - 192;
-                    container.scrollTo({ left: offset, behavior: this.scrollBehavior() });
-                }
+                this.$nextTick(() => {
+                    const container = this.$refs.calendarScroller;
+                    const todayCell = container?.querySelector('[data-week-today="true"]');
+                    if (container && todayCell) {
+                        const offset = todayCell.offsetLeft - 192;
+                        container.scrollTo({ left: offset, behavior: this.scrollBehavior() });
+                    }
+                });
             },
 
             goToToday() {
-                Promise.resolve(this.$wire.irAHoy()).then(() => {
-                    this.$nextTick(() => this.scrollToToday());
+                this.$wire.irAHoy().then(() => {
+                    this.scrollToToday();
                 });
             },
 
@@ -899,6 +932,10 @@
 
             updatePointerPreview(event, fallbackText = null) {
                 if (!event || !this.action) return;
+
+                // Throttle visual
+                if (this.lastPreviewUpdate && Date.now() - this.lastPreviewUpdate < 8) return;
+                this.lastPreviewUpdate = Date.now();
 
                 const labels = {
                     create: 'Nuevo bloque',

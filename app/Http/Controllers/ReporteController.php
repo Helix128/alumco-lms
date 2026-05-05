@@ -3,66 +3,35 @@
 namespace App\Http\Controllers;
 
 use App\Exports\ReporteExport;
+use App\Http\Requests\ReportFilterRequest;
 use App\Models\Curso;
 use App\Models\Estamento;
 use App\Models\Sede;
 use App\Models\User;
 use Carbon\Carbon;
-use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 
 class ReporteController extends Controller
 {
-    private function sanitizeSedeIds(Request $request): array
+    private function sanitizeIdFilter(array $ids): array
     {
-        $rawIds = $request->input('sede_id', []);
-        if (is_string($rawIds) && str_contains($rawIds, ',')) {
-            $rawIds = explode(',', $rawIds);
-        } elseif (! is_array($rawIds)) {
-            $rawIds = [$rawIds];
-        }
-
-        return array_values(array_unique(array_filter(array_map('intval', $rawIds), fn ($id) => $id > 0)));
+        return array_values(array_unique(array_filter(array_map('intval', $ids), fn ($id) => $id > 0)));
     }
 
-    private function sanitizeEstamentoIds(Request $request): array
+    public function index(ReportFilterRequest $request)
     {
-        $rawIds = $request->input('estamento_id', []);
-        if (is_string($rawIds) && str_contains($rawIds, ',')) {
-            $rawIds = explode(',', $rawIds);
-        } elseif (! is_array($rawIds)) {
-            $rawIds = [$rawIds];
-        }
-
-        return array_values(array_unique(array_filter(array_map('intval', $rawIds), fn ($id) => $id > 0)));
-    }
-
-    private function sanitizeCourseIds(Request $request): array
-    {
-        $rawIds = $request->input('curso_id', []);
-        if (is_string($rawIds) && str_contains($rawIds, ',')) {
-            $rawIds = explode(',', $rawIds);
-        } elseif (! is_array($rawIds)) {
-            $rawIds = [$rawIds];
-        }
-
-        return array_values(array_unique(array_filter(array_map('intval', $rawIds), fn ($id) => $id > 0)));
-    }
-
-    public function index(Request $request)
-    {
+        $data = $request->validated();
         $estamentos = Estamento::all();
         $cursos = Curso::all();
         $sedes = Sede::all();
         $cursoSeleccionado = null;
 
-        // Variables de estado para los filtros (necesarias para la vista)
-        $selectedSedes = $this->sanitizeSedeIds($request);
-        $selectedEstamentos = $this->sanitizeEstamentoIds($request);
-        $selectedCursos = $this->sanitizeCourseIds($request);
+        $selectedSedes = $this->sanitizeIdFilter($data['sede_id'] ?? []);
+        $selectedEstamentos = $this->sanitizeIdFilter($data['estamento_id'] ?? []);
+        $selectedCursos = $this->sanitizeIdFilter($data['curso_id'] ?? []);
 
-        $edadMinReq = $request->input('edad_min');
-        $edadMaxReq = $request->input('edad_max');
+        $edadMinReq = $data['edad_min'] ?? null;
+        $edadMaxReq = $data['edad_max'] ?? null;
 
         // Límites para el slider de edad
         $minDateLimit = Carbon::now()->subYears(100)->format('Y-m-d');
@@ -123,12 +92,11 @@ class ReporteController extends Controller
         $query->where('fecha_nacimiento', '>=', Carbon::now()->subYears($edadMax + 1)->addDay()->format('Y-m-d'));
 
         // 5. Filtro por Fechas
-        if ($request->filled('fecha_inicio') && $request->filled('fecha_fin')) {
-            $query->whereHas('certificados', function ($q) use ($request) {
-                $q->whereBetween('fecha_emision', [$request->fecha_inicio, $request->fecha_fin]);
-                $cursoIds = $this->sanitizeCourseIds($request);
-                if (! empty($cursoIds)) {
-                    $q->whereIn('curso_id', $cursoIds);
+        if (! empty($data['fecha_inicio']) && ! empty($data['fecha_fin'])) {
+            $query->whereHas('certificados', function ($q) use ($data, $selectedCursos) {
+                $q->whereBetween('fecha_emision', [$data['fecha_inicio'], $data['fecha_fin']]);
+                if (! empty($selectedCursos)) {
+                    $q->whereIn('curso_id', $selectedCursos);
                 }
             });
         }
@@ -142,7 +110,7 @@ class ReporteController extends Controller
         ));
     }
 
-    public function exportar(Request $request)
+    public function exportar(ReportFilterRequest $request)
     {
         return Excel::download(new ReporteExport($request), 'reporte_capacitaciones.xlsx');
     }

@@ -753,4 +753,36 @@ class CalendarioCapacitacionesTest extends TestCase
             ->set('anioDestino', 2028)
             ->assertSet('anioDestinoTienePlanificaciones', false);
     }
+
+    public function test_guardar_planificacion_rapida_anual_rechaza_curso_inexistente(): void
+    {
+        $admin = $this->crearAdmin();
+        $this->actingAs($admin);
+
+        Livewire::test(CalendarioCapacitaciones::class)
+            ->set('anioActual', 2026)
+            ->call('cambiarVista', 'anual')
+            ->set('modoPlaneacion', true)
+            ->call('guardarPlanificacionRapidaAnual', 99999, 1, null)
+            ->assertHasErrors(['cursoId']);
+
+        $this->assertDatabaseCount('planificaciones_cursos', 0);
+    }
+
+    public function test_guardar_planificacion_rapida_anual_desde_sidebar_rechaza_sede_inexistente(): void
+    {
+        $admin = $this->crearAdmin();
+        $this->actingAs($admin);
+
+        $curso = Curso::factory()->create(['capacitador_id' => $admin->id]);
+
+        Livewire::test(CalendarioCapacitaciones::class)
+            ->set('anioActual', 2026)
+            ->call('cambiarVista', 'anual')
+            ->set('modoPlaneacion', true)
+            ->call('guardarPlanificacionRapidaAnualDesdeSidebar', $curso->id, 4, 99999)
+            ->assertHasErrors(['sedeIdPlan']);
+
+        $this->assertDatabaseCount('planificaciones_cursos', 0);
+    }
 }

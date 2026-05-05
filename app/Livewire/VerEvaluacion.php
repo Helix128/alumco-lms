@@ -9,6 +9,7 @@ use App\Models\ProgresoModulo;
 use App\Models\RespuestaEvaluacion;
 use App\Services\CertificadoService;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 
 class VerEvaluacion extends Component
@@ -109,22 +110,25 @@ class VerEvaluacion extends Component
         $total = $this->preguntas->count();
         $aprobado = $puntaje >= $this->modulo->evaluacion->puntos_aprobacion;
 
-        // Persistir el intento
-        $intento = IntentoEvaluacion::create([
-            'user_id' => auth()->id(),
-            'evaluacion_id' => $this->modulo->evaluacion->id,
-            'puntaje' => $puntaje,
-            'total_preguntas' => $total,
-            'aprobado' => $aprobado,
-        ]);
-
-        foreach ($this->respuestasSeleccionadas as $preguntaId => $opcionId) {
-            RespuestaEvaluacion::create([
-                'intento_id' => $intento->id,
-                'pregunta_id' => $preguntaId,
-                'opcion_id' => $opcionId,
+        $intento = DB::transaction(function () use ($puntaje, $total, $aprobado) {
+            $intento = IntentoEvaluacion::create([
+                'user_id' => auth()->id(),
+                'evaluacion_id' => $this->modulo->evaluacion->id,
+                'puntaje' => $puntaje,
+                'total_preguntas' => $total,
+                'aprobado' => $aprobado,
             ]);
-        }
+
+            foreach ($this->respuestasSeleccionadas as $preguntaId => $opcionId) {
+                RespuestaEvaluacion::create([
+                    'intento_id' => $intento->id,
+                    'pregunta_id' => $preguntaId,
+                    'opcion_id' => $opcionId,
+                ]);
+            }
+
+            return $intento;
+        });
 
         // Marcar módulo como completado si aprobó
         if ($aprobado) {

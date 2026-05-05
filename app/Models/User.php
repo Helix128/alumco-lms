@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Notifications\ResetPasswordNotification;
+use App\Services\Authorization\UserHierarchyService;
 use App\Support\AccessibilityPreferences;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -117,32 +118,11 @@ class User extends Authenticatable
 
     public function getHierarchyRank(): int
     {
-        if ($this->isDesarrollador()) {
-            return 3;
-        }
-        if ($this->isAdmin()) {
-            return 2;
-        }
-
-        return 1;
+        return app(UserHierarchyService::class)->getHierarchyRank($this);
     }
 
     public function canManageUser(User $targetUser): bool
     {
-        // Regla 1: No puedes gestionarte a ti mismo en este panel
-        if ($this->id === $targetUser->id) {
-            return false;
-        }
-
-        $myRank = $this->getHierarchyRank();
-        $targetRank = $targetUser->getHierarchyRank();
-
-        // Regla 2: El Desarrollador puede gestionar a todos los demás
-        if ($this->isDesarrollador()) {
-            return true;
-        }
-
-        // Regla 3: Solo puedes gestionar a rangos ESTRICTAMENTE inferiores
-        return $myRank > $targetRank;
+        return app(UserHierarchyService::class)->canManageUser($this, $targetUser);
     }
 }

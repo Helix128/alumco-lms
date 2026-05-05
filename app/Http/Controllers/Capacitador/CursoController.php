@@ -4,8 +4,11 @@ namespace App\Http\Controllers\Capacitador;
 
 use App\Actions\Cursos\DuplicateCourseAction;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Capacitador\StoreCursoRequest;
+use App\Http\Requests\Capacitador\UpdateCursoRequest;
 use App\Models\Curso;
 use App\Models\Evaluacion;
+use App\Services\Cursos\AverageCourseCoverColor;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -13,13 +16,9 @@ use Illuminate\View\View;
 
 class CursoController extends Controller
 {
-    private function authorizeCurso(Curso $curso): void
-    {
-        if (auth()->user()->hasAdminAccess()) {
-            return;
-        }
-        abort_unless($curso->capacitador_id === auth()->id(), 403);
-    }
+    public function __construct(
+        private readonly AverageCourseCoverColor $averageCourseCoverColor
+    ) {}
 
     public function index(): View
     {
@@ -41,16 +40,9 @@ class CursoController extends Controller
         return view('capacitador.cursos.crear');
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(StoreCursoRequest $request): RedirectResponse
     {
-        $data = $request->validate([
-            'titulo' => 'required|string|max:255',
-            'descripcion' => 'nullable|string',
-            'imagen_portada' => 'nullable|image|max:4096',
-            'color_promedio' => 'nullable|string|max:7',
-            'auto_color' => 'nullable|boolean',
-        ]);
-
+        $data = $request->validated();
         $data['capacitador_id'] = auth()->id();
 
         if ($request->hasFile('imagen_portada')) {
@@ -59,7 +51,7 @@ class CursoController extends Controller
         }
 
         if ($request->boolean('auto_color')) {
-            $data['color_promedio'] = null;
+            $data['color_promedio'] = $this->averageCourseCoverColor->fromPublicPath($data['imagen_portada'] ?? null);
         }
 
         $curso = Curso::create($data);
@@ -70,7 +62,7 @@ class CursoController extends Controller
 
     public function show(Curso $curso): View
     {
-        $this->authorizeCurso($curso);
+        $this->authorize('manage', $curso);
 
         $curso->load([
             'secciones' => fn ($q) => $q->orderBy('orden'),
@@ -94,22 +86,15 @@ class CursoController extends Controller
 
     public function edit(Curso $curso): View
     {
-        $this->authorizeCurso($curso);
+        $this->authorize('manage', $curso);
 
         return view('capacitador.cursos.editar', compact('curso'));
     }
 
-    public function update(Request $request, Curso $curso): RedirectResponse
+    public function update(UpdateCursoRequest $request, Curso $curso): RedirectResponse
     {
-        $this->authorizeCurso($curso);
-
-        $data = $request->validate([
-            'titulo' => 'required|string|max:255',
-            'descripcion' => 'nullable|string',
-            'imagen_portada' => 'nullable|image|max:4096',
-            'color_promedio' => 'nullable|string|max:7',
-            'auto_color' => 'nullable|boolean',
-        ]);
+        $data = $request->validated();
+        $imagenPortadaPath = $curso->imagen_portada;
 
         if ($request->hasFile('imagen_portada')) {
             if ($curso->imagen_portada) {
@@ -117,10 +102,11 @@ class CursoController extends Controller
             }
             $data['imagen_portada'] = $request->file('imagen_portada')
                 ->store('portadas', 'public');
+            $imagenPortadaPath = $data['imagen_portada'];
         }
 
         if ($request->boolean('auto_color')) {
-            $data['color_promedio'] = null;
+            $data['color_promedio'] = $this->averageCourseCoverColor->fromPublicPath($imagenPortadaPath);
         }
 
         $curso->update($data);
@@ -131,21 +117,26 @@ class CursoController extends Controller
 
     public function destroy(Curso $curso): RedirectResponse
     {
-        $this->authorizeCurso($curso);
+        $this->authorize('manage', $curso);
 
-        // Eliminar archivos de módulos
-        foreach ($curso->modulos as $modulo) {
-            if ($modulo->ruta_archivo) {
-                Storage::disk('public')->delete($modulo->ruta_archivo);
-            }
-        }
+        $curso->load('modulos');
 
-        // Eliminar portada
-        if ($curso->imagen_portada) {
-            Storage::disk('public')->delete($curso->imagen_portada);
-        }
+        $rutasArchivos = $curso->modulos
+            ->pluck('ruta_archivo')
+            ->filter()
+            ->values();
+
+        $rutaPortada = $curso->imagen_portada;
 
         $curso->delete();
+
+        foreach ($rutasArchivos as $ruta) {
+            Storage::disk('public')->delete($ruta);
+        }
+
+        if ($rutaPortada) {
+            Storage::disk('public')->delete($rutaPortada);
+        }
 
         return redirect()->route('capacitador.cursos.index')
             ->with('success', 'Curso eliminado correctamente.');
@@ -153,7 +144,7 @@ class CursoController extends Controller
 
     public function duplicar(Request $request, Curso $curso, DuplicateCourseAction $action): RedirectResponse
     {
-        $this->authorizeCurso($curso);
+        $this->authorize('manage', $curso);
 
         $request->validate([
             'titulo' => 'required|string|max:255',

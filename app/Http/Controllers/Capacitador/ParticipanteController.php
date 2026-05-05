@@ -11,47 +11,59 @@ use App\Models\ProgresoModulo;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\View\View;
 use Maatwebsite\Excel\Facades\Excel;
 
 class ParticipanteController extends Controller
 {
-    private function authorizeCurso(Curso $curso): void
+    /**
+     * Resuelve progreso y certificado para cada usuario en bulk (sin N+1).
+     *
+     * @param  Collection<int, User>  $usuarios
+     * @param  Collection<int, int>  $moduloIds
+     * @return Collection<int, User> Usuarios con `progreso_porcentaje` y `certificado` asignados
+     */
+    private function resolverParticipantes(Collection $usuarios, Curso $curso, Collection $moduloIds): Collection
     {
-        if (auth()->user()->hasAdminAccess()) {
-            return;
-        }
-        abort_unless($curso->capacitador_id === auth()->id(), 403);
+        $userIds = $usuarios->pluck('id');
+        $total = $moduloIds->count();
+
+        $progresos = ProgresoModulo::query()
+            ->whereIn('user_id', $userIds)
+            ->whereIn('modulo_id', $moduloIds)
+            ->where('completado', true)
+            ->selectRaw('user_id, count(*) as completados')
+            ->groupBy('user_id')
+            ->pluck('completados', 'user_id');
+
+        $certificados = Certificado::query()
+            ->whereIn('user_id', $userIds)
+            ->where('curso_id', $curso->id)
+            ->get()
+            ->keyBy('user_id');
+
+        return $usuarios->map(function (User $user) use ($total, $progresos, $certificados) {
+            $completados = $progresos->get($user->id, 0);
+            $user->progreso_porcentaje = $total > 0 ? (int) round(($completados / $total) * 100) : 0;
+            $user->certificado = $certificados->get($user->id);
+
+            return $user;
+        });
     }
 
     public function index(Curso $curso): View
     {
-        $this->authorizeCurso($curso);
+        $this->authorize('manage', $curso);
 
         $curso->load(['modulos', 'estamentos.users.estamento', 'estamentos.users.sede']);
 
-        // Recopilar todos los usuarios de los estamentos asignados
         $usuarios = $curso->estamentos
             ->flatMap(fn ($e) => $e->users)
             ->unique('id');
 
-        // Para cada usuario calcular progreso y estado de certificado
         $moduloIds = $curso->modulos->pluck('id');
-
-        $usuarios = $usuarios->map(function (User $user) use ($curso, $moduloIds) {
-            $completados = ProgresoModulo::where('user_id', $user->id)
-                ->whereIn('modulo_id', $moduloIds)
-                ->where('completado', true)
-                ->count();
-
-            $total = $moduloIds->count();
-            $user->progreso_porcentaje = $total > 0 ? (int) round(($completados / $total) * 100) : 0;
-            $user->certificado = Certificado::where('user_id', $user->id)
-                ->where('curso_id', $curso->id)
-                ->first();
-
-            return $user;
-        });
+        $usuarios = $this->resolverParticipantes($usuarios, $curso, $moduloIds);
 
         $todosEstamentos = Estamento::orderBy('nombre')->get();
 
@@ -60,7 +72,7 @@ class ParticipanteController extends Controller
 
     public function syncEstamentos(Request $request, Curso $curso): RedirectResponse
     {
-        $this->authorizeCurso($curso);
+        $this->authorize('manage', $curso);
 
         $request->validate(['estamentos' => 'array', 'estamentos.*' => 'exists:estamentos,id']);
 
@@ -72,35 +84,23 @@ class ParticipanteController extends Controller
 
     public function exportar(Curso $curso)
     {
-        $this->authorizeCurso($curso);
+        $this->authorize('manage', $curso);
 
         $curso->load(['modulos', 'estamentos.users.estamento', 'estamentos.users.sede']);
 
         $moduloIds = $curso->modulos->pluck('id');
         $usuarios = $curso->estamentos->flatMap(fn ($e) => $e->users)->unique('id');
+        $usuarios = $this->resolverParticipantes($usuarios, $curso, $moduloIds);
 
-        $rows = $usuarios->map(function (User $user) use ($curso, $moduloIds) {
-            $completados = ProgresoModulo::where('user_id', $user->id)
-                ->whereIn('modulo_id', $moduloIds)
-                ->where('completado', true)
-                ->count();
-            $total = $moduloIds->count();
-            $progreso = $total > 0 ? (int) round(($completados / $total) * 100) : 0;
-
-            $cert = Certificado::where('user_id', $user->id)
-                ->where('curso_id', $curso->id)
-                ->first();
-
-            return [
-                'RUT' => $user->rut ?? '—',
-                'Nombre' => $user->name,
-                'Email' => $user->email,
-                'Estamento' => $user->estamento?->nombre ?? '—',
-                'Sede' => $user->sede?->nombre ?? '—',
-                'Progreso (%)' => $progreso,
-                'Fecha Certificado' => $cert?->fecha_emision?->format('d/m/Y') ?? '—',
-            ];
-        })->values()->toArray();
+        $rows = $usuarios->map(fn (User $user) => [
+            'RUT' => $user->rut ?? '—',
+            'Nombre' => $user->name,
+            'Email' => $user->email,
+            'Estamento' => $user->estamento?->nombre ?? '—',
+            'Sede' => $user->sede?->nombre ?? '—',
+            'Progreso (%)' => $user->progreso_porcentaje,
+            'Fecha Certificado' => $user->certificado?->fecha_emision?->format('d/m/Y') ?? '—',
+        ])->values()->toArray();
 
         return Excel::download(new ParticipantesCursoExport($rows), "participantes_{$curso->id}.xlsx");
     }

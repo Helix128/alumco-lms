@@ -111,7 +111,7 @@
         @elseif ($modulo->tipo_contenido === 'texto')
             <div class="worker-card p-5 text-Alumco-gray prose prose-base max-w-none
                         prose-headings:text-Alumco-gray prose-a:text-Alumco-blue lg:p-7">
-                {!! $modulo->contenido !!}
+                {!! clean($modulo->contenido) !!}
             </div>
         @endif
     </section>

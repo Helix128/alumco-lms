@@ -6,6 +6,7 @@ use App\Models\Estamento;
 use App\Models\Sede;
 use App\Models\User;
 use App\Notifications\SetupPasswordNotification;
+use App\Services\Authorization\UserHierarchyService;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Storage;
@@ -51,6 +52,13 @@ class UserManagement extends Component
         'search' => ['except' => ''],
     ];
 
+    private UserHierarchyService $userHierarchyService;
+
+    public function boot(UserHierarchyService $userHierarchyService): void
+    {
+        $this->userHierarchyService = $userHierarchyService;
+    }
+
     public function updatingSearch()
     {
         $this->resetPage();
@@ -94,8 +102,7 @@ class UserManagement extends Component
 
         // Protección de Jerarquía: No puedes asignar un rol igual o superior al tuyo (salvo si eres Dev)
         if (! auth()->user()->isDesarrollador()) {
-            $roleToAssignRank = ($this->role === 'Desarrollador') ? 3 : (($this->role === 'Administrador') ? 2 : 1);
-            if ($roleToAssignRank >= auth()->user()->getHierarchyRank()) {
+            if ($this->userHierarchyService->roleRank($this->role) >= $this->userHierarchyService->getHierarchyRank(auth()->user())) {
                 abort(403, 'No tienes permisos para asignar el rol: '.$this->role);
             }
         }
@@ -241,7 +248,7 @@ class UserManagement extends Component
 
     private function abortIfUnauthorizedToManage(User $user): void
     {
-        if (! auth()->user()->canManageUser($user)) {
+        if (! $this->userHierarchyService->canManageUser(auth()->user(), $user)) {
             abort(403, 'No tienes permisos suficientes para realizar esta acción.');
         }
     }

@@ -12,14 +12,9 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class CertificadoController extends Controller
 {
-    private function authorizeCurso(Curso $curso): void
-    {
-        abort_unless($curso->capacitador_id === auth()->id(), 403);
-    }
-
     public function generar(Curso $curso, User $user, CertificadoService $service): RedirectResponse
     {
-        $this->authorizeCurso($curso);
+        $this->authorize('manage', $curso);
 
         try {
             $service->generarParaUsuario($user, $curso);
@@ -32,11 +27,7 @@ class CertificadoController extends Controller
 
     public function descargar(Certificado $certificado, CertificadoService $service): StreamedResponse
     {
-        abort_unless(
-            $certificado->curso->capacitador_id === auth()->id(),
-            403,
-            'No tienes permiso para descargar este certificado.'
-        );
+        $this->authorize('download', $certificado);
 
         return response()->streamDownload(
             fn () => print $service->output($certificado),

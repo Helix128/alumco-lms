@@ -176,4 +176,35 @@ class EditarEvaluacionTest extends TestCase
         $this->assertEquals(1, $resumen['preguntasSinOpciones']);
         $this->assertEquals(0, $resumen['preguntasSinCorrecta']);
     }
+
+    public function test_eliminar_pregunta_no_puede_borrar_pregunta_ajena(): void
+    {
+        $otraEvaluacion = Evaluacion::factory()->create();
+        $preguntaAjena = Pregunta::factory()->create(['evaluacion_id' => $otraEvaluacion->id, 'orden' => 1]);
+
+        $this->mountComponent()->call('eliminarPregunta', $preguntaAjena->id);
+
+        $this->assertDatabaseHas('preguntas', ['id' => $preguntaAjena->id]);
+    }
+
+    public function test_eliminar_opcion_no_puede_borrar_opcion_ajena(): void
+    {
+        $otraEvaluacion = Evaluacion::factory()->create();
+        $preguntaAjena = Pregunta::factory()->create(['evaluacion_id' => $otraEvaluacion->id, 'orden' => 1]);
+        $opcionAjena = Opcion::factory()->create(['pregunta_id' => $preguntaAjena->id]);
+
+        $this->mountComponent()->call('eliminarOpcion', $opcionAjena->id);
+
+        $this->assertDatabaseHas('opciones', ['id' => $opcionAjena->id]);
+    }
+
+    public function test_agregar_opcion_rechaza_pregunta_ajena(): void
+    {
+        $otraEvaluacion = Evaluacion::factory()->create();
+        $preguntaAjena = Pregunta::factory()->create(['evaluacion_id' => $otraEvaluacion->id, 'orden' => 1]);
+
+        $this->mountComponent()
+            ->call('agregarOpcion', $preguntaAjena->id)
+            ->assertForbidden();
+    }
 }
