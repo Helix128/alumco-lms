@@ -70,8 +70,17 @@ class ModuloController extends Controller
 
         // 3. Trabajadores con el curso asignado
         if ($this->belongsToUserEstamento($curso, $user)) {
-            // Nota: No validamos estaAccesiblePara() o estaDisponiblePara() aquí
-            // para permitir descargas si el usuario ya llegó a la vista del módulo.
+            $this->authorizeCourseAccess($curso, $user);
+            $this->loadCourseModulesFor($curso, $user);
+
+            $moduloCargado = $curso->modulos->find($modulo->id);
+            abort_if(! $moduloCargado, 404);
+            abort_unless(
+                $moduloCargado->estaAccesiblePara($user, $curso),
+                403,
+                'Este módulo aún está bloqueado. Completa los módulos anteriores primero.'
+            );
+
             return;
         }
 

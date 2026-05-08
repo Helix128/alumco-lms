@@ -6,6 +6,7 @@ use App\Models\Curso;
 use App\Models\Estamento;
 use App\Models\Modulo;
 use App\Models\PlanificacionCurso;
+use App\Models\ProgresoModulo;
 use App\Models\User;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -259,6 +260,86 @@ class CursoPreviewTest extends TestCase
             ->actingAs($user)
             ->get(route('modulos.archivo', [$curso, $modulo]))
             ->assertForbidden();
+    }
+
+    public function test_worker_cannot_download_locked_module_file_directly(): void
+    {
+        Storage::fake('public');
+
+        $estamento = Estamento::create(['nombre' => 'Operaciones']);
+        $user = User::factory()->create(['estamento_id' => $estamento->id]);
+        $user->assignRole('Trabajador');
+
+        $curso = Curso::factory()->create();
+        $estamento->cursos()->attach($curso);
+        PlanificacionCurso::create([
+            'curso_id' => $curso->id,
+            'fecha_inicio' => now()->subDay()->toDateString(),
+            'fecha_fin' => now()->addDay()->toDateString(),
+        ]);
+
+        Modulo::factory()->create([
+            'curso_id' => $curso->id,
+            'orden' => 1,
+            'tipo_contenido' => 'pdf',
+            'ruta_archivo' => 'documentos/intro.pdf',
+        ]);
+        $lockedModule = Modulo::factory()->create([
+            'curso_id' => $curso->id,
+            'orden' => 2,
+            'tipo_contenido' => 'pdf',
+            'ruta_archivo' => 'documentos/bloqueado.pdf',
+        ]);
+
+        Storage::disk('public')->put($lockedModule->ruta_archivo, 'pdf bloqueado');
+
+        $this
+            ->actingAs($user)
+            ->get(route('modulos.descargar', [$curso, $lockedModule]))
+            ->assertForbidden();
+    }
+
+    public function test_worker_can_download_unlocked_module_file_after_previous_completion(): void
+    {
+        Storage::fake('public');
+
+        $estamento = Estamento::create(['nombre' => 'Operaciones']);
+        $user = User::factory()->create(['estamento_id' => $estamento->id]);
+        $user->assignRole('Trabajador');
+
+        $curso = Curso::factory()->create();
+        $estamento->cursos()->attach($curso);
+        PlanificacionCurso::create([
+            'curso_id' => $curso->id,
+            'fecha_inicio' => now()->subDay()->toDateString(),
+            'fecha_fin' => now()->addDay()->toDateString(),
+        ]);
+
+        $firstModule = Modulo::factory()->create([
+            'curso_id' => $curso->id,
+            'orden' => 1,
+            'tipo_contenido' => 'pdf',
+            'ruta_archivo' => 'documentos/intro.pdf',
+        ]);
+        $unlockedModule = Modulo::factory()->create([
+            'curso_id' => $curso->id,
+            'orden' => 2,
+            'tipo_contenido' => 'pdf',
+            'ruta_archivo' => 'documentos/desbloqueado.pdf',
+        ]);
+        ProgresoModulo::create([
+            'user_id' => $user->id,
+            'modulo_id' => $firstModule->id,
+            'completado' => true,
+            'fecha_completado' => now(),
+        ]);
+
+        Storage::disk('public')->put($unlockedModule->ruta_archivo, 'pdf desbloqueado');
+
+        $this
+            ->actingAs($user)
+            ->get(route('modulos.descargar', [$curso, $unlockedModule]))
+            ->assertOk();
     }
 
     public function test_module_file_from_another_course_returns_not_found(): void
