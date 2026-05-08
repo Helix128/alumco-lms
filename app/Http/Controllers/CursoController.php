@@ -4,10 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\Curso;
 use App\Models\User;
+use App\Services\Cursos\CourseModuleLoader;
 use Illuminate\Database\Eloquent\Builder;
 
 class CursoController extends Controller
 {
+    public function __construct(private readonly CourseModuleLoader $courseModuleLoader) {}
+
     public function index()
     {
         $user = auth()->user();
@@ -119,23 +122,7 @@ class CursoController extends Controller
             }
         }
 
-        // Eager-load secciones + módulos + progresos del usuario (evita N+1)
-        $curso->load([
-            'secciones' => function ($query) use ($user) {
-                $query->orderBy('orden')->with(['modulos' => function ($q) use ($user) {
-                    $q->orderBy('orden')->with(['progresos' => function ($qp) use ($user) {
-                        $qp->where('user_id', $user->id);
-                    }]);
-                }]);
-            },
-            'modulos' => function ($query) use ($user) {
-                // Cargamos TODOS los módulos para que la lógica de acceso sea coherente
-                $query->orderBy('orden')
-                    ->with(['progresos' => function ($q) use ($user) {
-                        $q->where('user_id', $user->id);
-                    }]);
-            },
-        ]);
+        $this->courseModuleLoader->loadForUser($curso, $user);
 
         $progreso = $curso->progresoParaUsuario($user);
 
