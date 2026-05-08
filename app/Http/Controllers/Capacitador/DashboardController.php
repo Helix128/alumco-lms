@@ -6,21 +6,22 @@ use App\Http\Controllers\Controller;
 use App\Models\Certificado;
 use App\Models\Curso;
 use App\Models\ProgresoModulo;
+use App\Services\Analytics\LearningAnalyticsService;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
-    public function index(): View
+    public function index(LearningAnalyticsService $analyticsService): View
     {
         $user = auth()->user();
         $cacheScope = $user->hasAdminAccess() ? 'admin' : "capacitador_{$user->id}";
         $cacheKey = "dashboard_summary_v2_{$cacheScope}";
 
-        ['stats' => $stats, 'ultimosCursos' => $ultimosCursos] = Cache::flexible(
+        ['stats' => $stats, 'ultimosCursos' => $ultimosCursos, 'learningStats' => $learningStats] = Cache::flexible(
             $cacheKey,
             [30, 120],
-            function () use ($user): array {
+            function () use ($user, $analyticsService): array {
                 $cursosQuery = $user->hasAdminAccess()
                     ? Curso::query()
                     : $user->cursosImpartidos();
@@ -40,6 +41,7 @@ class DashboardController extends Controller
                 $totalCertificados = $cursoIds->isEmpty()
                     ? 0
                     : Certificado::whereIn('curso_id', $cursoIds)->count();
+                $learningStats = $analyticsService->summaryForCourseIds($cursoIds);
 
                 return [
                     'stats' => [
@@ -57,10 +59,11 @@ class DashboardController extends Controller
                         ])
                         ->values()
                         ->all(),
+                    'learningStats' => $learningStats,
                 ];
             }
         );
 
-        return view('capacitador.dashboard', compact('stats', 'ultimosCursos'));
+        return view('capacitador.dashboard', compact('stats', 'ultimosCursos', 'learningStats'));
     }
 }
