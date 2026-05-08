@@ -11,13 +11,16 @@ use App\Http\Controllers\Capacitador\ModuloController as CapacitadorModulo;
 use App\Http\Controllers\Capacitador\ParticipanteController as CapacitadorParticipante;
 use App\Http\Controllers\Capacitador\SeccionCursoController;
 use App\Http\Controllers\CursoController;
+use App\Http\Controllers\DevHealthController;
 use App\Http\Controllers\MisCertificadosController;
 use App\Http\Controllers\ModuloController;
 use App\Http\Controllers\PerfilController;
 use App\Http\Controllers\ReporteController;
+use App\Http\Controllers\SupportTicketAttachmentController;
 use App\Http\Controllers\VerificarCertificadoController;
 use App\Livewire\CalendarioUsuario;
 use App\Livewire\Capacitador\CalendarioCapacitaciones;
+use App\Models\SupportTicket;
 use App\Support\UserAreaRedirector;
 use Illuminate\Support\Facades\Route;
 
@@ -29,6 +32,9 @@ Route::middleware('throttle:30,1')->group(function () {
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:login');
+    Route::view('/soporte/contacto', 'support.public-create')
+        ->middleware('throttle:6,1')
+        ->name('support.public.create');
 
     // Password Reset
     Route::get('/forgot-password', [PasswordResetController::class, 'showForgotForm'])->name('password.request');
@@ -37,8 +43,18 @@ Route::middleware('guest')->group(function () {
     Route::post('/reset-password', [PasswordResetController::class, 'resetPassword'])->name('password.update');
 });
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'throttle:120,1'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+    Route::view('/soporte', 'support.index')->name('support.index');
+    Route::get('/soporte/tickets/{ticket}', function (SupportTicket $ticket) {
+        abort_unless(auth()->user()?->can('view', $ticket), 403);
+
+        return view('support.show', [
+            'ticket' => $ticket->load(['attachments', 'messages.author', 'messages.attachments']),
+        ]);
+    })->name('support.show');
+    Route::get('/soporte/adjuntos/{attachment}', SupportTicketAttachmentController::class)
+        ->name('support.attachments.download');
 
     // Redirección / según rol
     Route::get('/', function () {
@@ -145,6 +161,16 @@ Route::middleware('auth')->group(function () {
 
         return view('admin.configuracion');
     })->name('dev.configuracion');
+    Route::get('/dev/salud-lms', DevHealthController::class)->name('dev.salud-lms');
+    Route::view('/dev/soporte', 'dev.support')->name('dev.support.index');
+
+    Route::get('/admin/perfil', function () {
+        if (! auth()->user()->hasAdminAccess() && ! auth()->user()->isCapacitador()) {
+            abort(403);
+        }
+
+        return app(PerfilController::class)->showAdmin();
+    })->name('admin.perfil.index');
 
     // RUTAS DE ADMINISTRACIÓN
     Route::middleware(['admin'])->prefix('admin')->name('admin.')->group(function () {
@@ -160,7 +186,9 @@ Route::middleware('auth')->group(function () {
             return view('admin.usuarios.index');
         })->name('usuarios.index');
 
-        // Perfil Administrativo
-        Route::get('/perfil', [PerfilController::class, 'showAdmin'])->name('perfil.index');
+        // Acreditación
+        Route::get('/acreditacion', function () {
+            return view('admin.acreditacion.index');
+        })->name('acreditacion.index');
     });
 });
