@@ -24,6 +24,8 @@ class CursoController extends Controller
             $cursos = $user->estamento
                 ? $user->estamento->cursos()
                     ->with($this->courseRelationsFor($user))
+                    ->latest()
+                    ->limit(60)
                     ->get()
                 : collect();
         }
@@ -144,6 +146,8 @@ class CursoController extends Controller
     private function previewCoursesQuery(User $user): Builder
     {
         return Curso::with($this->courseRelationsFor($user))
+            ->latest()
+            ->limit(60)
             ->when(! $user->hasAdminAccess(), function (Builder $query) use ($user): void {
                 $query->where(function (Builder $query) use ($user): void {
                     $query->where('capacitador_id', $user->id)

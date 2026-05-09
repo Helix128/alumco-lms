@@ -9,13 +9,14 @@ use App\Models\Feedback;
 use App\Models\ProgresoModulo;
 use App\Models\User;
 use Illuminate\Support\Collection;
+use App\Services\Analytics\LearningAnalyticsService;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
-    public function index(): View
+    public function index(LearningAnalyticsService $analyticsService): View
     {
         ['stats' => $stats, 'lmsStats' => $lmsStats] = Cache::flexible('admin_dashboard_stats', [60, 300], function () {
             $currentYear = now()->year;
@@ -99,5 +100,10 @@ class DashboardController extends Controller
             'en_riesgo' => max($iniciados - $completados, 0),
             'feedback_promedio' => $feedbackPromedio !== null ? number_format((float) $feedbackPromedio, 1) : null,
         ];
+        $lmsStats = Cache::flexible('admin_dashboard_lms_stats_v2', [60, 300], function () use ($analyticsService): array {
+            return $analyticsService->summaryFromAggregates();
+        });
+
+        return view('admin.dashboard', compact('stats', 'lmsStats'));
     }
 }

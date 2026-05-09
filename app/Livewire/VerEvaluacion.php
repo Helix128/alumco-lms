@@ -143,8 +143,8 @@ class VerEvaluacion extends Component
                 try {
                     app(CertificadoService::class)->generarParaUsuario(auth()->user(), $this->curso);
                     $this->certificadoGenerado = true;
-                } catch (\Throwable) {
-                    // No bloquear al usuario si la generación falla
+                } catch (\Throwable $exception) {
+                    report($exception);
                 }
             }
         }
