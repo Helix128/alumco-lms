@@ -54,6 +54,11 @@ class Modulo extends Model
         return $this->hasMany(ProgresoModulo::class);
     }
 
+    public function feedbacks()
+    {
+        return $this->hasMany(Feedback::class);
+    }
+
     // --- MÉTODOS HELPER ---
 
     public function estaCompletadoPor(User $user): bool

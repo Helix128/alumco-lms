@@ -141,6 +141,7 @@ class UserManagement extends Component
 
         $this->showDrawer = false;
         $this->resetForm();
+        $this->dispatch('saved');
     }
 
     public function toggleStatus(User $user)
@@ -151,6 +152,7 @@ class UserManagement extends Component
         $user->save();
 
         session()->flash('success', 'Estado del usuario actualizado.');
+        $this->dispatch('saved');
     }
 
     public function resetPassword(User $user)
@@ -164,6 +166,7 @@ class UserManagement extends Component
         } else {
             session()->flash('success', 'Correo de recuperación enviado a '.$user->email);
         }
+        $this->dispatch('saved');
     }
 
     public function deleteUser(User $user)
@@ -173,6 +176,7 @@ class UserManagement extends Component
         $user->delete();
 
         session()->flash('success', 'Usuario eliminado.');
+        $this->dispatch('saved');
     }
 
     public function render()

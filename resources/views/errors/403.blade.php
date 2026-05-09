@@ -9,28 +9,28 @@
         {{ $exception->getMessage() ?: 'No tienes permiso para acceder a este recurso.' }}
     </p>
 
-    <div class="flex flex-col gap-3 sm:flex-row">
+    <div class="flex flex-col gap-4 sm:flex-row">
         @if (auth()->check())
             {{-- Usuario autenticado: ofrecer cerrar sesión --}}
-            <form method="POST" action="{{ route('logout') }}">
+            <form method="POST" action="{{ route('logout') }}" class="w-full sm:w-auto">
                 @csrf
                 <button
                     type="submit"
-                    class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-Alumco-coral px-6 py-3 text-base font-bold text-white transition hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-Alumco-coral focus:ring-offset-2 sm:w-auto"
+                    class="group relative inline-flex w-full items-center justify-center gap-2 overflow-hidden rounded-2xl bg-Alumco-coral-accessible px-8 py-4 text-lg font-bold text-white shadow-lg shadow-Alumco-coral/20 transition-all hover:shadow-xl active:scale-95 sm:w-auto"
                 >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-5 w-5" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="h-5 w-5 transition-transform group-hover:translate-x-1" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
                     </svg>
-                    Cerrar sesión
+                    <span>Cerrar sesión</span>
                 </button>
             </form>
         @endif
 
         <a
             href="{{ route('login') }}"
-            class="inline-flex w-full items-center justify-center gap-2 rounded-xl border-2 border-Alumco-blue px-6 py-3 text-base font-bold text-Alumco-blue transition hover:bg-Alumco-blue hover:text-Alumco-yellow focus:outline-none focus:ring-2 focus:ring-Alumco-blue focus:ring-offset-2 sm:w-auto"
+            class="inline-flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-Alumco-blue/20 bg-white px-8 py-4 text-lg font-bold text-Alumco-blue transition-all hover:border-Alumco-blue/40 hover:bg-Alumco-blue/5 active:scale-95 sm:w-auto"
         >
-            Ir al inicio
+            <span>Ir al inicio</span>
         </a>
     </div>
 @endsection

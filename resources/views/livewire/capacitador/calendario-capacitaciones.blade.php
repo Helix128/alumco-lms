@@ -416,6 +416,10 @@
                 <div
                     x-cloak
                     x-show="show"
+                    x-trap.noscroll="show"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="modal-plan-title"
                     class="fixed inset-0 z-[290] flex min-h-screen justify-end bg-black/40 backdrop-blur-[2px]"
                     x-transition:enter="transition ease-out duration-300"
                     x-transition:enter-start="opacity-0"
@@ -439,7 +443,7 @@
                         <div class="border-b border-gray-100 bg-Alumco-blue/5 p-6">
                             <div class="flex items-start justify-between gap-4">
                                 <div>
-                                    <h3 class="font-display text-2xl font-black text-Alumco-blue">{{ $editandoId ? 'Editar bloque' : 'Nueva planificación' }}</h3>
+                                    <h3 id="modal-plan-title" class="font-display text-2xl font-black text-Alumco-blue">{{ $editandoId ? 'Editar bloque' : 'Nueva planificación' }}</h3>
                                     <p class="mt-1 text-xs font-black uppercase tracking-widest text-Alumco-blue/40">Cursos por semana y sede</p>
                                 </div>
                                 <button wire:click="cerrarModal" class="rounded-xl bg-white px-3 py-2 text-sm font-black text-gray-400 shadow-sm ring-1 ring-gray-100">Cerrar</button>
@@ -519,6 +523,10 @@
                 <div
                     x-cloak
                     x-show="show"
+                    x-trap.noscroll="show"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="modal-copy-title"
                     class="fixed inset-0 z-[290] flex min-h-screen items-center justify-center bg-black/45 p-4 backdrop-blur-sm"
                     x-transition:enter="transition ease-out duration-300"
                     x-transition:enter-start="opacity-0"
@@ -540,7 +548,7 @@
                         @click.stop
                     >
                         <div class="border-b border-gray-100 p-6">
-                            <h3 class="font-display text-2xl font-black text-Alumco-blue">Copiar planificación anual</h3>
+                            <h3 id="modal-copy-title" class="font-display text-2xl font-black text-Alumco-blue">Copiar planificación anual</h3>
                             <p class="mt-1 text-sm font-semibold text-gray-500">Elige un año origen y cómo aplicar la copia en el año destino.</p>
                         </div>
 
@@ -587,6 +595,10 @@
                 <div
                     x-cloak
                     x-show="show"
+                    x-trap.noscroll="show"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="modal-delete-title"
                     class="fixed inset-0 z-[290] flex items-center justify-center bg-black/45 p-4 backdrop-blur-sm"
                     x-transition:enter="transition ease-out duration-300"
                     x-transition:enter-start="opacity-0"
@@ -607,7 +619,7 @@
                         class="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl"
                         @click.stop
                     >
-                        <h3 class="font-display text-xl font-black text-Alumco-blue">Eliminar planificación</h3>
+                        <h3 id="modal-delete-title" class="font-display text-xl font-black text-Alumco-blue">Eliminar planificación</h3>
                         <p class="mt-2 text-sm font-semibold text-gray-500">Esta acción eliminará el bloque del calendario.</p>
                         <div class="mt-6 flex justify-end gap-2">
                             <button class="rounded-xl bg-gray-100 px-4 py-2 text-sm font-black text-gray-500" @click="show = false; $wire.cerrarModalBorrado()">Cancelar</button>

@@ -212,6 +212,33 @@
 
             {{-- Columna Derecha: Audiencia --}}
             <div class="space-y-6">
+                <div class="bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
+                    <h3 class="text-sm font-black text-Alumco-blue uppercase tracking-[0.2em]">Analytics del curso</h3>
+                    <div class="mt-5 grid grid-cols-2 gap-3">
+                        <div class="rounded-2xl bg-Alumco-blue/5 p-4">
+                            <p class="text-[10px] font-black uppercase text-Alumco-blue/50">Participantes</p>
+                            <p class="mt-1 text-2xl font-black text-Alumco-blue">{{ $learningSummary['participantes'] }}</p>
+                        </div>
+                        <div class="rounded-2xl bg-Alumco-green/25 p-4">
+                            <p class="text-[10px] font-black uppercase text-Alumco-green-accessible/70">Completaron</p>
+                            <p class="mt-1 text-2xl font-black text-Alumco-green-accessible">{{ $learningSummary['completados'] }}</p>
+                        </div>
+                        <div class="rounded-2xl bg-Alumco-coral/10 p-4">
+                            <p class="text-[10px] font-black uppercase text-Alumco-coral-accessible/70">En riesgo</p>
+                            <p class="mt-1 text-2xl font-black text-Alumco-coral-accessible">{{ $learningSummary['en_riesgo'] }}</p>
+                        </div>
+                        <div class="rounded-2xl bg-Alumco-yellow/15 p-4">
+                            <p class="text-[10px] font-black uppercase text-Alumco-gray/50">Intentos fallidos</p>
+                            <p class="mt-1 text-2xl font-black text-Alumco-gray">{{ $learningSummary['intentos_fallidos'] }}</p>
+                        </div>
+                    </div>
+                    @if ($learningSummary['modulo_friccion'])
+                        <p class="mt-4 text-xs font-bold leading-relaxed text-Alumco-gray/60">
+                            Módulo con menor avance: <span class="text-Alumco-blue">{{ $learningSummary['modulo_friccion'] }}</span>
+                        </p>
+                    @endif
+                </div>
+
                 @if (auth()->user()->isCapacitadorInterno() || auth()->user()->hasAdminAccess())
                     <div class="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 space-y-6">
                         <div>
@@ -221,6 +248,10 @@
                         @livewire('capacitador.gestion-estamentos', ['curso' => $curso])
                     </div>
                 @endif
+
+                <div class="bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
+                    @livewire('capacitador.course-feedback-summary', ['curso' => $curso])
+                </div>
             </div>
         </div>
     </div>

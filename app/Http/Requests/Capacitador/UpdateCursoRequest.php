@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Capacitador;
 
 use App\Models\Curso;
+use App\Support\Capacitador\CursoContentRules;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateCursoRequest extends FormRequest
@@ -18,12 +19,18 @@ class UpdateCursoRequest extends FormRequest
     /** @return array<string, mixed> */
     public function rules(): array
     {
-        return [
-            'titulo' => ['required', 'string', 'max:255'],
-            'descripcion' => ['nullable', 'string'],
-            'imagen_portada' => ['nullable', 'image', 'max:4096'],
-            'color_promedio' => ['nullable', 'string', 'max:7'],
-            'auto_color' => ['nullable', 'boolean'],
-        ];
+        return CursoContentRules::rules();
+    }
+
+    /** @return array<string, string> */
+    public function messages(): array
+    {
+        return CursoContentRules::messages();
+    }
+
+    /** @return array<string, string> */
+    public function attributes(): array
+    {
+        return CursoContentRules::attributes();
     }
 }

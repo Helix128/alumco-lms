@@ -2,6 +2,7 @@
 
 namespace App\Services\Certificados;
 
+use App\Exceptions\CertificateNotEligible;
 use App\Models\Curso;
 use App\Models\IntentoEvaluacion;
 use App\Models\User;
@@ -27,7 +28,7 @@ class CertificateEligibility
         }
 
         if (! $aprobado && $modulosEvaluacion->isNotEmpty()) {
-            throw new \RuntimeException('El usuario no ha aprobado ninguna evaluación de este curso.');
+            throw CertificateNotEligible::missingApprovedEvaluation($user, $curso);
         }
     }
 }

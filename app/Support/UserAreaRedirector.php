@@ -113,7 +113,8 @@ class UserAreaRedirector
 
     private static function isAdminAreaPath(string $path): bool
     {
-        return Str::is('/admin/*', $path) && $path !== '/admin/preview-mode/toggle';
+        return Str::is('/admin/*', $path)
+            && ! in_array($path, ['/admin/preview-mode/toggle', '/admin/perfil'], true);
     }
 
     private static function isCapacitadorAreaPath(string $path): bool
@@ -123,7 +124,7 @@ class UserAreaRedirector
 
     private static function isDevAreaPath(string $path): bool
     {
-        return $path === '/dev/configuracion';
+        return in_array($path, ['/dev/configuracion', '/dev/salud-lms'], true);
     }
 
     private static function isUserAreaPath(string $path): bool

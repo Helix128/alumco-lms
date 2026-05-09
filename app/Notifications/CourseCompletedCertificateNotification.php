@@ -36,13 +36,12 @@ class CourseCompletedCertificateNotification extends Notification implements Sho
         $url = route('mis-certificados.descargar', $this->certificado);
 
         return (new MailMessage)
-            ->subject('Certificado disponible - '.$this->curso->titulo)
-            ->greeting('Hola, '.$notifiable->name.'.')
-            ->line('Completaste el curso "'.$this->curso->titulo.'".')
-            ->line('Tu certificado ya está disponible para descarga en la plataforma.')
-            ->action('Descargar certificado', $url)
-            ->line('Por seguridad, deberás iniciar sesión para descargarlo.')
-            ->salutation('Saludos, el equipo de Alumco');
+            ->subject('Tu certificado ya está disponible: '.$this->curso->titulo)
+            ->markdown('emails.notifications.course-certificate-ready', [
+                'name' => $notifiable->name,
+                'courseTitle' => $this->curso->titulo,
+                'downloadUrl' => $url,
+            ]);
     }
 
     /**

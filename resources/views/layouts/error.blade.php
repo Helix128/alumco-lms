@@ -15,50 +15,61 @@
     <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="bg-Alumco-cream font-sans text-Alumco-gray antialiased">
-    <div class="flex min-h-screen flex-col items-center justify-center px-4 py-10 sm:py-16">
+<body class="auth-shell font-sans text-Alumco-gray antialiased">
+    <div class="relative flex min-h-screen w-full flex-col overflow-x-hidden isolate bg-gradient-to-br from-Alumco-cream via-Alumco-cream to-Alumco-cyan/20 px-6 py-12 lg:px-20">
+        
+        <!-- Nubes Superiores -->
+        <div class="pointer-events-none absolute top-0 -right-10 z-0 select-none">
+            <img src="{{ asset('images/undraw/clouds_top.svg') }}" alt="" class="animate-cloud h-auto w-[35vw] opacity-90 lg:w-[45vw]">
+        </div>
 
         <!-- Logo -->
-        <a href="{{ route('login') }}" class="mb-8 block">
-            <img
-                src="{{ asset('images/logo/alumco-full.svg') }}"
-                alt="Alumco"
-                class="h-auto w-36 sm:w-48 md:w-56"
-            >
-        </a>
+        <div class="relative z-10 flex justify-center mb-10">
+            <a href="{{ route('login') }}" class="transition-transform hover:scale-105 active:scale-95">
+                <img
+                    src="{{ asset('images/logo/alumco-full.svg') }}"
+                    alt="Alumco"
+                    class="h-auto w-40 sm:w-48 lg:w-56"
+                >
+            </a>
+        </div>
 
         <!-- Card -->
-        <div class="w-full max-w-2xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-md">
+        <div class="relative z-10 mx-auto w-full max-w-3xl animate-page-entry">
+            <div class="overflow-hidden rounded-3xl border border-white/40 bg-white/80 shadow-2xl backdrop-blur-xl">
 
-            <!-- Card header -->
-            <div class="bg-Alumco-blue px-6 py-5 sm:px-8 sm:py-6">
-                <p class="font-display text-xs font-bold uppercase tracking-widest text-white/50 sm:text-sm">
-                    @yield('code', 'Error')
-                </p>
-                <h1 class="font-display text-2xl font-bold tracking-tight text-white sm:text-3xl">
-                    @yield('header-title', 'Algo salió mal')
-                </h1>
-            </div>
-
-            <!-- Card body: content left, illustration right -->
-            <div class="flex flex-col items-center gap-8 px-6 py-8 sm:px-8 sm:py-10 md:flex-row md:items-center md:gap-10">
-
-                <!-- Error content -->
-                <div class="flex-1 space-y-6">
-                    @yield('content')
+                <!-- Card header -->
+                <div class="bg-Alumco-blue/90 px-8 py-6 lg:px-12">
+                    <p class="font-display text-xs font-black uppercase tracking-[0.22em] text-Alumco-cyan">
+                        Error @yield('code', '!!!')
+                    </p>
+                    <h1 class="mt-1 font-display text-2xl font-black text-white sm:text-3xl">
+                        @yield('header-title', 'Algo salió mal')
+                    </h1>
                 </div>
 
-                <!-- SVG illustration -->
-                <div class="flex w-44 flex-shrink-0 items-center justify-center md:w-48">
-                    @yield('illustration')
-                </div>
+                <!-- Card body: content left, illustration right -->
+                <div class="flex flex-col-reverse items-center gap-10 px-8 py-10 lg:flex-row lg:px-12 lg:py-12">
 
+                    <!-- Error content -->
+                    <div class="flex-1 space-y-8">
+                        @yield('content')
+                    </div>
+
+                    <!-- SVG illustration -->
+                    <div class="flex w-40 flex-shrink-0 items-center justify-center lg:w-48">
+                        <div class="text-Alumco-blue opacity-80">
+                            @yield('illustration')
+                        </div>
+                    </div>
+
+                </div>
             </div>
         </div>
 
         <!-- Footer -->
-        <footer class="mt-8 text-center text-xs font-bold uppercase tracking-widest text-Alumco-gray/40">
-            &copy; {{ date('Y') }} Alumco
+        <footer class="relative z-10 mt-auto pt-10 text-center text-xs font-bold uppercase tracking-widest text-Alumco-gray/40">
+            &copy; {{ date('Y') }} Alumco &bull; Sistema de Gestión de Capacitación
         </footer>
     </div>
 </body>

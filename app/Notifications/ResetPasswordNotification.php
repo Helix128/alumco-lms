@@ -3,10 +3,11 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class ResetPasswordNotification extends Notification
+class ResetPasswordNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
@@ -25,13 +26,11 @@ class ResetPasswordNotification extends Notification
         ]);
 
         return (new MailMessage)
-            ->subject('Restablecer contraseña - '.config('app.name'))
-            ->greeting('Hola, '.$notifiable->name.'!')
-            ->line('Recibimos una solicitud para restablecer la contraseña de tu cuenta.')
-            ->line('Haz clic en el siguiente enlace para elegir una nueva contraseña:')
-            ->action('Restablecer contraseña', $url)
-            ->line('Este enlace expira en 60 minutos.')
-            ->line('Si no solicitaste restablecer tu contraseña, puedes ignorar este correo.')
-            ->salutation('Saludos, el equipo de Alumco');
+            ->subject('Restablece tu contraseña en '.config('app.name'))
+            ->markdown('emails.notifications.reset-password', [
+                'name' => $notifiable->name,
+                'resetUrl' => $url,
+                'expiresInMinutes' => 60,
+            ]);
     }
 }

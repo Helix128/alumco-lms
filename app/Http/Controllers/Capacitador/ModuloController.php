@@ -29,22 +29,22 @@ class ModuloController extends Controller
 
     public function store(StoreModuloRequest $request, Curso $curso): RedirectResponse
     {
-        $data = $request->validated();
-        $data['curso_id'] = $curso->id;
-        $data['orden'] = ($curso->modulos()->max('orden') ?? 0) + 1;
+        $moduleAttributes = $request->validated();
+        $moduleAttributes['curso_id'] = $curso->id;
+        $moduleAttributes['orden'] = ($curso->modulos()->max('orden') ?? 0) + 1;
 
-        if (isset($data['contenido'])) {
-            $data['contenido'] = clean($data['contenido']);
+        if (isset($moduleAttributes['contenido'])) {
+            $moduleAttributes['contenido'] = clean($moduleAttributes['contenido']);
         }
 
         if ($request->hasFile('ruta_archivo')) {
             $file = $request->file('ruta_archivo');
-            $data['ruta_archivo'] = $file->store("modulos/{$curso->id}", 'public');
-            $data['nombre_archivo_original'] = $file->getClientOriginalName();
+            $moduleAttributes['ruta_archivo'] = $file->store("modulos/{$curso->id}", 'public');
+            $moduleAttributes['nombre_archivo_original'] = $file->getClientOriginalName();
         }
 
-        DB::transaction(function () use ($data) {
-            $modulo = Modulo::create($data);
+        DB::transaction(function () use ($moduleAttributes) {
+            $modulo = Modulo::create($moduleAttributes);
 
             if ($modulo->tipo_contenido === 'evaluacion') {
                 Evaluacion::create(['modulo_id' => $modulo->id]);
@@ -71,10 +71,10 @@ class ModuloController extends Controller
     {
         abort_unless($modulo->curso_id === $curso->id, 404);
 
-        $data = $request->validated();
+        $moduleAttributes = $request->validated();
 
-        if (isset($data['contenido'])) {
-            $data['contenido'] = clean($data['contenido']);
+        if (isset($moduleAttributes['contenido'])) {
+            $moduleAttributes['contenido'] = clean($moduleAttributes['contenido']);
         }
 
         if ($request->hasFile('ruta_archivo')) {
@@ -82,11 +82,11 @@ class ModuloController extends Controller
                 Storage::disk('public')->delete($modulo->ruta_archivo);
             }
             $file = $request->file('ruta_archivo');
-            $data['ruta_archivo'] = $file->store("modulos/{$curso->id}", 'public');
-            $data['nombre_archivo_original'] = $file->getClientOriginalName();
+            $moduleAttributes['ruta_archivo'] = $file->store("modulos/{$curso->id}", 'public');
+            $moduleAttributes['nombre_archivo_original'] = $file->getClientOriginalName();
         }
 
-        $modulo->update($data);
+        $modulo->update($moduleAttributes);
 
         return redirect()->route('capacitador.cursos.show', $curso)
             ->with('success', 'Módulo actualizado correctamente.');

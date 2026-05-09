@@ -41,6 +41,13 @@
                               class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3.5 text-Alumco-gray font-medium focus:ring-4 focus:ring-Alumco-blue/10 focus:border-Alumco-blue outline-none transition-all">{{ old('descripcion', $curso->descripcion) }}</textarea>
                 </div>
 
+                <div class="space-y-2">
+                    <label class="block text-sm font-black text-Alumco-blue/40 uppercase tracking-widest">Nota para participantes</label>
+                    <textarea name="nota_capacitador" rows="3" maxlength="1200"
+                              class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3.5 text-Alumco-gray font-medium focus:ring-4 focus:ring-Alumco-blue/10 focus:border-Alumco-blue outline-none transition-all">{{ old('nota_capacitador', $curso->nota_capacitador) }}</textarea>
+                    <p class="text-[11px] text-Alumco-gray/40 italic mt-1">Úsala solo para aclaraciones operativas relevantes del curso.</p>
+                </div>
+
                 {{-- Imagen de Portada --}}
                 <div class="space-y-3">
                     <label class="block text-sm font-black text-Alumco-blue/40 uppercase tracking-widest">Imagen de portada</label>

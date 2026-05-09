@@ -62,11 +62,23 @@
                             <span class="text-sm font-bold text-Alumco-gray/55">Progreso actual</span>
                             <span class="text-xl font-black text-Alumco-blue">{{ $progreso }}%</span>
                         </div>
-                        <div class="h-3 overflow-hidden rounded-full bg-black/8">
+                        <div class="h-3 overflow-hidden rounded-full bg-black/8"
+                             role="progressbar"
+                             aria-valuenow="{{ $progreso }}"
+                             aria-valuemin="0"
+                             aria-valuemax="100"
+                             aria-label="Progreso total del curso">
                             <div class="h-full rounded-full bg-Alumco-blue transition-all duration-[400ms] ease-out"
                                  style="width: {{ $progreso }}%"></div>
                         </div>
                     </div>
+
+                    @if ($curso->nota_capacitador)
+                        <div class="mt-7 max-w-2xl rounded-3xl border border-white/70 bg-white/75 px-5 py-4 shadow-sm">
+                            <p class="text-xs font-black uppercase tracking-widest text-Alumco-blue/55">Nota del capacitador</p>
+                            <p class="mt-2 text-sm font-bold leading-relaxed text-Alumco-gray/75">{{ $curso->nota_capacitador }}</p>
+                        </div>
+                    @endif
                 </div>
 
                 <div class="order-1 lg:order-2">
@@ -153,7 +165,12 @@
                                 <p class="text-[10px] font-black uppercase tracking-wider text-Alumco-gray/40">Progreso</p>
                                 <p class="text-sm font-black text-Alumco-green-accessible">{{ $porcentajeSeccion }}%</p>
                             </div>
-                            <div class="relative h-12 w-12">
+                            <div class="relative h-12 w-12"
+                                 role="progressbar"
+                                 aria-valuenow="{{ $porcentajeSeccion }}"
+                                 aria-valuemin="0"
+                                 aria-valuemax="100"
+                                 aria-label="Progreso de la etapa: {{ $seccion->titulo }}">
                                 <svg class="h-full w-full" viewBox="0 0 36 36">
                                     <path class="text-gray-100" stroke-width="3" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
                                     <path class="text-Alumco-green-accessible transition-all duration-[400ms]" stroke-width="3" stroke-dasharray="{{ $porcentajeSeccion }}, 100" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
@@ -205,8 +222,22 @@
         @if ($curso->modulos->isEmpty())
             <div class="worker-card px-5 py-14 text-center">
                 <p class="text-lg font-bold text-Alumco-gray/70">Este curso aún no tiene módulos.</p>
+                <div class="mt-8">
+                    <a href="{{ route('cursos.index') }}" 
+                       wire:navigate
+                       class="worker-focus inline-flex items-center gap-2 rounded-xl bg-Alumco-blue px-6 py-3 text-sm font-black text-white shadow-lg shadow-Alumco-blue/15 transition-all hover:brightness-110">
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                        </svg>
+                        Volver a Mis Cursos
+                    </a>
+                </div>
             </div>
         @endif
+    </div>
+
+    <div class="mt-12">
+        <livewire:feedback.course-feedback-form :curso="$curso" :progreso="$progreso" />
     </div>
 </section>
 

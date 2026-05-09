@@ -7,7 +7,7 @@
 <div class="max-w-4xl mx-auto">
     <div class="mb-8">
         <h2 class="admin-page-title">Mi Perfil</h2>
-        <p class="admin-page-subtitle">Información de tu cuenta administrativa</p>
+        <p class="admin-page-subtitle">Información de tu cuenta en el panel</p>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -83,17 +83,25 @@
                 </div>
             </div>
             
-            <div class="mt-8 p-6 rounded-[24px] bg-amber-50 border border-amber-100 flex gap-4">
-                <svg class="w-6 h-6 text-amber-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86l-7.1 12.3A1 1 0 004.06 18h15.88a1 1 0 00.87-1.84l-7.1-12.3a1 1 0 00-1.74 0z"></path>
-                </svg>
-                <div>
-                    <p class="text-sm text-amber-800 font-bold mb-1">Cuenta Administrativa</p>
-                    <p class="text-xs text-amber-700 leading-relaxed">
-                        Tienes acceso a funciones críticas del sistema. Para cambiar tu contraseña o datos sensibles, contacta al soporte técnico o utiliza el flujo de recuperación de contraseña al iniciar sesión.
-                    </p>
+            @if($user->hasAdminAccess())
+                <div class="mt-8 p-6 rounded-[24px] bg-amber-50 border border-amber-100 flex gap-4">
+                    <svg class="w-6 h-6 text-amber-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86l-7.1 12.3A1 1 0 004.06 18h15.88a1 1 0 00.87-1.84l-7.1-12.3a1 1 0 00-1.74 0z"></path>
+                    </svg>
+                    <div>
+                        <p class="text-sm text-amber-800 font-bold mb-1">Cuenta Administrativa</p>
+                        <p class="text-xs text-amber-700 leading-relaxed">
+                            Tienes acceso a funciones críticas del sistema. Para cambiar tu contraseña o datos sensibles, contacta al soporte técnico o utiliza el flujo de recuperación de contraseña al iniciar sesión.
+                        </p>
+                    </div>
                 </div>
-            </div>
+            @endif
+
+            @if($user->isCapacitador())
+                <div class="mt-8">
+                    @livewire('profile.digital-signature')
+                </div>
+            @endif
 
             <div class="mt-8 admin-surface p-6">
                 <x-accessibility-preferences title="Preferencias de accesibilidad" description="Son las mismas opciones del botón Opciones" />

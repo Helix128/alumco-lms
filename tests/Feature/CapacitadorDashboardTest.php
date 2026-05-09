@@ -50,7 +50,10 @@ class CapacitadorDashboardTest extends TestCase
             ->assertSee('Curso programado')
             ->assertSee('Curso sin programar')
             ->assertSee('Programado')
-            ->assertSee('Sin Programar');
+            ->assertSee('Sin Programar')
+            ->assertSee('Iniciaron')
+            ->assertSee('Completaron')
+            ->assertSee('En riesgo');
 
         $this
             ->actingAs($capacitador)

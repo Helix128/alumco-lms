@@ -11,13 +11,16 @@ use App\Http\Controllers\Capacitador\ModuloController as CapacitadorModulo;
 use App\Http\Controllers\Capacitador\ParticipanteController as CapacitadorParticipante;
 use App\Http\Controllers\Capacitador\SeccionCursoController;
 use App\Http\Controllers\CursoController;
+use App\Http\Controllers\DevHealthController;
 use App\Http\Controllers\MisCertificadosController;
 use App\Http\Controllers\ModuloController;
 use App\Http\Controllers\PerfilController;
 use App\Http\Controllers\ReporteController;
+use App\Http\Controllers\SupportTicketAttachmentController;
 use App\Http\Controllers\VerificarCertificadoController;
 use App\Livewire\CalendarioUsuario;
 use App\Livewire\Capacitador\CalendarioCapacitaciones;
+use App\Models\SupportTicket;
 use App\Support\UserAreaRedirector;
 use Illuminate\Support\Facades\Route;
 
@@ -29,6 +32,8 @@ Route::middleware('throttle:30,1')->group(function () {
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:login');
+
+    Route::view('/soporte-publico', 'support.public-create')->name('support.public.create');
 
     // Password Reset
     Route::get('/forgot-password', [PasswordResetController::class, 'showForgotForm'])->name('password.request');
@@ -57,7 +62,23 @@ Route::middleware('auth')->group(function () {
 
         // Perfil del colaborador
         Route::get('/perfil', [PerfilController::class, 'show'])->name('perfil.index');
+
+        // Soporte técnico de usuario autenticado
+        Route::view('/soporte', 'support.index')->name('support.index');
+        Route::get('/soporte/{ticket}', function (SupportTicket $ticket) {
+            abort_unless(auth()->user()?->can('view', $ticket), 403);
+
+            return view('support.show', [
+                'ticket' => $ticket->load([
+                    'attachments',
+                    'messages' => fn ($query) => $query->with('author')->latest(),
+                ]),
+            ]);
+        })->name('support.show');
     });
+
+    Route::get('/soporte/adjuntos/{attachment}', SupportTicketAttachmentController::class)
+        ->name('support.attachments.download');
 
     // --- MODO VISTA PREVIA (Admin/Dev) ---
     Route::post('/admin/preview-mode/toggle', function () {
@@ -146,6 +167,17 @@ Route::middleware('auth')->group(function () {
         return view('admin.configuracion');
     })->name('dev.configuracion');
 
+    Route::get('/dev/soporte', function () {
+        if (! auth()->user()->isDesarrollador()) {
+            abort(403);
+        }
+
+        return view('dev.support');
+    })->name('dev.support.index');
+
+    Route::get('/dev/salud-lms', DevHealthController::class)
+        ->name('dev.salud-lms');
+
     // RUTAS DE ADMINISTRACIÓN
     Route::middleware(['admin'])->prefix('admin')->name('admin.')->group(function () {
         // Dashboard
@@ -154,6 +186,9 @@ Route::middleware('auth')->group(function () {
         // Reportes
         Route::get('/reportes', [ReporteController::class, 'index'])->name('reportes.index');
         Route::get('/reportes/exportar', [ReporteController::class, 'exportar'])->name('reportes.exportar');
+
+        // Acreditación institucional
+        Route::view('/acreditacion', 'admin.acreditacion.index')->name('acreditacion.index');
 
         // Usuarios
         Route::get('/usuarios', function () {
