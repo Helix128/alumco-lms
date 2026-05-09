@@ -24,7 +24,11 @@ class ReportFilterRequest extends FormRequest
             'edad_max' => 'nullable|integer|min:0|max:150',
             'fecha_inicio' => 'nullable|date',
             'fecha_fin' => 'nullable|date|after_or_equal:fecha_inicio',
+            'estado_capacitacion' => 'nullable|string|in:no_iniciado,en_progreso,certificado',
             'preset_id' => 'nullable|integer|exists:reporte_presets,id',
+            'columnas' => 'nullable|array|list',
+            'columnas.*' => 'string',
+            'nombres' => 'nullable|array',
         ];
     }
 }

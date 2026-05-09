@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Admin;
 
+use App\Http\Controllers\Admin\DashboardController;
 use App\Livewire\Admin\CertificadosPorMes;
 use App\Livewire\Admin\CursosPorSede;
 use App\Livewire\Admin\DistribucionEtaria;
@@ -11,10 +12,12 @@ use App\Models\Estamento;
 use App\Models\PlanificacionCurso;
 use App\Models\Sede;
 use App\Models\User;
+use App\Services\Analytics\LearningAnalyticsService;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Livewire\Livewire;
+use Mockery;
 use Tests\TestCase;
 use Tests\Traits\CreatesUsers;
 
@@ -42,7 +45,49 @@ class DashboardAnalyticsTest extends TestCase
             ->assertSee('Usuarios activos')
             ->assertSee('Cursos activos')
             ->assertSee('Certificados')
-            ->assertSee('Cumplimiento');
+            ->assertSee('Cumplimiento')
+            ->assertSee('Participantes asignados')
+            ->assertSee('Iniciaron')
+            ->assertSee('Completaron')
+            ->assertSee('En riesgo')
+            ->assertSee('Feedback promedio');
+    }
+
+    public function test_admin_dashboard_controller_provides_lms_stats_payload(): void
+    {
+        $controller = app(DashboardController::class);
+        $view = $controller->index();
+
+        $viewData = $view->getData();
+
+        $this->assertArrayHasKey('stats', $viewData);
+        $this->assertArrayHasKey('lmsStats', $viewData);
+        $this->assertArrayHasKey('total_participantes', $viewData['lmsStats']);
+        $this->assertArrayHasKey('iniciados', $viewData['lmsStats']);
+        $this->assertArrayHasKey('completados', $viewData['lmsStats']);
+        $this->assertArrayHasKey('en_riesgo', $viewData['lmsStats']);
+        $this->assertArrayHasKey('feedback_promedio', $viewData['lmsStats']);
+    }
+
+    public function test_admin_dashboard_uses_aggregate_lms_summary(): void
+    {
+        $admin = $this->createAdmin();
+        $analyticsService = Mockery::mock(LearningAnalyticsService::class);
+        $analyticsService->shouldReceive('summaryFromAggregates')
+            ->once()
+            ->andReturn([
+                'total_participantes' => 0,
+                'iniciados' => 0,
+                'completados' => 0,
+                'en_riesgo' => 0,
+                'feedback_promedio' => null,
+            ]);
+        $analyticsService->shouldReceive('summaryForCourses')->never();
+        $this->app->instance(LearningAnalyticsService::class, $analyticsService);
+
+        $this->actingAs($admin)
+            ->get(route('admin.dashboard.index'))
+            ->assertOk();
     }
 
     public function test_monthly_certificate_chart_renders_current_year_series(): void
@@ -128,12 +173,14 @@ class DashboardAnalyticsTest extends TestCase
             'estamento_id' => $estamento->id,
             'sede_id' => $sede->id,
             'fecha_nacimiento' => now()->subYears(22)->toDateString(),
+            'activo' => true,
         ])->assignRole('Trabajador');
 
         User::factory()->create([
             'estamento_id' => $estamento->id,
             'sede_id' => $sede->id,
             'fecha_nacimiento' => now()->subYears(31)->toDateString(),
+            'activo' => true,
         ])->assignRole('Trabajador');
 
         Livewire::actingAs($admin)

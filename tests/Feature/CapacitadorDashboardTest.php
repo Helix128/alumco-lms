@@ -5,9 +5,11 @@ namespace Tests\Feature;
 use App\Models\Curso;
 use App\Models\PlanificacionCurso;
 use App\Models\User;
+use App\Services\Analytics\LearningAnalyticsService;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use Mockery;
 use Tests\TestCase;
 
 class CapacitadorDashboardTest extends TestCase
@@ -50,7 +52,16 @@ class CapacitadorDashboardTest extends TestCase
             ->assertSee('Curso programado')
             ->assertSee('Curso sin programar')
             ->assertSee('Programado')
-            ->assertSee('Sin Programar');
+            ->assertSee('Sin Programar')
+            ->assertSee('Iniciaron')
+            ->assertSee('Completaron')
+            ->assertSee('En riesgo');
+
+        $cachedSummary = Cache::get("dashboard_summary_v2_capacitador_{$capacitador->id}");
+
+        $this->assertIsArray($cachedSummary);
+        $this->assertSame(2, $cachedSummary['stats']['cursos']);
+        $this->assertSame('Curso sin programar', $cachedSummary['ultimosCursos'][0]['titulo']);
 
         $this
             ->actingAs($capacitador)
@@ -83,6 +94,32 @@ class CapacitadorDashboardTest extends TestCase
             ->assertOk()
             ->assertSee('Curso visible')
             ->assertDontSee('Curso ajeno');
+    }
+
+    public function test_capacitador_dashboard_uses_course_id_aggregate_summary(): void
+    {
+        $capacitador = $this->createCapacitador();
+        $curso = Curso::factory()->create(['capacitador_id' => $capacitador->id]);
+        Cache::forget("dashboard_summary_v2_capacitador_{$capacitador->id}");
+
+        $analyticsService = Mockery::mock(LearningAnalyticsService::class);
+        $analyticsService->shouldReceive('summaryForCourseIds')
+            ->once()
+            ->with(Mockery::on(fn ($courseIds): bool => $courseIds->contains($curso->id)))
+            ->andReturn([
+                'total_participantes' => 0,
+                'iniciados' => 0,
+                'completados' => 0,
+                'en_riesgo' => 0,
+                'feedback_promedio' => null,
+            ]);
+        $analyticsService->shouldReceive('summaryForCourses')->never();
+        $this->app->instance(LearningAnalyticsService::class, $analyticsService);
+
+        $this
+            ->actingAs($capacitador)
+            ->get(route('capacitador.dashboard'))
+            ->assertOk();
     }
 
     private function createCapacitador(): User

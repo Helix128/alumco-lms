@@ -11,7 +11,7 @@ class EnsureCapacitadorAccess
     public function handle(Request $request, Closure $next): Response
     {
         if (! $request->user() || (! $request->user()->isCapacitador() && ! $request->user()->hasAdminAccess())) {
-            abort(403, 'No tienes permisos para acceder a esta área.');
+            abort(403, 'Esta sección requiere perfil de capacitador o administración.');
         }
 
         return $next($request);

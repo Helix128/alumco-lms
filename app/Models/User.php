@@ -76,6 +76,21 @@ class User extends Authenticatable
         return $this->hasMany(ProgresoModulo::class);
     }
 
+    public function feedbacks()
+    {
+        return $this->hasMany(Feedback::class);
+    }
+
+    public function supportTickets()
+    {
+        return $this->hasMany(SupportTicket::class, 'requester_user_id');
+    }
+
+    public function assignedSupportTickets()
+    {
+        return $this->hasMany(SupportTicket::class, 'assigned_to_id');
+    }
+
     public function isDesarrollador(): bool
     {
         return $this->hasRole('Desarrollador');

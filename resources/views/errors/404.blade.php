@@ -9,23 +9,26 @@
         La página que buscas no existe o fue movida.
     </p>
 
-    <div class="flex flex-col gap-3 sm:flex-row">
+    <div class="flex flex-col gap-4 sm:flex-row">
         @if (auth()->check())
             <a
                 href="{{ url()->previous() !== url()->current() ? url()->previous() : route('login') }}"
-                class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-Alumco-blue px-6 py-3 text-base font-bold text-white transition hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-Alumco-blue focus:ring-offset-2 sm:w-auto"
+                class="group relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-2xl bg-Alumco-blue px-8 py-4 text-lg font-bold text-white shadow-lg shadow-Alumco-blue/20 transition-all hover:shadow-xl active:scale-95 sm:w-auto"
             >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-5 w-5" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="h-5 w-5 transition-transform group-hover:-translate-x-1" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
                 </svg>
-                Volver
+                <span>Volver</span>
             </a>
         @else
             <a
                 href="{{ route('login') }}"
-                class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-Alumco-blue px-6 py-3 text-base font-bold text-white transition hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-Alumco-blue focus:ring-offset-2 sm:w-auto"
+                class="group relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-2xl bg-Alumco-blue px-8 py-4 text-lg font-bold text-white shadow-lg shadow-Alumco-blue/20 transition-all hover:shadow-xl active:scale-95 sm:w-auto"
             >
-                Ir al inicio de sesión
+                <span>Ir al inicio de sesión</span>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-5 w-5 transition-transform group-hover:translate-x-1">
+                    <path fill-rule="evenodd" d="M3 10a.75.75 0 0 1 .75-.75h10.638L10.23 5.29a.75.75 0 1 1 1.04-1.08l5.5 5.25a.75.75 0 0 1 0 1.08l-5.5 5.25a.75.75 0 1 1-1.04-1.08l4.158-3.96H3.75A.75.75 0 0 1 3 10Z" clip-rule="evenodd" />
+                </svg>
             </a>
         @endif
     </div>

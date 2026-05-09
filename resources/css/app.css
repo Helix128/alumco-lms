@@ -13,6 +13,9 @@
 @source '../**/*.js';
 
 @theme {
+    /* ═══════════════════════════════════════════════════════════════════════════ */
+    /*  Colores de Marca Alumco                                                    */
+    /* ═══════════════════════════════════════════════════════════════════════════ */
     --color-Alumco-blue: #205099;
     --color-Alumco-green: #AFDD83;
     --color-Alumco-coral: #FF6364;
@@ -20,15 +23,23 @@
     --color-Alumco-cyan: #A5B6F5;
     --color-Alumco-gray: #4A4A4A;
     --color-Alumco-cream: #FDF9F3;
+
+    /* ─── Variantes Accesibles (WCAG AAA/AA) ─────────────────────────────────── */
     --color-Alumco-green-vivid: #4CAF50;
     --color-Alumco-green-accessible: #2E7D32;
     --color-Alumco-gold-accessible: #7A5200;
     --color-Alumco-coral-accessible: #B3261E;
 
+    /* ═══════════════════════════════════════════════════════════════════════════ */
+    /*  Tipografía                                                                 */
+    /* ═══════════════════════════════════════════════════════════════════════════ */
     --font-sans: 'Ubuntu', sans-serif;
     --font-display: 'Sora', sans-serif;
     --font-logo: 'Nexa Black', sans-serif;
 
+    /* ═══════════════════════════════════════════════════════════════════════════ */
+    /*  Animaciones Globales                                                       */
+    /* ═══════════════════════════════════════════════════════════════════════════ */
     --animate-cloud: cloud 18s linear infinite;
     --animate-cloud-slow: cloud 28s linear infinite;
 
@@ -159,6 +170,39 @@ html {
     }
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════ */
+/*  Densidad de Componentes (Phase 4)                                          */
+/* ═══════════════════════════════════════════════════════════════════════════ */
+
+.ui-dense {
+    --density-radius-lg: 1rem;
+    --density-radius-md: 0.75rem;
+    --density-padding: 1.25rem;
+}
+
+.ui-dense .worker-card,
+.ui-dense .worker-soft-panel,
+.ui-dense .admin-surface,
+.ui-dense .chart-panel {
+    border-radius: var(--density-radius-lg);
+    padding: var(--density-padding);
+}
+
+.ui-dense .admin-page-title {
+    font-size: clamp(1.5rem, 1.8vw, 2.125rem);
+}
+
+.ui-dense .admin-action-button {
+    min-height: 2.5rem;
+    padding: 0.625rem 1rem;
+    border-radius: var(--density-radius-md);
+}
+
+.ui-dense .admin-toolbar-input {
+    min-height: 2.5rem;
+    border-radius: var(--density-radius-md);
+}
+
 /* Trabajador: layout accesible y consistente */
 .worker-shell {
     background:
@@ -177,7 +221,7 @@ html {
 
 .worker-card {
     border: 1px solid rgba(226, 232, 240, 0.86);
-    border-radius: 22px;
+    border-radius: 1.5rem;
     background: #fff;
     box-shadow: 0 18px 42px rgba(32, 80, 153, 0.08);
 }
@@ -196,7 +240,7 @@ html {
 }
 
 .worker-soft-panel {
-    border-radius: 26px;
+    border-radius: 1.5rem;
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(253, 249, 243, 0.86));
     box-shadow: 0 20px 46px rgba(32, 80, 153, 0.08);
 }
@@ -260,7 +304,7 @@ html {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    min-height: 2.5rem;
+    min-height: 2.75rem;
     padding: 0.625rem 1rem;
     border-radius: 9999px;
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -291,8 +335,8 @@ html {
 
 .admin-icon-button {
     display: inline-flex;
-    height: 2.5rem;
-    width: 2.5rem;
+    height: 2.75rem;
+    width: 2.75rem;
     align-items: center;
     justify-content: center;
     border-radius: 9999px;
@@ -307,8 +351,8 @@ html {
 
 .admin-avatar-button {
     display: inline-flex;
-    height: 2.5rem;
-    width: 2.5rem;
+    height: 2.75rem;
+    width: 2.75rem;
     align-items: center;
     justify-content: center;
     border-radius: 9999px;
@@ -362,14 +406,37 @@ html {
     color: var(--color-Alumco-cyan);
 }
 
+.admin-sidebar-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.admin-sidebar-group-title {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.625rem;
+    font-weight: 800;
+    letter-spacing: 0.15em;
+    line-height: 1;
+    text-transform: uppercase;
+    color: #fff;
+}
+
+.admin-sidebar-group-panel {
+    display: flex;
+    flex-direction: column;
+}
+
 .admin-sidebar-section-label {
     display: block;
     padding: 0 0.75rem;
     font-size: 0.625rem;
-    font-weight: 900;
-    letter-spacing: 0.2em;
+    font-weight: 800;
+    letter-spacing: 0.15em;
     text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.46);
+    color: rgba(255, 255, 255, 0.4);
 }
 
 .admin-page-title {
@@ -412,7 +479,7 @@ html {
     position: relative;
     overflow: hidden;
     border: 1px solid rgba(255, 255, 255, 0.84);
-    border-radius: 1.875rem;
+    border-radius: 1.5rem;
     background:
         linear-gradient(180deg, rgb(var(--chart-accent) / 0.07), transparent 30%),
         linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 255, 0.95));
@@ -583,7 +650,7 @@ html {
 }
 
 .admin-action-button--small {
-    min-height: 2.5rem;
+    min-height: 2.75rem;
     padding: 0.625rem 0.875rem;
     border-radius: 0.875rem;
     font-size: 0.75rem;
@@ -829,38 +896,20 @@ html {
 [data-contrast="high"] .admin-shell .badge-status,
 [data-contrast="high"] .admin-shell .badge-filter,
 [data-contrast="high"] .admin-shell .inline-flex,
-[data-contrast="high"] .admin-shell .inline-block {
+[data-contrast="high"] .admin-shell .inline-block,
+[data-contrast="high"] [role="alert"] {
     border-color: #111827;
+    background-color: #fff !important;
+    color: #111827 !important;
+}
+
+[data-contrast="high"] [role="alert"] svg {
+    color: #111827 !important;
 }
 
 [data-contrast="high"] .worker-focus:focus-visible {
     outline-color: #111827;
     box-shadow: 0 0 0 5px #f8b606;
-}
-
-[data-motion="reduced"] *,
-[data-motion="reduced"] *::before,
-[data-motion="reduced"] *::after {
-    animation-duration: 0.001ms !important;
-    animation-iteration-count: 1 !important;
-    scroll-behavior: auto !important;
-    transition-duration: 0.001ms !important;
-}
-
-[data-motion="reduced"] ::view-transition-old(root),
-[data-motion="reduced"] ::view-transition-new(root) {
-    animation: none !important;
-}
-
-@media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-        animation-duration: 0.001ms !important;
-        animation-iteration-count: 1 !important;
-        scroll-behavior: auto !important;
-        transition-duration: 0.001ms !important;
-    }
 }
 
 /* Tarjeta navegable (cursos, módulos) */

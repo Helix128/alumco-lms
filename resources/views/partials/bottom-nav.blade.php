@@ -2,13 +2,14 @@
     $navCalendario   = request()->routeIs('calendario-cursos.*');
     $navCursos       = request()->routeIs('cursos.*') || request()->routeIs('modulos.*');
     $navCertificados = request()->routeIs('mis-certificados.*');
+    $navSoporte      = request()->routeIs('support.*');
 @endphp
 
 <nav id="app-bottom-nav"
      class="fixed bottom-0 inset-x-0 z-50 h-16 border-t border-white/10 bg-Alumco-blue px-2
             lg:hidden">
 
-    <div class="grid h-full grid-cols-3 items-center gap-1.5">
+    <div class="grid h-full grid-cols-4 items-center gap-1">
         <a href="{{ route('cursos.index') }}"
            wire:navigate.hover
            class="worker-focus sidebar-cozy-btn group relative flex h-16 flex-col items-center justify-center gap-1 px-2 text-center
@@ -46,6 +47,19 @@
                 </svg>
             </span>
             <span class="text-[11px] font-black">Certificados</span>
+        </a>
+
+        <a href="{{ route('support.index') }}"
+           wire:navigate.hover
+           class="worker-focus sidebar-cozy-btn group relative flex h-16 flex-col items-center justify-center gap-1 px-2 text-center
+                  {{ $navSoporte ? 'sidebar-cozy-btn-active' : 'sidebar-cozy-btn-inactive' }}"
+           aria-current="{{ $navSoporte ? 'page' : 'false' }}">
+            <span class="flex h-6 w-6 items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-full h-full" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M18 10c0 3.866-3.582 7-8 7a8.84 8.84 0 0 1-4-.9L2 17l1.1-3.3A6.3 6.3 0 0 1 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7Z" />
+                </svg>
+            </span>
+            <span class="text-[11px] font-black">Soporte</span>
         </a>
     </div>
 </nav>

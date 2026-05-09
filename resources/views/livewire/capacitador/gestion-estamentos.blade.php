@@ -1,11 +1,6 @@
 <div>
     @if (session()->has('success'))
-        <div class="mb-6 px-4 py-3 bg-green-50 border border-green-100 text-green-700 rounded-xl text-sm font-medium flex items-center gap-3 animate-fade-in">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-            </svg>
-            {{ session('success') }}
-        </div>
+        <x-alert type="success" :message="session('success')" class="mb-6" />
     @endif
 
     <div class="space-y-8">

@@ -37,7 +37,14 @@
 </head>
 <body class="worker-shell font-sans text-Alumco-gray antialiased min-h-screen flex flex-col">
     @persist('worker-nav-progress')
-        <div class="nav-progress-bar" data-nav-progress data-active="false" aria-hidden="true"></div>
+        <div class="nav-progress-bar"
+             data-nav-progress
+             data-active="false"
+             role="progressbar"
+             aria-hidden="true"
+             aria-label="Cargando página..."
+             aria-valuemin="0"
+             aria-valuemax="100"></div>
     @endpersist
 
     {{-- Popup de Modo Vista Previa para Admins/Capacitadores --}}
@@ -91,7 +98,8 @@
                      path: window.location.pathname,
                      get isCursos() { return this.path.startsWith('/cursos') || this.path.startsWith('/modulos'); },
                      get isCalendario() { return this.path.startsWith('/calendario-cursos'); },
-                     get isCertificados() { return this.path.startsWith('/mis-certificados'); }
+                     get isCertificados() { return this.path.startsWith('/mis-certificados'); },
+                     get isSoporte() { return this.path.startsWith('/soporte'); }
                  }"
                  x-on:livewire:navigated.document="path = window.location.pathname"
                  class="hidden lg:flex items-center gap-1"
@@ -129,6 +137,17 @@
                     </svg>
                     Certificados
                 </a>
+
+                <a href="{{ route('support.index') }}"
+                   wire:navigate.hover
+                   :class="isSoporte ? 'bg-Alumco-blue/10 text-Alumco-blue' : 'text-Alumco-gray/60 hover:bg-Alumco-blue/5 hover:text-Alumco-gray'"
+                   class="worker-focus inline-flex items-center gap-2.5 rounded-2xl px-4 py-2.5 text-sm font-bold transition-all"
+                   :aria-current="isSoporte ? 'page' : 'false'">
+                    <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M18 10c0 3.866-3.582 7-8 7a8.84 8.84 0 0 1-4-.9L2 17l1.1-3.3A6.3 6.3 0 0 1 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7Z" />
+                    </svg>
+                    Soporte
+                </a>
             </nav>
 
             {{-- Lado derecho col 3: desktop (perfil+salir) y mobile (avatar) --}}
@@ -159,7 +178,7 @@
 
                 <a href="{{ route('perfil.index') }}"
                    wire:navigate.hover
-                   class="avatar-btn worker-focus lg:hidden w-10 h-10 rounded-full bg-Alumco-blue text-white font-display font-black text-sm flex items-center justify-center shadow-sm select-none"
+                   class="avatar-btn worker-focus lg:hidden w-11 h-11 rounded-full bg-Alumco-blue text-white font-display font-black text-sm flex items-center justify-center shadow-sm select-none"
                    aria-label="Ir a mi perfil">
                     {{ $initials }}
                 </a>
@@ -180,7 +199,7 @@
         @endif
 
         {{-- CONTENIDO PRINCIPAL --}}
-        <main class="pb-28 w-full max-w-2xl mx-auto lg:max-w-[90rem] lg:pb-12 lg:px-8">
+        <main class="pb-28 w-full max-w-2xl mx-auto lg:max-w-[90rem] lg:pb-12 lg:px-8 pb-[calc(7rem+env(safe-area-inset-bottom,0px))]">
             @php
                 $navigationPageKind = trim($__env->yieldContent('page_kind')) ?: 'default';
             @endphp
@@ -202,11 +221,16 @@
                 @yield('course-banner')
 
                 <div class="px-4 py-6 lg:pt-8 lg:px-0">
+                    <x-flash-messages class="mb-6" />
                     @yield('content')
                 </div>
             </div>
         </main>
     </div>
+
+    @auth
+        <livewire:feedback.platform-feedback-widget />
+    @endauth
 
     {{-- Modal Global de Alertas/Avisos --}}
     <div x-data="{ 
@@ -214,6 +238,23 @@
             title: '', 
             message: '',
             type: 'info',
+            get iconConfig() {
+                const configs = {
+                    success: {
+                        color: 'text-Alumco-green-accessible bg-Alumco-green-accessible/10',
+                        icon: `<svg class='h-8 w-8' fill='none' viewBox='0 0 24 24' stroke='currentColor' stroke-width='2.5'><path stroke-linecap='round' stroke-linejoin='round' d='M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z' /></svg>`
+                    },
+                    error: {
+                        color: 'text-Alumco-coral-accessible bg-Alumco-coral-accessible/10',
+                        icon: `<svg class='h-8 w-8' fill='none' viewBox='0 0 24 24' stroke='currentColor' stroke-width='2.5'><path stroke-linecap='round' stroke-linejoin='round' d='M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z' /></svg>`
+                    },
+                    info: {
+                        color: 'text-Alumco-blue bg-Alumco-blue/10',
+                        icon: `<svg class='h-8 w-8' fill='none' viewBox='0 0 24 24' stroke='currentColor' stroke-width='2.5'><path stroke-linecap='round' stroke-linejoin='round' d='M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0Zm-9-3.75h.008v.008H12V8.25Z' /></svg>`
+                    }
+                };
+                return configs[this.type] || configs.info;
+            },
             showAlert(data) {
                 this.title = data.title || 'Aviso';
                 this.message = data.message || '';
@@ -224,7 +265,10 @@
          x-on:show-alert.window="showAlert($event.detail)"
          x-cloak
          x-show="open"
-         class="fixed inset-0 z-[100] flex items-center justify-center p-4">
+         class="fixed inset-0 z-[100] flex items-center justify-center p-4"
+         :role="type === 'error' ? 'alert' : 'dialog'"
+         aria-modal="true"
+         aria-labelledby="global-alert-title">
         
         <div x-show="open" 
              x-transition:enter="ease-out duration-300"
@@ -246,17 +290,17 @@
              class="relative w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl">
             
             <div class="p-8 text-center">
-                <div class="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-Alumco-blue/10 text-Alumco-blue">
-                    <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
-                    </svg>
+                <div class="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl"
+                     :class="iconConfig.color"
+                     x-html="iconConfig.icon">
                 </div>
                 
-                <h3 class="font-display text-2xl font-black text-Alumco-gray" x-text="title"></h3>
+                <h3 id="global-alert-title" class="font-display text-2xl font-black text-Alumco-gray" x-text="title"></h3>
                 <p class="mt-3 text-lg font-bold text-Alumco-gray/60 leading-relaxed" x-text="message"></p>
                 
                 <button @click="open = false" 
-                        class="mt-8 w-full rounded-2xl bg-Alumco-blue py-4 text-sm font-black uppercase tracking-widest text-white shadow-lg shadow-Alumco-blue/20 transition-all hover:brightness-110 active:scale-[0.98]">
+                        class="mt-8 w-full rounded-2xl py-4 text-sm font-black uppercase tracking-widest text-white shadow-lg transition-all hover:brightness-110 active:scale-[0.98]"
+                        :class="type === 'error' ? 'bg-Alumco-coral-accessible shadow-Alumco-coral/20' : (type === 'success' ? 'bg-Alumco-green-accessible shadow-Alumco-green-accessible/20' : 'bg-Alumco-blue shadow-Alumco-blue/20')">
                     Entendido
                 </button>
             </div>

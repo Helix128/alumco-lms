@@ -41,11 +41,11 @@ class ReportsTest extends TestCase
             ->assertOk()
             ->assertSee('Reportes e Impacto')
             ->assertSee('Ver como Usuario')
-            ->assertSee('Dashboard')
-            ->assertSee('Cursos y Material')
-            ->assertSee('Reportes Académicos')
+            ->assertSee('Dashboard analítico')
+            ->assertSee('Cursos y material')
+            ->assertSee('Reportes académicos')
             ->assertSee('Directorio de usuarios')
-            ->assertSee('Cerrar Sesión');
+            ->assertSee('Cerrar sesión');
     }
 
     public function test_a_worker_cannot_access_reports_page()
