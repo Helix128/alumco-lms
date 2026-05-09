@@ -54,6 +54,42 @@ class ModuloController extends Controller
         return Storage::disk('public')->download($modulo->ruta_archivo, $nombreDownload);
     }
 
+    private function authorizeFileAccess(Curso $curso, Modulo $modulo): void
+    {
+        abort_if($modulo->curso_id !== $curso->id, 404);
+
+        $user = auth()->user();
+        abort_unless($user instanceof User, 403);
+
+        // 1. Admin / Dev tienen acceso total
+        if ($user->hasAdminAccess()) {
+            return;
+        }
+
+        // 2. El capacitador autor del curso tiene acceso
+        if ($curso->capacitador_id === $user->id) {
+            return;
+        }
+
+        // 3. Trabajadores con el curso asignado
+        if ($this->belongsToUserEstamento($curso, $user)) {
+            $this->authorizeCourseAccess($curso, $user);
+            $this->loadCourseModulesFor($curso, $user);
+
+            $moduloCargado = $curso->modulos->find($modulo->id);
+            abort_if(! $moduloCargado, 404);
+            abort_unless(
+                $moduloCargado->estaAccesiblePara($user, $curso),
+                403,
+                'Este módulo aún está bloqueado. Completa los módulos anteriores primero.'
+            );
+
+            return;
+        }
+
+        abort(403, 'No tienes permisos para acceder a este archivo.');
+    }
+
     public function show(Curso $curso, Modulo $modulo): View|RedirectResponse
     {
         $user = $this->authenticatedUser();
