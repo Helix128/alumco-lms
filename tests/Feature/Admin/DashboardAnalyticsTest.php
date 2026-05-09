@@ -11,10 +11,12 @@ use App\Models\Estamento;
 use App\Models\PlanificacionCurso;
 use App\Models\Sede;
 use App\Models\User;
+use App\Services\Analytics\LearningAnalyticsService;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Livewire\Livewire;
+use Mockery;
 use Tests\TestCase;
 use Tests\Traits\CreatesUsers;
 
@@ -43,6 +45,27 @@ class DashboardAnalyticsTest extends TestCase
             ->assertSee('Cursos activos')
             ->assertSee('Certificados')
             ->assertSee('Cumplimiento');
+    }
+
+    public function test_admin_dashboard_uses_aggregate_lms_summary(): void
+    {
+        $admin = $this->createAdmin();
+        $analyticsService = Mockery::mock(LearningAnalyticsService::class);
+        $analyticsService->shouldReceive('summaryFromAggregates')
+            ->once()
+            ->andReturn([
+                'total_participantes' => 0,
+                'iniciados' => 0,
+                'completados' => 0,
+                'en_riesgo' => 0,
+                'feedback_promedio' => null,
+            ]);
+        $analyticsService->shouldReceive('summaryForCourses')->never();
+        $this->app->instance(LearningAnalyticsService::class, $analyticsService);
+
+        $this->actingAs($admin)
+            ->get(route('admin.dashboard.index'))
+            ->assertOk();
     }
 
     public function test_monthly_certificate_chart_renders_current_year_series(): void

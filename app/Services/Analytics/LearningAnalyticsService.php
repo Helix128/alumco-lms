@@ -83,20 +83,7 @@ class LearningAnalyticsService
      */
     public function summaryFromAggregates(): array
     {
-        return $this->summaryForCourseIds(Curso::query()->pluck('id'));
-    }
-
-    /**
-     * @param  Collection<int, int>|array<int, int>  $courseIds
-     * @return array{total_participantes: int, iniciados: int, completados: int, en_riesgo: int, feedback_promedio: float|null}
-     */
-    public function summaryForCourseIds(Collection|array $courseIds): array
-    {
-        $courseIds = collect($courseIds)
-            ->map(fn (mixed $courseId): int => (int) $courseId)
-            ->filter(fn (int $courseId): bool => $courseId > 0)
-            ->unique()
-            ->values();
+        $courseIds = Curso::query()->pluck('id');
 
         if ($courseIds->isEmpty()) {
             return [
