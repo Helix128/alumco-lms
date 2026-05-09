@@ -13,6 +13,7 @@ class Curso extends Model
     protected $fillable = [
         'titulo',
         'descripcion',
+        'nota_capacitador',
         'imagen_portada',
         'color_promedio',
         'capacitador_id',
@@ -57,6 +58,11 @@ class Curso extends Model
     public function planificaciones(): HasMany
     {
         return $this->hasMany(PlanificacionCurso::class);
+    }
+
+    public function feedbacks(): HasMany
+    {
+        return $this->hasMany(Feedback::class);
     }
 
     // --- LÓGICA DE NEGOCIO ---

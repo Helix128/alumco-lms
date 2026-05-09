@@ -4,6 +4,14 @@
 @section('header_title', 'Dashboard')
 
 @section('content')
+    @php
+        $learningStats = array_merge([
+            'iniciados' => 0,
+            'completados' => 0,
+            'en_riesgo' => 0,
+        ], $learningStats ?? []);
+    @endphp
+
     <div class="mb-8">
         <h2 class="text-xl font-display font-bold text-Alumco-blue/70">Resumen de Actividad Académica</h2>
     </div>
@@ -44,6 +52,21 @@
                 <p class="text-3xl font-display font-black text-Alumco-yellow">{{ $stats['certificados'] }}</p>
                 <p class="text-[11px] font-display font-black text-gray-400 uppercase tracking-widest">Certificados</p>
             </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
+        <div class="bg-white p-5 rounded-2xl border border-gray-200">
+            <p class="text-[10px] font-display font-black text-gray-400 uppercase tracking-widest">Iniciaron</p>
+            <p class="mt-2 text-2xl font-display font-black text-Alumco-blue">{{ $learningStats['iniciados'] }}</p>
+        </div>
+        <div class="bg-white p-5 rounded-2xl border border-gray-200">
+            <p class="text-[10px] font-display font-black text-gray-400 uppercase tracking-widest">Completaron</p>
+            <p class="mt-2 text-2xl font-display font-black text-Alumco-green-accessible">{{ $learningStats['completados'] }}</p>
+        </div>
+        <div class="bg-white p-5 rounded-2xl border border-gray-200">
+            <p class="text-[10px] font-display font-black text-gray-400 uppercase tracking-widest">En riesgo</p>
+            <p class="mt-2 text-2xl font-display font-black text-Alumco-coral-accessible">{{ $learningStats['en_riesgo'] }}</p>
         </div>
     </div>
 

@@ -25,6 +25,6 @@ class NavigationPerceivedPerformanceTest extends TestCase
     {
         $html = view('partials.bottom-nav')->render();
 
-        $this->assertSame(3, substr_count($html, 'wire:navigate.hover'));
+        $this->assertSame(4, substr_count($html, 'wire:navigate.hover'));
     }
 }

@@ -36,13 +36,13 @@ class CourseAvailableNotification extends Notification implements ShouldQueue
         $url = route('cursos.show', $this->curso);
 
         return (new MailMessage)
-            ->subject('Curso disponible - '.$this->curso->titulo)
-            ->greeting('Hola, '.$notifiable->name.'.')
-            ->line('El curso "'.$this->curso->titulo.'" ya está disponible para realizarlo.')
-            ->line('Puedes ingresar desde ahora y avanzar en sus módulos.')
-            ->action('Realizar curso', $url)
-            ->line('El curso estará disponible hasta el '.$this->planificacion->fecha_fin->format('d/m/Y').'.')
-            ->salutation('Saludos, el equipo de Alumco');
+            ->subject('Curso disponible: '.$this->curso->titulo)
+            ->markdown('emails.notifications.course-available', [
+                'name' => $notifiable->name,
+                'courseTitle' => $this->curso->titulo,
+                'courseUrl' => $url,
+                'availableUntil' => $this->planificacion->fecha_fin->timezone('America/Santiago')->format('d/m/Y'),
+            ]);
     }
 
     /**

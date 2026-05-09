@@ -36,6 +36,8 @@ Route::middleware('guest')->group(function () {
         ->middleware('throttle:6,1')
         ->name('support.public.create');
 
+    Route::view('/soporte-publico', 'support.public-create')->name('support.public.create');
+
     // Password Reset
     Route::get('/forgot-password', [PasswordResetController::class, 'showForgotForm'])->name('password.request');
     Route::post('/forgot-password', [PasswordResetController::class, 'sendResetLink'])->name('password.email');
@@ -73,7 +75,23 @@ Route::middleware(['auth', 'throttle:120,1'])->group(function () {
 
         // Perfil del colaborador
         Route::get('/perfil', [PerfilController::class, 'show'])->name('perfil.index');
+
+        // Soporte técnico de usuario autenticado
+        Route::view('/soporte', 'support.index')->name('support.index');
+        Route::get('/soporte/{ticket}', function (SupportTicket $ticket) {
+            abort_unless(auth()->user()?->can('view', $ticket), 403);
+
+            return view('support.show', [
+                'ticket' => $ticket->load([
+                    'attachments',
+                    'messages' => fn ($query) => $query->with('author')->latest(),
+                ]),
+            ]);
+        })->name('support.show');
     });
+
+    Route::get('/soporte/adjuntos/{attachment}', SupportTicketAttachmentController::class)
+        ->name('support.attachments.download');
 
     // --- MODO VISTA PREVIA (Admin/Dev) ---
     Route::post('/admin/preview-mode/toggle', function () {
@@ -172,6 +190,17 @@ Route::middleware(['auth', 'throttle:120,1'])->group(function () {
         return app(PerfilController::class)->showAdmin();
     })->name('admin.perfil.index');
 
+    Route::get('/dev/soporte', function () {
+        if (! auth()->user()->isDesarrollador()) {
+            abort(403);
+        }
+
+        return view('dev.support');
+    })->name('dev.support.index');
+
+    Route::get('/dev/salud-lms', DevHealthController::class)
+        ->name('dev.salud-lms');
+
     // RUTAS DE ADMINISTRACIÓN
     Route::middleware(['admin'])->prefix('admin')->name('admin.')->group(function () {
         // Dashboard
@@ -180,6 +209,9 @@ Route::middleware(['auth', 'throttle:120,1'])->group(function () {
         // Reportes
         Route::get('/reportes', [ReporteController::class, 'index'])->name('reportes.index');
         Route::get('/reportes/exportar', [ReporteController::class, 'exportar'])->name('reportes.exportar');
+
+        // Acreditación institucional
+        Route::view('/acreditacion', 'admin.acreditacion.index')->name('acreditacion.index');
 
         // Usuarios
         Route::get('/usuarios', function () {

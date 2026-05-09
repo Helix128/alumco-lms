@@ -3,10 +3,22 @@
     'showLabel' => true,
 ])
 
-<div x-data="{ accessibilityOpen: false }"
-     x-on:keydown.escape.window="accessibilityOpen = false">
+<div x-data="{ 
+        accessibilityOpen: false,
+        open() {
+            this.accessibilityOpen = true;
+        },
+        close() {
+            this.accessibilityOpen = false;
+            this.$nextTick(() => {
+                this.$refs.trigger.focus();
+            });
+        }
+     }"
+     x-on:keydown.escape.window="close()">
     <button type="button"
-            x-on:click="accessibilityOpen = true"
+            x-ref="trigger"
+            x-on:click="open()"
             class="{{ $buttonClass }}"
             aria-haspopup="dialog"
             :aria-expanded="accessibilityOpen.toString()">
@@ -21,26 +33,27 @@
     <template x-teleport="body">
         <div x-cloak
              x-show="accessibilityOpen"
+             x-trap.noscroll="accessibilityOpen"
              class="fixed inset-0 z-[110] flex items-end justify-center p-4 sm:items-center"
              role="dialog"
              aria-modal="true"
-             aria-label="Opciones de accesibilidad">
+             aria-labelledby="accessibility-title">
             <div x-show="accessibilityOpen"
                  x-transition.opacity
                  class="absolute inset-0 bg-Alumco-gray/60 backdrop-blur-sm"
-                 x-on:click="accessibilityOpen = false"></div>
+                 x-on:click="close()"></div>
 
             <div x-show="accessibilityOpen"
                  x-transition
                  class="relative max-h-[88vh] w-full max-w-lg overflow-y-auto rounded-3xl bg-white p-5 shadow-2xl ring-1 ring-Alumco-blue/10 sm:p-6">
                 <div class="mb-4 flex items-start justify-between gap-4">
                     <div>
-                        <p class="font-display text-2xl font-black text-Alumco-gray">Opciones</p>
+                        <h2 id="accessibility-title" class="font-display text-2xl font-black text-Alumco-gray">Opciones</h2>
                         <p class="mt-1 text-sm font-semibold text-Alumco-gray/65">Tus preferencias se guardan en tu cuenta.</p>
                     </div>
                     <button type="button"
-                            x-on:click="accessibilityOpen = false"
-                            class="worker-focus flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-50 text-Alumco-gray hover:bg-gray-100"
+                            x-on:click="close()"
+                            class="worker-focus flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gray-50 text-Alumco-gray hover:bg-gray-100"
                             aria-label="Cerrar opciones">
                         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />

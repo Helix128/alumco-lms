@@ -1,9 +1,12 @@
 <div class="space-y-6">
-    <div>
-        <h2 class="font-display text-xl font-black text-Alumco-gray">{{ $title }}</h2>
-        @if ($description)
-            <p class="mt-1 text-sm font-semibold leading-relaxed text-Alumco-gray/65">{{ $description }}</p>
-        @endif
+    <div class="flex items-center justify-between gap-4">
+        <div>
+            <h2 class="font-display text-xl font-black text-Alumco-gray">{{ $title }}</h2>
+            @if ($description)
+                <p class="mt-1 text-sm font-semibold leading-relaxed text-Alumco-gray/65">{{ $description }}</p>
+            @endif
+        </div>
+        <x-saving-indicator on="accessibility-preferences-updated" />
     </div>
 
     <div class="space-y-3">

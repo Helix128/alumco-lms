@@ -28,7 +28,12 @@
                         <span class="text-sm font-bold text-Alumco-gray/60">Progreso del curso</span>
                         <span class="text-lg font-black text-Alumco-blue">{{ $progreso }}%</span>
                     </div>
-                    <div class="h-3 overflow-hidden rounded-full bg-Alumco-blue/10">
+                    <div class="h-3 overflow-hidden rounded-full bg-Alumco-blue/10"
+                         role="progressbar"
+                         aria-valuenow="{{ $progreso }}"
+                         aria-valuemin="0"
+                         aria-valuemax="100"
+                         aria-label="Progreso total del curso">
                         <div class="h-full rounded-full bg-Alumco-blue transition-all duration-300"
                              style="width: {{ $progreso }}%"></div>
                     </div>

@@ -5,6 +5,16 @@
 @section('header_title', 'Dashboard Analítico')
 
 @section('content')
+    @php
+        $lmsStats = array_merge([
+            'total_participantes' => 0,
+            'iniciados' => 0,
+            'completados' => 0,
+            'en_riesgo' => 0,
+            'feedback_promedio' => null,
+        ], $lmsStats ?? []);
+    @endphp
+
     <div class="space-y-8">
         <section class="relative overflow-hidden rounded-[2rem] border border-white/80 bg-gradient-to-br from-[#205099] via-[#214f98] to-[#16356a] px-7 py-8 text-white shadow-[0_28px_72px_rgba(32,80,153,0.24)] lg:px-10 lg:py-10">
             <div class="absolute -right-10 top-0 h-40 w-40 rounded-full bg-white/10 blur-3xl"></div>
@@ -96,6 +106,29 @@
                         </svg>
                     </div>
                 </div>
+            </article>
+        </section>
+
+        <section class="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-5">
+            <article class="admin-surface p-5">
+                <p class="text-[10px] font-black uppercase tracking-[0.24em] text-Alumco-blue/55">Participantes asignados</p>
+                <p class="mt-2 font-display text-2xl font-black text-Alumco-blue">{{ $lmsStats['total_participantes'] }}</p>
+            </article>
+            <article class="admin-surface p-5">
+                <p class="text-[10px] font-black uppercase tracking-[0.24em] text-Alumco-blue/55">Iniciaron</p>
+                <p class="mt-2 font-display text-2xl font-black text-Alumco-cyan">{{ $lmsStats['iniciados'] }}</p>
+            </article>
+            <article class="admin-surface p-5">
+                <p class="text-[10px] font-black uppercase tracking-[0.24em] text-Alumco-blue/55">Completaron</p>
+                <p class="mt-2 font-display text-2xl font-black text-Alumco-green-accessible">{{ $lmsStats['completados'] }}</p>
+            </article>
+            <article class="admin-surface p-5">
+                <p class="text-[10px] font-black uppercase tracking-[0.24em] text-Alumco-blue/55">En riesgo</p>
+                <p class="mt-2 font-display text-2xl font-black text-Alumco-coral-accessible">{{ $lmsStats['en_riesgo'] }}</p>
+            </article>
+            <article class="admin-surface p-5">
+                <p class="text-[10px] font-black uppercase tracking-[0.24em] text-Alumco-blue/55">Feedback promedio</p>
+                <p class="mt-2 font-display text-2xl font-black text-Alumco-yellow">{{ $lmsStats['feedback_promedio'] ?: '—' }}</p>
             </article>
         </section>
 

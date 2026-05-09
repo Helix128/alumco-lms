@@ -5,12 +5,13 @@ namespace App\Console\Commands;
 use App\Models\Curso;
 use App\Models\NotificationDelivery;
 use App\Models\PlanificacionCurso;
-use App\Models\User;
+use App\Models\SystemTaskRun;
 use App\Notifications\CourseAvailableNotification;
+use App\Services\Cursos\CourseNotificationAudience;
+use App\Services\Cursos\CourseProgressRepository;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
-use Illuminate\Database\Eloquent\Builder;
 
 #[Signature('lms:send-course-available-notifications')]
 #[Description('Envía correos a trabajadores cuando un curso queda disponible.')]
@@ -21,52 +22,55 @@ class SendCourseAvailableNotifications extends Command
     /**
      * Execute the console command.
      */
-    public function handle(): int
+    public function handle(CourseNotificationAudience $audience, CourseProgressRepository $courseProgressRepository): int
     {
+        $taskRun = SystemTaskRun::start('lms:send-course-available-notifications');
         $sent = 0;
-        $today = now(self::TIMEZONE)->startOfDay();
 
-        PlanificacionCurso::query()
-            ->with(['curso.estamentos', 'curso.modulos'])
-            ->where('fecha_inicio', '<=', $today)
-            ->where('fecha_fin', '>=', $today)
-            ->chunkById(50, function ($planificaciones) use (&$sent): void {
-                foreach ($planificaciones as $planificacion) {
-                    $sent += $this->notifyWorkersFor($planificacion);
-                }
-            });
+        try {
+            $today = now(self::TIMEZONE)->startOfDay();
 
-        $this->info("Notificaciones de cursos disponibles enviadas: {$sent}");
+            PlanificacionCurso::query()
+                ->with(['curso.estamentos', 'curso.modulos'])
+                ->where('fecha_inicio', '<=', $today)
+                ->where('fecha_fin', '>=', $today)
+                ->chunkById(50, function ($planificaciones) use ($audience, $courseProgressRepository, &$sent): void {
+                    foreach ($planificaciones as $planificacion) {
+                        $sent += $this->notifyWorkersFor($planificacion, $audience, $courseProgressRepository);
+                    }
+                });
 
-        return self::SUCCESS;
+            $taskRun->markSuccess($sent, "Notificaciones de cursos disponibles enviadas: {$sent}");
+            $this->info("Notificaciones de cursos disponibles enviadas: {$sent}");
+
+            return self::SUCCESS;
+        } catch (\Throwable $exception) {
+            $taskRun->markFailed($exception);
+
+            throw $exception;
+        }
     }
 
-    private function notifyWorkersFor(PlanificacionCurso $planificacion): int
-    {
+    private function notifyWorkersFor(
+        PlanificacionCurso $planificacion,
+        CourseNotificationAudience $audience,
+        CourseProgressRepository $courseProgressRepository
+    ): int {
         $curso = $planificacion->curso;
 
         if (! $curso instanceof Curso) {
             return 0;
         }
 
-        $estamentoIds = $curso->estamentos->pluck('id');
-
-        if ($estamentoIds->isEmpty()) {
-            return 0;
-        }
-
         $sent = 0;
 
-        User::query()
-            ->role('Trabajador')
-            ->where('activo', true)
-            ->whereIn('estamento_id', $estamentoIds)
-            ->when($planificacion->sede_id, function (Builder $query) use ($planificacion): void {
-                $query->where('sede_id', $planificacion->sede_id);
-            })
-            ->chunkById(100, function ($workers) use ($curso, $planificacion, &$sent): void {
+        $audience
+            ->workersForPlanning($planificacion)
+            ->chunkById(100, function ($workers) use ($curso, $planificacion, $courseProgressRepository, &$sent): void {
+                $progressByWorker = $courseProgressRepository->percentagesForWorkers($curso, $workers->pluck('id'));
+
                 foreach ($workers as $worker) {
-                    if ($this->progressFor($worker, $curso) === 100) {
+                    if (($progressByWorker[$worker->id] ?? 0) === 100) {
                         continue;
                     }
 
@@ -88,16 +92,5 @@ class SendCourseAvailableNotifications extends Command
             });
 
         return $sent;
-    }
-
-    private function progressFor(User $user, Curso $curso): int
-    {
-        $curso->unsetRelation('modulos');
-        $curso->load(['modulos' => function ($query) use ($user): void {
-            $query->orderBy('orden')
-                ->with(['progresos' => fn ($query) => $query->where('user_id', $user->id)]);
-        }]);
-
-        return $curso->progresoParaUsuario($user);
     }
 }

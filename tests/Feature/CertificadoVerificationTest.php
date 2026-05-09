@@ -47,7 +47,7 @@ class CertificadoVerificationTest extends TestCase
         $response->assertSeeText('Prevención de Riesgos');
         $response->assertSeeText('15/04/2026');
         $response->assertSeeText($certificado->codigo_verificacion);
-        $response->assertSeeText('Buscar otro certificado');
+        $response->assertSeeText('Verificar otro documento');
         $response->assertDontSeeText('maria@example.test');
         $response->assertDontSeeText('12.345.678-5');
     }

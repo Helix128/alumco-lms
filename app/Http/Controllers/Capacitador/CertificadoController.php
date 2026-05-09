@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Capacitador;
 
+use App\Exceptions\CertificateNotEligible;
 use App\Http\Controllers\Controller;
 use App\Models\Certificado;
 use App\Models\Curso;
@@ -20,8 +21,12 @@ class CertificadoController extends Controller
             $service->generarParaUsuario($user, $curso);
 
             return redirect()->back()->with('success', "Certificado generado para {$user->name}.");
-        } catch (\Throwable $e) {
-            return redirect()->back()->with('error', 'No se pudo generar el certificado: '.$e->getMessage());
+        } catch (CertificateNotEligible $exception) {
+            return redirect()->back()->with('error', $exception->publicMessage());
+        } catch (\Throwable $exception) {
+            report($exception);
+
+            return redirect()->back()->with('error', 'No se pudo generar el certificado. Revisa el avance del trabajador y vuelve a intentarlo.');
         }
     }
 

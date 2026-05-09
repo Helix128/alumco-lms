@@ -35,32 +35,32 @@ class AverageCourseCoverColor
         }
 
         try {
-            $info = getimagesize($path);
-            if (! $info) {
+            $imageMetadata = getimagesize($path);
+            if (! $imageMetadata) {
                 return null;
             }
 
-            $type = $info[2];
-            $img = match ($type) {
+            $imageType = $imageMetadata[2];
+            $sourceImage = match ($imageType) {
                 IMAGETYPE_JPEG => imagecreatefromjpeg($path),
                 IMAGETYPE_PNG => imagecreatefrompng($path),
                 IMAGETYPE_WEBP => imagecreatefromwebp($path),
                 default => null
             };
 
-            if (! $img) {
+            if (! $sourceImage) {
                 return null;
             }
 
-            $sampleW = self::SAMPLE_SIZE;
-            $sampleH = self::SAMPLE_SIZE;
-            $tmp = imagecreatetruecolor($sampleW, $sampleH);
-            imagecopyresampled($tmp, $img, 0, 0, 0, 0, $sampleW, $sampleH, imagesx($img), imagesy($img));
+            $sampleWidth = self::SAMPLE_SIZE;
+            $sampleHeight = self::SAMPLE_SIZE;
+            $sampleImage = imagecreatetruecolor($sampleWidth, $sampleHeight);
+            imagecopyresampled($sampleImage, $sourceImage, 0, 0, 0, 0, $sampleWidth, $sampleHeight, imagesx($sourceImage), imagesy($sourceImage));
 
             $buckets = [];
-            for ($x = 0; $x < $sampleW; $x++) {
-                for ($y = 0; $y < $sampleH; $y++) {
-                    $rgb = imagecolorat($tmp, $x, $y);
+            for ($x = 0; $x < $sampleWidth; $x++) {
+                for ($y = 0; $y < $sampleHeight; $y++) {
+                    $rgb = imagecolorat($sampleImage, $x, $y);
                     $r = ($rgb >> 16) & 0xFF;
                     $g = ($rgb >> 8) & 0xFF;
                     $b = $rgb & 0xFF;
@@ -100,8 +100,10 @@ class AverageCourseCoverColor
             [$r, $g, $b] = $this->hslToRgb($h, $s, $l);
 
             return sprintf('#%02x%02x%02x', $r, $g, $b);
-        } catch (\Exception) {
-            return null;
+        } catch (\Throwable $exception) {
+            report($exception);
+
+            return self::FALLBACK_COLOR;
         }
     }
 

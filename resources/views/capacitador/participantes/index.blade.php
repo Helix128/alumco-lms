@@ -68,7 +68,12 @@
                             </td>
                             <td class="px-6 py-5">
                                 <div class="flex items-center gap-3">
-                                    <div class="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden min-w-[80px]">
+                                    <div class="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden min-w-[80px]"
+                                         role="progressbar"
+                                         aria-valuenow="{{ $usuario->progreso_porcentaje }}"
+                                         aria-valuemin="0"
+                                         aria-valuemax="100"
+                                         aria-label="Progreso del participante {{ $usuario->name }}">
                                         <div class="h-full {{ $usuario->progreso_porcentaje >= 100 ? 'bg-Alumco-green-vivid' : 'bg-Alumco-blue' }} rounded-full transition-all duration-500" 
                                              style="width: {{ $usuario->progreso_porcentaje }}%"></div>
                                     </div>

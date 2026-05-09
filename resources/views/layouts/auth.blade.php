@@ -26,8 +26,8 @@
         }
     </style>
 </head>
-<body class="auth-shell bg-Alumco-cream font-sans text-Alumco-gray antialiased">
-    <div class="relative flex h-screen w-full flex-col overflow-hidden isolate">
+<body class="auth-shell font-sans text-Alumco-gray antialiased">
+    <div class="relative flex min-h-screen w-full flex-col overflow-x-hidden isolate bg-gradient-to-br from-Alumco-cream via-Alumco-cream to-Alumco-cyan/20">
         <!-- Nubes Superiores -->
         <div class="pointer-events-none absolute top-0 -right-10 z-0 select-none">
             <img src="{{ asset('images/undraw/clouds_top.svg') }}" alt="" class="animate-cloud h-auto w-[35vw] opacity-90 lg:w-[45vw]">
@@ -38,19 +38,21 @@
             <img src="{{ asset('images/undraw/clouds_bottom.svg') }}" alt="" class="animate-cloud-slow h-auto w-[30vw] opacity-80 lg:w-[35vw]">
         </div>
 
-        <main class="relative z-10 mx-auto flex h-full w-full max-w-[1440px] flex-1 items-center px-8 lg:px-20">
-            <div class="grid w-full items-center gap-10 lg:grid-cols-[1.3fr_0.7fr]">
+        <main class="relative z-10 mx-auto flex h-full w-full max-w-[1440px] flex-1 items-center px-6 lg:px-20">
+            <div class="grid w-full items-center gap-10 py-12 lg:grid-cols-[1.3fr_0.7fr] lg:py-0">
 
-                <section class="mx-auto flex w-full max-w-3xl flex-col justify-center lg:mx-0">
-                    <div class="mb-6 flex justify-start lg:mb-8">
+                <section class="mx-auto flex w-full max-w-2xl flex-col justify-center lg:mx-0">
+                    <div class="mb-8 flex justify-center lg:mb-10 lg:justify-start">
                         <img
                             src="{{ asset('images/logo/alumco-full.svg') }}"
                             alt="Logo Alumco"
-                            class="h-auto w-[16rem] sm:w-[18rem] lg:w-[22rem]"
+                            class="h-auto w-[14rem] sm:w-[16rem] lg:w-[20rem]"
                         >
                     </div>
 
-                    @yield('content')
+                    <div class="animate-page-entry">
+                        @yield('content')
+                    </div>
                 </section>
 
                 <!-- Ilustración -->

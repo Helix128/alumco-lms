@@ -14,6 +14,10 @@ class NotificationDelivery extends Model
 
     public const CourseDeadlineReminder = 'course_deadline_reminder';
 
+    public const CoursePlanningScheduled = 'course_planning_scheduled';
+
+    public const CoursePlanningUpdated = 'course_planning_updated';
+
     protected $fillable = [
         'user_id',
         'curso_id',
@@ -65,6 +69,16 @@ class NotificationDelivery extends Model
     public static function deadlineReminderKey(User $user, Curso $curso, PlanificacionCurso $planificacion): string
     {
         return "deadline_2_days:{$user->id}:{$curso->id}:{$planificacion->id}";
+    }
+
+    public static function planningScheduledKey(User $user, Curso $curso, PlanificacionCurso $planificacion): string
+    {
+        return "planning_scheduled:{$user->id}:{$curso->id}:{$planificacion->id}:{$planificacion->fecha_inicio->format('Y-m-d')}:{$planificacion->fecha_fin->format('Y-m-d')}";
+    }
+
+    public static function planningUpdatedKey(User $user, Curso $curso, PlanificacionCurso $planificacion): string
+    {
+        return "planning_updated:{$user->id}:{$curso->id}:{$planificacion->id}:{$planificacion->fecha_inicio->format('Y-m-d')}:{$planificacion->fecha_fin->format('Y-m-d')}";
     }
 
     public function user(): BelongsTo

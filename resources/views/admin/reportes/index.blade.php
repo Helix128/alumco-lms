@@ -56,6 +56,17 @@
                 <input type="hidden" name="edad_max" id="edad-max-input" value="{{ request('edad_max', $ageBounds['max']) }}">
             </div>
 
+            <div class="lg:col-span-3 space-y-2">
+                <label class="admin-page-eyebrow">Estado capacitación</label>
+                <select name="estado_capacitacion" class="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-bold text-Alumco-gray outline-none focus:border-Alumco-blue">
+                    <option value="">Todos</option>
+                    <option value="no_iniciado" @selected($estadoSeleccionado === 'no_iniciado')>No iniciado</option>
+                    <option value="en_progreso" @selected($estadoSeleccionado === 'en_progreso')>En progreso</option>
+                    <option value="certificado" @selected($estadoSeleccionado === 'certificado')>Certificado</option>
+                </select>
+                <p class="text-[10px] font-bold text-Alumco-gray/40">Se aplica al seleccionar un solo curso.</p>
+            </div>
+
             <!-- Footer del Formulario -->
             <div class="lg:col-span-12 flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-gray-100">
                 <div class="flex items-center gap-3">
@@ -69,6 +80,7 @@
                             $activeFiltersCount++; 
                         }
                         if (request()->filled('fecha_inicio') || request()->filled('fecha_fin')) { $activeFiltersCount++; }
+                        if (request()->filled('estado_capacitacion')) { $activeFiltersCount++; }
                     @endphp
                     <span class="badge-filter">{{ $activeFiltersCount }} filtros aplicados</span>
                     @if($activeFiltersCount > 0)
@@ -117,6 +129,8 @@
                     <th class="px-6 py-5 text-[11px] font-display font-bold uppercase tracking-widest text-gray-400 border-b border-gray-100">Sede</th>
                     <th class="px-6 py-5 text-[11px] font-display font-bold uppercase tracking-widest text-gray-400 border-b border-gray-100">Cursos</th>
                     @if($cursoSeleccionado)
+                        <th class="px-6 py-5 text-[11px] font-display font-bold uppercase tracking-widest text-gray-400 border-b border-gray-100 text-right">Progreso</th>
+                        <th class="px-6 py-5 text-[11px] font-display font-bold uppercase tracking-widest text-gray-400 border-b border-gray-100 text-right">Estado</th>
                         <th class="px-6 py-5 text-[11px] font-display font-bold uppercase tracking-widest text-gray-400 border-b border-gray-100 text-right">Aprobación</th>
                     @endif
                 </tr>
@@ -201,9 +215,24 @@
                         @endif
                     </td>
                     @if($cursoSeleccionado)
+                        @php
+                            $progresoCurso = $cursoSeleccionado->modulos_count > 0
+                                ? (int) round((($user->modulos_completados_count ?? 0) / $cursoSeleccionado->modulos_count) * 100)
+                                : 0;
+                            $certificadoCurso = $user->certificados->where('curso_id', $cursoSeleccionado->id)->first();
+                            $estadoCurso = $certificadoCurso ? 'Certificado' : ($progresoCurso === 0 ? 'No iniciado' : ($progresoCurso >= 100 ? 'Completado' : 'En progreso'));
+                        @endphp
+                        <td class="px-8 py-5 text-right">
+                            <span class="text-sm font-black text-Alumco-blue">{{ $progresoCurso }}%</span>
+                        </td>
+                        <td class="px-8 py-5 text-right">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-lg text-xs font-bold bg-Alumco-blue/5 text-Alumco-blue border border-Alumco-blue/10">
+                                {{ $estadoCurso }}
+                            </span>
+                        </td>
                         <td class="px-8 py-5 text-right">
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-lg text-xs font-bold bg-green-50 text-green-700 border border-green-100">
-                                {{ $user->certificados->where('curso_id', $cursoSeleccionado->id)->first()?->fecha_emision?->format('d/m/Y') ?? '—' }}
+                                {{ $certificadoCurso?->fecha_emision?->format('d/m/Y') ?? '—' }}
                             </span>
                         </td>
                     @endif
@@ -274,9 +303,12 @@
                 email:     { label: 'Correo', data: ['j.perez@alumco.cl', 'm.ignacia@alumco.cl', 'c.ruiz@alumco.cl'] },
                 sede:      { label: 'Sede', data: ['Sede Central', 'Sede Norte', 'Sede Sur'] },
                 estamento: { label: 'Estamento', data: ['Auxiliares', 'Enfermería', 'Directivos'] },
-                cursos:    { label: 'Cursos Aprobados', data: ['Curso A (20/04)', 'Curso B (15/04)', '—'] }
+                cursos:    { label: 'Cursos Aprobados', data: ['Curso A (20/04)', 'Curso B (15/04)', '—'] },
+                estado_capacitacion: { label: 'Estado capacitación', data: ['En progreso', 'Certificado', 'No iniciado'] },
+                progreso:  { label: 'Progreso (%)', data: ['45', '100', '0'] },
+                feedback:  { label: 'Feedback curso', data: ['5/5 utilidad', 'Sin feedback', '4/5 claridad'] }
             },
-            selectedKeys: ['rut', 'nombre', 'sexo', 'edad', 'email', 'sede', 'estamento', 'cursos'],
+            selectedKeys: ['rut', 'nombre', 'sexo', 'edad', 'email', 'sede', 'estamento', 'cursos', 'estado_capacitacion', 'progreso', 'feedback'],
             
             toggleCol(key) {
                 if (this.selectedKeys.includes(key)) {
@@ -292,7 +324,7 @@
             },
 
             resetToDefault() {
-                this.selectedKeys = ['rut', 'nombre', 'sexo', 'edad', 'email', 'sede', 'estamento', 'cursos'];
+                this.selectedKeys = ['rut', 'nombre', 'sexo', 'edad', 'email', 'sede', 'estamento', 'cursos', 'estado_capacitacion', 'progreso', 'feedback'];
             }
          }"
          @open-export-modal.window="resetToDefault()">

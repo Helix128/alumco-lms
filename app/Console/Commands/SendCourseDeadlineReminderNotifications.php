@@ -5,12 +5,13 @@ namespace App\Console\Commands;
 use App\Models\Curso;
 use App\Models\NotificationDelivery;
 use App\Models\PlanificacionCurso;
-use App\Models\User;
+use App\Models\SystemTaskRun;
 use App\Notifications\CourseDeadlineReminderNotification;
+use App\Services\Cursos\CourseNotificationAudience;
+use App\Services\Cursos\CourseProgressRepository;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
-use Illuminate\Database\Eloquent\Builder;
 
 #[Signature('lms:send-course-deadline-reminders')]
 #[Description('Envía recordatorios de cursos pendientes dos días antes del vencimiento.')]
@@ -21,51 +22,54 @@ class SendCourseDeadlineReminderNotifications extends Command
     /**
      * Execute the console command.
      */
-    public function handle(): int
+    public function handle(CourseNotificationAudience $audience, CourseProgressRepository $courseProgressRepository): int
     {
+        $taskRun = SystemTaskRun::start('lms:send-course-deadline-reminders');
         $sent = 0;
-        $deadline = now(self::TIMEZONE)->startOfDay()->addDays(2);
 
-        PlanificacionCurso::query()
-            ->with(['curso.estamentos'])
-            ->whereDate('fecha_fin', $deadline)
-            ->chunkById(50, function ($planificaciones) use (&$sent): void {
-                foreach ($planificaciones as $planificacion) {
-                    $sent += $this->notifyWorkersFor($planificacion);
-                }
-            });
+        try {
+            $deadline = now(self::TIMEZONE)->startOfDay()->addDays(2);
 
-        $this->info("Recordatorios de vencimiento enviados: {$sent}");
+            PlanificacionCurso::query()
+                ->with(['curso.estamentos'])
+                ->whereDate('fecha_fin', $deadline)
+                ->chunkById(50, function ($planificaciones) use ($audience, $courseProgressRepository, &$sent): void {
+                    foreach ($planificaciones as $planificacion) {
+                        $sent += $this->notifyWorkersFor($planificacion, $audience, $courseProgressRepository);
+                    }
+                });
 
-        return self::SUCCESS;
+            $taskRun->markSuccess($sent, "Recordatorios de vencimiento enviados: {$sent}");
+            $this->info("Recordatorios de vencimiento enviados: {$sent}");
+
+            return self::SUCCESS;
+        } catch (\Throwable $exception) {
+            $taskRun->markFailed($exception);
+
+            throw $exception;
+        }
     }
 
-    private function notifyWorkersFor(PlanificacionCurso $planificacion): int
-    {
+    private function notifyWorkersFor(
+        PlanificacionCurso $planificacion,
+        CourseNotificationAudience $audience,
+        CourseProgressRepository $courseProgressRepository
+    ): int {
         $curso = $planificacion->curso;
 
         if (! $curso instanceof Curso) {
             return 0;
         }
 
-        $estamentoIds = $curso->estamentos->pluck('id');
-
-        if ($estamentoIds->isEmpty()) {
-            return 0;
-        }
-
         $sent = 0;
 
-        User::query()
-            ->role('Trabajador')
-            ->where('activo', true)
-            ->whereIn('estamento_id', $estamentoIds)
-            ->when($planificacion->sede_id, function (Builder $query) use ($planificacion): void {
-                $query->where('sede_id', $planificacion->sede_id);
-            })
-            ->chunkById(100, function ($workers) use ($curso, $planificacion, &$sent): void {
+        $audience
+            ->workersForPlanning($planificacion)
+            ->chunkById(100, function ($workers) use ($curso, $planificacion, $courseProgressRepository, &$sent): void {
+                $progressByWorker = $courseProgressRepository->percentagesForWorkers($curso, $workers->pluck('id'));
+
                 foreach ($workers as $worker) {
-                    $progreso = $this->progressFor($worker, $curso);
+                    $progreso = $progressByWorker[$worker->id] ?? 0;
 
                     if ($progreso >= 50) {
                         continue;
@@ -89,16 +93,5 @@ class SendCourseDeadlineReminderNotifications extends Command
             });
 
         return $sent;
-    }
-
-    private function progressFor(User $user, Curso $curso): int
-    {
-        $curso->unsetRelation('modulos');
-        $curso->load(['modulos' => function ($query) use ($user): void {
-            $query->orderBy('orden')
-                ->with(['progresos' => fn ($query) => $query->where('user_id', $user->id)]);
-        }]);
-
-        return $curso->progresoParaUsuario($user);
     }
 }

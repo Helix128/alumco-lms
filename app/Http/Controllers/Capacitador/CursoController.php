@@ -8,6 +8,7 @@ use App\Http\Requests\Capacitador\StoreCursoRequest;
 use App\Http\Requests\Capacitador\UpdateCursoRequest;
 use App\Models\Curso;
 use App\Models\Evaluacion;
+use App\Services\Analytics\LearningAnalyticsService;
 use App\Services\Cursos\AverageCourseCoverColor;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -42,25 +43,25 @@ class CursoController extends Controller
 
     public function store(StoreCursoRequest $request): RedirectResponse
     {
-        $data = $request->validated();
-        $data['capacitador_id'] = auth()->id();
+        $courseAttributes = $request->validated();
+        $courseAttributes['capacitador_id'] = auth()->id();
 
         if ($request->hasFile('imagen_portada')) {
-            $data['imagen_portada'] = $request->file('imagen_portada')
+            $courseAttributes['imagen_portada'] = $request->file('imagen_portada')
                 ->store('portadas', 'public');
         }
 
         if ($request->boolean('auto_color')) {
-            $data['color_promedio'] = $this->averageCourseCoverColor->fromPublicPath($data['imagen_portada'] ?? null);
+            $courseAttributes['color_promedio'] = $this->averageCourseCoverColor->fromPublicPath($courseAttributes['imagen_portada'] ?? null);
         }
 
-        $curso = Curso::create($data);
+        $curso = Curso::create($courseAttributes);
 
         return redirect()->route('capacitador.cursos.show', $curso)
             ->with('success', 'Curso creado correctamente.');
     }
 
-    public function show(Curso $curso): View
+    public function show(Curso $curso, LearningAnalyticsService $analyticsService): View
     {
         $this->authorize('manage', $curso);
 
@@ -81,7 +82,9 @@ class CursoController extends Controller
             }
         }
 
-        return view('capacitador.cursos.show', compact('curso'));
+        $learningSummary = $analyticsService->courseSummary($curso);
+
+        return view('capacitador.cursos.show', compact('curso', 'learningSummary'));
     }
 
     public function edit(Curso $curso): View
@@ -93,23 +96,23 @@ class CursoController extends Controller
 
     public function update(UpdateCursoRequest $request, Curso $curso): RedirectResponse
     {
-        $data = $request->validated();
+        $courseAttributes = $request->validated();
         $imagenPortadaPath = $curso->imagen_portada;
 
         if ($request->hasFile('imagen_portada')) {
             if ($curso->imagen_portada) {
                 Storage::disk('public')->delete($curso->imagen_portada);
             }
-            $data['imagen_portada'] = $request->file('imagen_portada')
+            $courseAttributes['imagen_portada'] = $request->file('imagen_portada')
                 ->store('portadas', 'public');
-            $imagenPortadaPath = $data['imagen_portada'];
+            $imagenPortadaPath = $courseAttributes['imagen_portada'];
         }
 
         if ($request->boolean('auto_color')) {
-            $data['color_promedio'] = $this->averageCourseCoverColor->fromPublicPath($imagenPortadaPath);
+            $courseAttributes['color_promedio'] = $this->averageCourseCoverColor->fromPublicPath($imagenPortadaPath);
         }
 
-        $curso->update($data);
+        $curso->update($courseAttributes);
 
         return redirect()->route('capacitador.cursos.show', $curso)
             ->with('success', 'Curso actualizado correctamente.');

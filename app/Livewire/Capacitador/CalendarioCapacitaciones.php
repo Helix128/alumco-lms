@@ -8,6 +8,7 @@ use App\Models\Sede;
 use App\Services\Calendario\CalendarCacheKeyService;
 use App\Services\Calendario\CalendarGridBuilder;
 use App\Services\Calendario\CalendarPlanningRepository;
+use App\Services\Cursos\CoursePlanningNotifier;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Locked;
@@ -347,13 +348,14 @@ class CalendarioCapacitaciones extends Component
             'sedeIdPlan' => 'nullable|integer|exists:sedes,id',
         ]);
 
-        PlanificacionCurso::create([
+        $planificacion = PlanificacionCurso::create([
             'curso_id' => $this->cursoId,
             'sede_id' => $this->sedeIdPlan,
             'fecha_inicio' => $this->fechaInicioPlan,
             'fecha_fin' => $this->fechaFinPlan,
             'notas' => null,
         ]);
+        app(CoursePlanningNotifier::class)->notifyScheduled($planificacion);
 
         $this->invalidateCalendarCaches();
         $this->cerrarModal();
@@ -387,13 +389,14 @@ class CalendarioCapacitaciones extends Component
             'sedeIdPlan' => 'nullable|integer|exists:sedes,id',
         ]);
 
-        PlanificacionCurso::create([
+        $planificacion = PlanificacionCurso::create([
             'curso_id' => $cursoId,
             'sede_id' => $sedeId ? (int) $sedeId : null,
             'fecha_inicio' => $semanaDestino['inicio'],
             'fecha_fin' => $semanaDestino['fin'],
             'notas' => null,
         ]);
+        app(CoursePlanningNotifier::class)->notifyScheduled($planificacion);
 
         $this->invalidateCalendarCaches();
         $this->cursoId = null;
@@ -522,13 +525,14 @@ class CalendarioCapacitaciones extends Component
             'sedeIdPlan' => 'nullable|integer|exists:sedes,id',
         ]);
 
-        PlanificacionCurso::create([
+        $planificacion = PlanificacionCurso::create([
             'curso_id' => $this->cursoId,
             'sede_id' => $this->sedeIdPlan,
             'fecha_inicio' => $this->quickAddFecha,
             'fecha_fin' => $this->quickAddFecha,
             'notas' => null,
         ]);
+        app(CoursePlanningNotifier::class)->notifyScheduled($planificacion);
 
         $this->invalidateCalendarCaches();
         $this->mostrarQuickAdd = false;
@@ -574,9 +578,16 @@ class CalendarioCapacitaciones extends Component
         ];
 
         if ($this->editandoId) {
-            PlanificacionCurso::whereKey($this->editandoId)->update($datos);
+            $planificacion = PlanificacionCurso::findOrFail($this->editandoId);
+            $datesChanged = $planificacion->fecha_inicio->toDateString() !== $datos['fecha_inicio']
+                || $planificacion->fecha_fin->toDateString() !== $datos['fecha_fin'];
+            $planificacion->update($datos);
+            if ($datesChanged) {
+                app(CoursePlanningNotifier::class)->notifyUpdated($planificacion->refresh());
+            }
         } else {
-            PlanificacionCurso::create($datos);
+            $planificacion = PlanificacionCurso::create($datos);
+            app(CoursePlanningNotifier::class)->notifyScheduled($planificacion);
         }
 
         $this->invalidateCalendarCaches();

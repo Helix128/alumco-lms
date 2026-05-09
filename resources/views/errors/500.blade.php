@@ -9,23 +9,23 @@
         Ocurrió un error inesperado en el servidor. Por favor intenta nuevamente en unos momentos.
     </p>
 
-    <div class="flex flex-col gap-3 sm:flex-row">
+    <div class="flex flex-col gap-4 sm:flex-row">
         <button
             type="button"
             onclick="location.reload()"
-            class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-Alumco-blue px-6 py-3 text-base font-bold text-white transition hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-Alumco-blue focus:ring-offset-2 sm:w-auto"
+            class="group relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-2xl bg-Alumco-blue px-8 py-4 text-lg font-bold text-white shadow-lg shadow-Alumco-blue/20 transition-all hover:shadow-xl active:scale-95 sm:w-auto"
         >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-5 w-5" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="h-5 w-5 transition-transform group-hover:rotate-180 duration-500" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
             </svg>
-            Reintentar
+            <span>Reintentar</span>
         </button>
 
         <a
             href="{{ route('login') }}"
-            class="inline-flex w-full items-center justify-center gap-2 rounded-xl border-2 border-slate-300 px-6 py-3 text-base font-bold text-Alumco-gray transition hover:border-Alumco-blue hover:text-Alumco-blue focus:outline-none focus:ring-2 focus:ring-Alumco-blue focus:ring-offset-2 sm:w-auto"
+            class="inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-Alumco-blue/20 bg-white px-8 py-4 text-lg font-bold text-Alumco-blue transition-all hover:border-Alumco-blue/40 hover:bg-Alumco-blue/5 active:scale-95 sm:w-auto"
         >
-            Ir al inicio
+            <span>Ir al inicio</span>
         </a>
     </div>
 @endsection
