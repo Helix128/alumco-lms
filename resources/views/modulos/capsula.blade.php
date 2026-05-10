@@ -25,7 +25,7 @@
 
                 <div class="w-full shrink-0 lg:max-w-xs">
                     <div class="mb-2 flex items-center justify-between gap-3">
-                        <span class="text-sm font-bold text-Alumco-gray/60">Progreso del curso</span>
+                        <span class="text-sm font-bold text-Alumco-gray/60">Progreso de la capacitación</span>
                         <span class="text-lg font-black text-Alumco-blue">{{ $progreso }}%</span>
                     </div>
                     <div class="h-3 overflow-hidden rounded-full bg-Alumco-blue/10"
@@ -33,7 +33,7 @@
                          aria-valuenow="{{ $progreso }}"
                          aria-valuemin="0"
                          aria-valuemax="100"
-                         aria-label="Progreso total del curso">
+                         aria-label="Progreso total de la capacitación">
                         <div class="h-full rounded-full bg-Alumco-blue transition-all duration-300"
                              style="width: {{ $progreso }}%"></div>
                     </div>
@@ -130,7 +130,7 @@
                 @if ($siguiente)
                     Listo, siguiente
                 @else
-                    Finalizar curso
+                    Finalizar capacitación
                 @endif
             </button>
         </form>
@@ -140,7 +140,7 @@
             <input type="hidden" name="action" value="course">
             <button type="submit"
                     class="btn-secondary worker-focus worker-action w-full rounded-full border-2 border-Alumco-blue/35 bg-white px-5 py-4 text-lg font-black text-Alumco-blue">
-                Volver al curso
+                Volver a la capacitación
             </button>
         </form>
     </div>

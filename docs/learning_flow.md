@@ -1,55 +1,50 @@
-# Flujo de Aprendizaje y Cursos
+# Flujo de capacitación
 
-Este documento explica el recorrido funcional completo desde que un Capacitador concibe un curso hasta que el Trabajador obtiene su certificado final.
+Este documento explica el recorrido funcional desde que un capacitador crea una capacitación hasta que un colaborador o colaboradora obtiene su certificado final. En el código, la entidad principal sigue llamándose `Curso`; en la interfaz se presenta como **capacitación**.
 
-## 1. Creación del Curso (Por el Capacitador)
-El Capacitador ingresa a su panel y crea un nuevo **Curso**. 
-Al curso se le asignan un título, descripción, y una imagen de portada.
+## 1. Creación de la capacitación
 
-### Estructuración de Módulos y Secciones
-Una vez el Curso existe, el capacitador puede crear **Secciones** (opcional, pero recomendado para mejor organización) y luego inyectarle **Módulos** a cada sección. 
-Los módulos deben seguir un orden secuencial dentro de su sección (Orden 1, 2, 3...) y pueden ser de distintas naturalezas:
-- **Teórico/Práctico:** Se sube un archivo (MP4 para `video`, PDF para `pdf`, JPG/PNG para `imagen`) o se inserta un link embebido (Youtube). Si es `texto`, se digita mediante un editor WYSIWYG en HTML. 
-- **Evaluación:** Módulo especial que representa un Quiz o Test de validación de conocimientos.
+El capacitador ingresa a su panel y crea una nueva **capacitación**. A la capacitación se le asignan un título, una descripción y una imagen de portada.
 
-### Creación de Evaluaciones
-Cuando un Capacitador añade un Módulo de tipo `evaluacion`, el sistema instancia automáticamente un registro de **Evaluación**. Posteriormente, el capacitador debe ir a dicha Evaluación para:
-- Crear las preguntas (`Pregunta`) y definir múltiples opciones (`Opcion`), indicando explícitamente cuál es la correcta.
-- **Nota sobre Parámetros**: El *puntaje mínimo de aprobación* y el *límite de intentos semanales* se definen ahora de manera centralizada en la configuración global del sistema (`GlobalSetting`) para mantener la consistencia institucional.
+### Estructuración de módulos y secciones
 
-## 2. Asignación y Planificación (Habilitar el Curso)
-Para que los trabajadores vean el curso, el Capacitador o Administrador debe asociar el Curso al **Estamento** (o Estamentos) correspondientes.
-Adicionalmente, se configuran fechas de disponibilidad global para evitar accesos tempranos o a cursos ya vencidos (`PlanificacionCurso`).
+Una vez creada, el capacitador puede organizar la capacitación en **secciones** y **módulos**. Los módulos siguen un orden secuencial dentro de su sección y pueden ser de distintas naturalezas:
 
-## 3. La Experiencia del Trabajador (Consumo de Contenido)
-El trabajador inicia sesión y ve en su "Salón Virtual" (`/cursos`) únicamente aquellos cursos ligados a su Estamento.
+- **Teórico/Práctico:** archivo MP4, PDF, JPG/PNG, presentación, enlace embebido o texto enriquecido.
+- **Evaluación:** módulo especial que representa un cuestionario de validación de conocimientos.
 
-- **Navegación Secuencial**: El trabajador no puede saltarse los módulos al azar. Entra al Módulo 1 (Ej: Un Video), lo consume, y presiona un botón verde **"¡Listo! Siguiente"**.
-- Esto dispara un `POST` al controlador que marca un registro en `ProgresoModulo`, asegurando que ese usuario completó ese módulo específico, y desbloquea el acceso a la URL del siguiente.
-- Al acceder al siguiente módulo, la barra general de progreso sube.
+### Creación de evaluaciones
 
-### 4. Completando Evaluaciones (Livewire 4)
-Cuando el trabajador llega a un módulo que contiene una Evaluación, la experiencia cambia. En lugar del controlador normal, se carga un componente **Livewire** en la vista (`VerEvaluacion.php`).
+Cuando un capacitador añade un módulo de tipo `evaluacion`, el sistema instancia automáticamente un registro de **Evaluación**. Luego el capacitador configura preguntas (`Pregunta`) y opciones (`Opcion`), indicando cuál es la correcta.
 
-- **Bloqueo por Intentos**: Livewire inmediatamente comprueba si el usuario no ha agotado sus "intentos semanales" definidos globalmente. Si los agotó, se muestra una pantalla de bloqueo (`Límite alcanzado, regresa en X días`).
-- **Seguridad Antifraude**: A diferencia de enviar todas las respuestas al frontend para que un script JS evalúe, Livewire mantiene todo en el servidor (PHP). El usuario pulsa una opción, el componente la almacena localmente y avanza.
-- **Veredicto**: Al enviar la última pregunta, Livewire cuenta en el servidor los aciertos. 
-  - *Aprobado*: Se marca el Progreso como completado.
-  - *No Aprobado*: Gasta un intento, muestra un mensaje de fallo, y obliga a reintentar si es que le quedan chances.
+El puntaje mínimo de aprobación y el límite de intentos semanales se definen de manera centralizada en `GlobalSetting`.
 
-## 5. Emisión del Certificado
-En el instante preciso en que el trabajador oprime el botón para marcar como completado el *ÚLTIMO módulo* del curso (ya sea una evaluación final aprobada o un video normal), la función de progreso detecta que el porcentaje ha alcanzado el **100%**.
+## 2. Asignación y planificación
 
-- Automáticamente, se toma la vista de PDF estipulada y se compila utilizando el motor **dompdf** (`barryvdh/laravel-dompdf`).
-- Este documento lleva el nombre del usuario, RUT (si estuviese presente), el nombre del curso, la fecha y se adhiere la *firma digital* en PNG del Administrador/Director previamente subida en los Settings Globales.
-- El PDF físico se inyecta en el Storage de Laravel (`public/certificados/XX.pdf`) y se crea una entrada en la base de datos `Certificado` con un código de verificación único.
-- El trabajador es notificado y puede ver/descargar su certificado desde la sección **Mis Logros** para toda la posteridad.
+Para que los colaboradores y colaboradoras vean una capacitación, el capacitador o administrador debe asociarla al **Estamento** correspondiente. Además, se configuran fechas de disponibilidad por sede mediante `PlanificacionCurso`.
 
-## 6. Preferencias de Accesibilidad
-Los usuarios pueden configurar preferencias de accesibilidad almacenadas en un campo JSON (`users.accessibility_preferences`). Esto incluye:
-- Tamaño de fuente (pequeño, normal, grande)
-- Contraste (normal, alto)
-- Velocidad de animaciones
-- Otras configuraciones de interfaz
+## 3. Experiencia del colaborador/a
 
-Estas preferencias son aplicadas a nivel de frontend y persisten en la base de datos.
+El colaborador o colaboradora inicia sesión y ve en **Mis capacitaciones** (`/cursos`) únicamente las capacitaciones ligadas a su Estamento.
+
+- La navegación es secuencial: no puede saltarse módulos al azar.
+- Al completar un módulo, el sistema registra el avance en `ProgresoModulo`.
+- Al acceder al siguiente módulo, la barra general de progreso se actualiza.
+
+## 4. Evaluaciones con Livewire
+
+Cuando el colaborador o colaboradora llega a una evaluación, se carga el componente Livewire `VerEvaluacion.php`.
+
+- Livewire verifica si quedan intentos disponibles.
+- Las respuestas se mantienen y evalúan en el servidor.
+- Si aprueba, se marca el progreso como completado; si no aprueba, se registra el intento y puede reintentar si aún tiene oportunidades.
+
+## 5. Emisión del certificado
+
+Cuando el colaborador o colaboradora completa el 100% de la capacitación, el sistema genera automáticamente un certificado PDF con `dompdf`.
+
+El documento incluye nombre, RUT si existe, nombre de la capacitación, fecha, código de verificación y firma digital institucional. El certificado queda disponible en **Mis certificados**.
+
+## 6. Preferencias de accesibilidad
+
+Los usuarios pueden configurar preferencias de accesibilidad almacenadas en `users.accessibility_preferences`: tamaño de fuente, contraste, velocidad de animaciones y otras configuraciones de interfaz.

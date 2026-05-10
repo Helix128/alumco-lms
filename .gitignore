@@ -23,7 +23,9 @@ Homestead.json
 Homestead.yaml
 Thumbs.db
 /storage/fonts
-/.codex
+/.codex/*
+!/.codex/
+!/.codex/config.toml
 /.claude
 /.gemini
 /.agents

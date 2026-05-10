@@ -2,22 +2,25 @@
 
 namespace Tests\Feature\Admin;
 
-use App\Http\Controllers\Admin\DashboardController;
+use App\Livewire\Admin\BusinessIntelligenceDashboard;
 use App\Livewire\Admin\CertificadosPorMes;
 use App\Livewire\Admin\CursosPorSede;
 use App\Livewire\Admin\DistribucionEtaria;
 use App\Models\Certificado;
 use App\Models\Curso;
 use App\Models\Estamento;
+use App\Models\Evaluacion;
+use App\Models\Feedback;
+use App\Models\IntentoEvaluacion;
+use App\Models\Modulo;
 use App\Models\PlanificacionCurso;
+use App\Models\ProgresoModulo;
 use App\Models\Sede;
 use App\Models\User;
-use App\Services\Analytics\LearningAnalyticsService;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Livewire\Livewire;
-use Mockery;
 use Tests\TestCase;
 use Tests\Traits\CreatesUsers;
 
@@ -40,54 +43,158 @@ class DashboardAnalyticsTest extends TestCase
         $this->actingAs($admin)
             ->get(route('admin.dashboard.index'))
             ->assertOk()
-            ->assertSee('Dashboard analítico de la operación')
+            ->assertSee('Dashboard analítico')
+            ->assertDontSee('Business Intelligence')
+            ->assertSee('Año')
+            ->assertSee('Sede')
+            ->assertSee('Estamento')
+            ->assertSee('Curso')
             ->assertSee('Ver reportes')
-            ->assertSee('Usuarios activos')
-            ->assertSee('Cursos activos')
-            ->assertSee('Certificados')
-            ->assertSee('Cumplimiento')
-            ->assertSee('Participantes asignados')
-            ->assertSee('Iniciaron')
-            ->assertSee('Completaron')
-            ->assertSee('En riesgo')
-            ->assertSee('Feedback promedio');
+            ->assertSee('Cobertura anual')
+            ->assertSee('Base activa')
+            ->assertSee('Planificaciones')
+            ->assertSee('Oferta vigente')
+            ->assertSee('Resumen')
+            ->assertSee('Progreso')
+            ->assertSee('Calidad')
+            ->assertSee('Segmentos');
     }
 
-    public function test_admin_dashboard_controller_provides_lms_stats_payload(): void
+    public function test_developer_can_render_the_business_intelligence_dashboard(): void
     {
-        $controller = app(DashboardController::class);
-        $view = $controller->index();
+        $developer = $this->createDev();
 
-        $viewData = $view->getData();
-
-        $this->assertArrayHasKey('stats', $viewData);
-        $this->assertArrayHasKey('lmsStats', $viewData);
-        $this->assertArrayHasKey('total_participantes', $viewData['lmsStats']);
-        $this->assertArrayHasKey('iniciados', $viewData['lmsStats']);
-        $this->assertArrayHasKey('completados', $viewData['lmsStats']);
-        $this->assertArrayHasKey('en_riesgo', $viewData['lmsStats']);
-        $this->assertArrayHasKey('feedback_promedio', $viewData['lmsStats']);
+        $this->actingAs($developer)
+            ->get(route('admin.dashboard.index'))
+            ->assertOk()
+            ->assertSee('Dashboard analítico');
     }
 
-    public function test_admin_dashboard_uses_aggregate_lms_summary(): void
+    public function test_business_intelligence_dashboard_filters_operational_data(): void
     {
         $admin = $this->createAdmin();
-        $analyticsService = Mockery::mock(LearningAnalyticsService::class);
-        $analyticsService->shouldReceive('summaryFromAggregates')
-            ->once()
-            ->andReturn([
-                'total_participantes' => 0,
-                'iniciados' => 0,
-                'completados' => 0,
-                'en_riesgo' => 0,
-                'feedback_promedio' => null,
-            ]);
-        $analyticsService->shouldReceive('summaryForCourses')->never();
-        $this->app->instance(LearningAnalyticsService::class, $analyticsService);
+        $sede = Sede::create(['nombre' => 'Sede Norte']);
+        $estamento = Estamento::create(['nombre' => 'Operaciones']);
+        $user = User::factory()->create([
+            'activo' => true,
+            'sede_id' => $sede->id,
+            'estamento_id' => $estamento->id,
+            'fecha_nacimiento' => now()->subYears(31)->toDateString(),
+        ]);
+        $user->assignRole('Trabajador');
+        $course = Curso::factory()->create(['titulo' => 'Curso de seguridad operacional']);
+        $course->estamentos()->attach($estamento->id);
+        $module = Modulo::factory()->create(['curso_id' => $course->id]);
+        $evaluationModule = Modulo::factory()->evaluacion()->create(['curso_id' => $course->id]);
+        $evaluation = Evaluacion::factory()->create(['modulo_id' => $evaluationModule->id]);
 
-        $this->actingAs($admin)
-            ->get(route('admin.dashboard.index'))
-            ->assertOk();
+        PlanificacionCurso::create([
+            'curso_id' => $course->id,
+            'sede_id' => $sede->id,
+            'fecha_inicio' => now()->startOfYear()->addMonth(),
+            'fecha_fin' => now()->startOfYear()->addMonths(2),
+        ]);
+
+        ProgresoModulo::create([
+            'user_id' => $user->id,
+            'modulo_id' => $module->id,
+            'completado' => true,
+            'fecha_completado' => now(),
+        ]);
+
+        Certificado::create([
+            'user_id' => $user->id,
+            'curso_id' => $course->id,
+            'codigo_verificacion' => 'CERT-BI-001',
+            'ruta_pdf' => 'certificados/bi.pdf',
+            'fecha_emision' => now(),
+        ]);
+
+        Feedback::factory()->create([
+            'user_id' => $user->id,
+            'curso_id' => $course->id,
+            'categoria' => 'contenido',
+            'rating' => 5,
+            'created_at' => now(),
+        ]);
+
+        IntentoEvaluacion::create([
+            'user_id' => $user->id,
+            'evaluacion_id' => $evaluation->id,
+            'puntaje' => 8,
+            'total_preguntas' => 10,
+            'aprobado' => true,
+            'created_at' => now(),
+        ]);
+
+        Livewire::actingAs($admin)
+            ->test(BusinessIntelligenceDashboard::class)
+            ->set('sedeId', (string) $sede->id)
+            ->set('estamentoId', (string) $estamento->id)
+            ->set('cursoId', (string) $course->id)
+            ->call('setView', 'progress')
+            ->assertSet('sedeId', (string) $sede->id)
+            ->assertSet('activeView', 'progress')
+            ->assertSee('Curso de seguridad operacional')
+            ->assertSee('Sede Norte')
+            ->assertSee('Operaciones')
+            ->assertSee('Embudo')
+            ->assertSee('Cursos críticos')
+            ->assertSee('100%')
+            ->assertSee('5')
+            ->call('setView', 'segments')
+            ->assertSee('Analítica individual')
+            ->assertSee('Colaboradores con señales accionables')
+            ->assertSee('Curso de seguridad operacional')
+            ->assertSee('Al día')
+            ->assertSee($user->name);
+    }
+
+    public function test_sede_filter_uses_collaborator_sede_not_course_planning_sede_for_coverage(): void
+    {
+        $admin = $this->createAdmin();
+        $sedeNorte = Sede::create(['nombre' => 'Sede Norte']);
+        $sedeSur = Sede::create(['nombre' => 'Sede Sur']);
+        $estamento = Estamento::create(['nombre' => 'Operaciones']);
+        $worker = User::factory()->create([
+            'activo' => true,
+            'sede_id' => $sedeNorte->id,
+            'estamento_id' => $estamento->id,
+        ]);
+        $worker->assignRole('Trabajador');
+        $adminInSameSede = User::factory()->create([
+            'activo' => true,
+            'sede_id' => $sedeNorte->id,
+            'estamento_id' => $estamento->id,
+        ]);
+        $adminInSameSede->assignRole('Administrador');
+        $course = Curso::factory()->create(['titulo' => 'Curso transversal certificado']);
+        $course->estamentos()->attach($estamento->id);
+
+        PlanificacionCurso::create([
+            'curso_id' => $course->id,
+            'sede_id' => $sedeSur->id,
+            'fecha_inicio' => now()->startOfYear()->addMonth(),
+            'fecha_fin' => now()->startOfYear()->addMonths(2),
+        ]);
+
+        Certificado::create([
+            'user_id' => $worker->id,
+            'curso_id' => $course->id,
+            'codigo_verificacion' => 'CERT-SEDE-FILTER',
+            'ruta_pdf' => 'certificados/sede-filter.pdf',
+            'fecha_emision' => now(),
+        ]);
+
+        Livewire::actingAs($admin)
+            ->test(BusinessIntelligenceDashboard::class)
+            ->set('sedeId', (string) $sedeNorte->id)
+            ->assertViewHas('kpis', fn (array $kpis): bool => $kpis['active_users'] === 1
+                && $kpis['certified_users'] === 1
+                && $kpis['completion_rate'] === 100
+                && $kpis['planned_sessions'] === 0)
+            ->assertViewHas('charts', fn (array $charts): bool => $charts['sedeCoverage']['data']['labels'] === ['Sede Norte']
+                && $charts['sedeCoverage']['data']['datasets'][0]['data'] === [100]);
     }
 
     public function test_monthly_certificate_chart_renders_current_year_series(): void

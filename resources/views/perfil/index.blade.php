@@ -54,7 +54,7 @@
         </div>
         <div class="worker-card p-4 sm:p-5 text-center">
             <p class="font-display text-2xl sm:text-4xl font-black text-Alumco-gold-accessible">{{ $cursosEnProgreso }}</p>
-            <p class="mt-0.5 text-[10px] sm:text-base font-bold text-Alumco-gray/70 uppercase sm:normal-case">En curso</p>
+            <p class="mt-0.5 text-[10px] sm:text-base font-bold text-Alumco-gray/70 uppercase sm:normal-case">En proceso</p>
         </div>
     </section>
 

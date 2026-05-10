@@ -43,6 +43,60 @@ class DigitalSignatureTest extends TestCase
         Storage::disk('public')->assertMissing('firmas/anterior.png');
     }
 
+    public function test_admin_can_upload_own_digital_signature_from_panel_profile(): void
+    {
+        Storage::fake('public');
+        $admin = $this->userWithRole('Administrador');
+
+        Livewire::actingAs($admin)
+            ->test(DigitalSignature::class)
+            ->set('firma_digital', UploadedFile::fake()->image('firma-admin.png'))
+            ->call('guardar')
+            ->assertHasNoErrors();
+
+        $admin->refresh();
+
+        $this->assertNotNull($admin->firma_digital);
+        Storage::disk('public')->assertExists($admin->firma_digital);
+    }
+
+    public function test_developer_can_upload_own_digital_signature_from_panel_profile(): void
+    {
+        Storage::fake('public');
+        $developer = $this->userWithRole('Desarrollador');
+
+        Livewire::actingAs($developer)
+            ->test(DigitalSignature::class)
+            ->set('firma_digital', UploadedFile::fake()->image('firma-dev.png'))
+            ->call('guardar')
+            ->assertHasNoErrors();
+
+        $developer->refresh();
+
+        $this->assertNotNull($developer->firma_digital);
+        Storage::disk('public')->assertExists($developer->firma_digital);
+    }
+
+    public function test_worker_cannot_access_digital_signature_component(): void
+    {
+        $trabajador = $this->userWithRole('Trabajador');
+
+        Livewire::actingAs($trabajador)
+            ->test(DigitalSignature::class)
+            ->assertForbidden();
+    }
+
+    public function test_digital_signature_requires_a_supported_image(): void
+    {
+        $capacitador = $this->userWithRole('Capacitador Externo');
+
+        Livewire::actingAs($capacitador)
+            ->test(DigitalSignature::class)
+            ->set('firma_digital', UploadedFile::fake()->create('firma.pdf', 64, 'application/pdf'))
+            ->call('guardar')
+            ->assertHasErrors(['firma_digital']);
+    }
+
     private function userWithRole(string $role): User
     {
         $user = User::factory()->create();

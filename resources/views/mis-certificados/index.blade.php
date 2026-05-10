@@ -22,7 +22,7 @@
                     @if ($certificados->isNotEmpty())
                         {{ $certificados->count() }} {{ $certificados->count() === 1 ? 'certificado obtenido' : 'certificados obtenidos' }}
                     @else
-                        Completa un curso para obtener tu primer certificado.
+                        Completa una capacitación para obtener tu primer certificado.
                     @endif
                 </p>
             </div>
@@ -35,7 +35,7 @@
                 </svg>
                 <input x-model="search"
                        type="search"
-                       placeholder="Buscar por curso…"
+                       placeholder="Buscar por capacitación…"
                        class="w-full rounded-2xl border border-Alumco-gray/15 bg-white py-2.5 pl-10 pr-4 text-sm font-semibold text-Alumco-gray placeholder:text-Alumco-gray/40 focus:border-Alumco-blue/30 focus:outline-none focus:ring-4 focus:ring-Alumco-blue/10 transition-shadow">
             </div>
             @endif
@@ -56,7 +56,7 @@
                 x-transition:enter-end="opacity-100 scale-100"
                 class="worker-card group flex flex-col overflow-hidden">
 
-                {{-- Imagen del curso --}}
+                {{-- Imagen de la capacitación --}}
                 <div class="relative aspect-video overflow-hidden"
                      style="--course-accent: {{ $accent }}; background: linear-gradient(135deg, {{ $accent }}, color-mix(in srgb, {{ $accent }} 55%, white))">
                     @if ($cert->curso->imagen_portada)
@@ -119,11 +119,11 @@
             </div>
             <h2 class="font-display text-2xl font-black text-Alumco-gray">Aún no tienes certificados</h2>
             <p class="mx-auto mt-3 max-w-md text-base leading-relaxed text-Alumco-gray/70">
-                Completa un curso al 100% para obtener tu primer certificado.
+                Completa una capacitación al 100% para obtener tu primer certificado.
             </p>
             <a href="{{ route('cursos.index') }}"
                class="btn-primary worker-focus mt-6 inline-flex rounded-full bg-Alumco-blue px-8 py-4 text-lg font-black text-white shadow-sm">
-                Ir a mis cursos
+                Ir a mis capacitaciones
             </a>
         </section>
     @endif

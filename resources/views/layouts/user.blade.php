@@ -59,7 +59,7 @@
             </div>
             <div class="flex flex-col">
                 <span class="text-[10px] font-black uppercase tracking-widest leading-none mb-0.5">Vista Previa</span>
-                <span class="text-[10px] opacity-90 font-medium leading-none">Como Trabajador</span>
+                <span class="text-[10px] opacity-90 font-medium leading-none">Como colaborador/a</span>
             </div>
         </div>
         <div class="w-px h-8 bg-white/30 mx-1"></div>
@@ -72,7 +72,7 @@
     </div>
     @endif
 
-    {{-- HEADER: Logo + nav + identidad del trabajador --}}
+    {{-- HEADER: Logo + nav + identidad del colaborador --}}
     @persist('worker-topbar')
     <header class="worker-topbar sticky top-0 z-40 border-b border-white/70 py-3 shrink-0">
         {{-- Desktop: grid [logo | nav centrado | usuario] — garantiza centrado real del nav --}}
@@ -113,7 +113,7 @@
                     <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.967 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.967 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
                     </svg>
-                    Mis cursos
+                    Mis capacitaciones
                 </a>
 
                 <a href="{{ route('calendario-cursos.index') }}"

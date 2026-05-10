@@ -88,7 +88,10 @@ class ExceptionHandlerTest extends TestCase
             ])
             ->assertJsonPath('error.code', 500);
 
-        $this->assertNotEmpty($response->json('error.trace_id'));
+        $traceId = $response->json('error.trace_id');
+
+        $this->assertNotEmpty($traceId);
+        $this->assertSame($traceId, $response->headers->get('X-Trace-Id'));
     }
 
     public function test_validation_error_returns_422_with_top_level_trace_id(): void
@@ -103,7 +106,10 @@ class ExceptionHandlerTest extends TestCase
                 'trace_id',
             ]);
 
-        $this->assertNotEmpty($response->json('trace_id'));
+        $traceId = $response->json('trace_id');
+
+        $this->assertNotEmpty($traceId);
+        $this->assertSame($traceId, $response->headers->get('X-Trace-Id'));
     }
 
     public function test_all_json_error_responses_include_standard_error_keys(): void
@@ -122,5 +128,18 @@ class ExceptionHandlerTest extends TestCase
                 'error' => ['code', 'message', 'trace_id'],
             ]);
         }
+    }
+
+    public function test_web_runtime_exception_includes_trace_id_header_matching_html(): void
+    {
+        $response = $this->get('/_test/runtime-error');
+
+        $response->assertStatus(500);
+
+        $traceId = $response->headers->get('X-Trace-Id');
+
+        $this->assertNotEmpty($traceId);
+        $response->assertSee('Código de seguimiento');
+        $response->assertSee($traceId);
     }
 }

@@ -1,6 +1,6 @@
 @extends('layouts.user')
 
-@section('title', 'Mis cursos — Alumco')
+@section('title', 'Mis capacitaciones — Alumco')
 
 @section('content')
 
@@ -21,7 +21,7 @@
                     Hola, {{ $firstName }}
                 </h1>
                 <p class="mt-3 text-base leading-relaxed text-Alumco-gray/75 lg:text-lg">
-                    Gestiona tu aprendizaje y revisa tus cursos asignados.
+                    Revisa tus capacitaciones asignadas y avances.
                 </p>
             </div>
 
@@ -51,12 +51,12 @@
         <button @click="tab = 'disponibles'" 
                 :class="tab === 'disponibles' ? 'border-Alumco-blue text-Alumco-blue' : 'border-transparent text-Alumco-gray/50 hover:text-Alumco-gray hover:border-gray-200'"
                 class="worker-focus relative px-6 py-4 text-sm font-black uppercase tracking-widest transition-all border-b-4 -mb-[2px]">
-            Cursos Disponibles
+            Capacitaciones disponibles
         </button>
         <button @click="tab = 'historial'" 
                 :class="tab === 'historial' ? 'border-Alumco-blue text-Alumco-blue' : 'border-transparent text-Alumco-gray/50 hover:text-Alumco-gray hover:border-gray-200'"
                 class="worker-focus relative px-6 py-4 text-sm font-black uppercase tracking-widest transition-all border-b-4 -mb-[2px]">
-            Historial de Cursos
+            Historial de capacitaciones
         </button>
     </div>
 
@@ -75,7 +75,7 @@
                 <section>
                     <div class="mb-5 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
                         <div>
-                            <h2 class="font-display text-2xl font-black text-Alumco-gray">Cursos vigentes</h2>
+                            <h2 class="font-display text-2xl font-black text-Alumco-gray">Capacitaciones vigentes</h2>
                             <p class="text-base font-medium text-Alumco-gray/65">Disponibles para realizar ahora.</p>
                         </div>
                     </div>
@@ -84,7 +84,7 @@
                         @foreach ($vigentes as $curso)
                             @php
                                 $progreso = $curso->progreso_calculado ?? 0;
-                                $ctaLabel = $progreso > 0 ? 'Continuar curso' : 'Comenzar curso';
+                                $ctaLabel = $progreso > 0 ? 'Continuar capacitación' : 'Comenzar capacitación';
                             @endphp
 
                             <a href="{{ route('cursos.show', $curso) }}"
@@ -129,7 +129,7 @@
                                              aria-valuenow="{{ $progreso }}"
                                              aria-valuemin="0"
                                              aria-valuemax="100"
-                                             aria-label="Progreso del curso: {{ $curso->titulo }}">
+                                             aria-label="Progreso de la capacitación: {{ $curso->titulo }}">
                                             <div class="h-full rounded-full bg-Alumco-blue transition-all duration-300" style="width: {{ $progreso }}%"></div>
                                         </div>
                                     </div>
@@ -156,12 +156,12 @@
                     </div>
                     <h2 class="font-display text-2xl font-black text-Alumco-gray">Todo al día por aquí</h2>
                     <p class="mx-auto mt-3 max-w-md text-base leading-relaxed text-Alumco-gray/65">
-                        No tienes cursos vigentes en este momento. Puedes revisar tus capacitaciones pasadas y descargar certificados en el historial.
+                        No tienes capacitaciones vigentes en este momento. Puedes revisar tus capacitaciones pasadas y descargar certificados en el historial.
                     </p>
                     <div class="mt-8">
                         <button @click="tab = 'historial'; window.scrollTo({top: 0, behavior: 'smooth'})" 
                                 class="worker-focus inline-flex items-center gap-2 rounded-xl bg-Alumco-blue px-6 py-3 text-sm font-black text-white shadow-lg shadow-Alumco-blue/15 transition-all hover:brightness-110">
-                            Ver historial de cursos
+                            Ver historial de capacitaciones
                         </button>
                     </div>
                 </section>
@@ -171,7 +171,7 @@
                 <section x-data="{ open: true }">
                     <div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                         <div>
-                            <h2 class="font-display text-2xl font-black text-Alumco-gray">Cursos completados</h2>
+                            <h2 class="font-display text-2xl font-black text-Alumco-gray">Capacitaciones completadas</h2>
                             <p class="text-base font-medium text-Alumco-gray/65">Puedes revisarlos nuevamente cuando lo necesites.</p>
                         </div>
                         <button type="button" @click="open = !open"
@@ -215,7 +215,7 @@
                                     </h3>
                                     <div class="mt-6 flex flex-1 flex-col justify-end">
                                         <span class="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-Alumco-green-accessible/25 bg-white px-5 py-4 text-base font-black text-Alumco-green-accessible transition-all group-hover:bg-Alumco-green-accessible/5">
-                                            Revisar curso
+                                            Revisar capacitación
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transition-transform duration-200 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"/>
                                             </svg>
@@ -241,8 +241,8 @@
             <section>
                 <div class="mb-5 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
                     <div>
-                        <h2 class="font-display text-2xl font-black text-Alumco-gray">Historial de cursos</h2>
-                        <p class="text-base font-medium text-Alumco-gray/65">Cursos cuyo periodo de disponibilidad ya finalizó.</p>
+                        <h2 class="font-display text-2xl font-black text-Alumco-gray">Historial de capacitaciones</h2>
+                        <p class="text-base font-medium text-Alumco-gray/65">Capacitaciones cuyo periodo de disponibilidad ya finalizó.</p>
                     </div>
                 </div>
 
@@ -300,7 +300,7 @@
                                              aria-valuenow="{{ $progreso }}"
                                              aria-valuemin="0"
                                              aria-valuemax="100"
-                                             aria-label="Progreso final del curso">
+                                             aria-label="Progreso final de la capacitación">
                                             <div class="h-full rounded-full bg-Alumco-gray/20 transition-all duration-300" style="width: {{ $progreso }}%"></div>
                                         </div>
                                     </div>
@@ -336,12 +336,12 @@
                         </div>
                         <h2 class="font-display text-2xl font-black text-Alumco-gray">Historial vacío</h2>
                         <p class="mx-auto mt-3 max-w-md text-base leading-relaxed text-Alumco-gray/65">
-                            Aquí aparecerán los cursos que hayas finalizado. Una vez completes tu primera capacitación, podrás verla aquí y descargar tu certificado.
+                            Aquí aparecerán las capacitaciones que hayas finalizado. Una vez completes tu primera capacitación, podrás verla aquí y descargar tu certificado.
                         </p>
                         <div class="mt-8">
                             <button @click="tab = 'disponibles'; window.scrollTo({top: 0, behavior: 'smooth'})" 
                                     class="worker-focus inline-flex items-center gap-2 rounded-xl border-2 border-Alumco-blue/10 bg-white px-6 py-3 text-sm font-black text-Alumco-blue transition-all hover:bg-Alumco-blue/5">
-                                Ver cursos disponibles
+                                Ver capacitaciones disponibles
                             </button>
                         </div>
                     </section>

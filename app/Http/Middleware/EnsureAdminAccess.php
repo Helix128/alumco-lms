@@ -15,7 +15,7 @@ class EnsureAdminAccess
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (! $request->user() || ! $request->user()->hasAdminAccess()) {
+        if (! $request->user()?->hasAdminAccess()) {
             abort(403, 'Esta sección requiere perfil de administración.');
         }
 

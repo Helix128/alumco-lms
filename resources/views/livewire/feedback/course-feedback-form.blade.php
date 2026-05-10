@@ -3,7 +3,7 @@
         <section class="worker-card p-5 lg:p-7">
         <div class="mb-5 flex items-start justify-between gap-4">
             <div>
-                <h3 class="font-display text-2xl font-black text-Alumco-gray">Feedback del curso</h3>
+                <h3 class="font-display text-2xl font-black text-Alumco-gray">Feedback de la capacitación</h3>
                 <p class="text-sm font-semibold text-Alumco-gray/60">Tu opinión ayuda a mejorar las próximas capacitaciones.</p>
             </div>
             <x-saving-indicator />

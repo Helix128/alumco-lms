@@ -5,7 +5,7 @@
 @section('content')
     <div class="flex items-center gap-3 mb-4">
         <a href="{{ route('capacitador.cursos.show', $curso) }}" class="text-sm text-Alumco-blue hover:underline">
-            ← Volver al curso
+            ← Volver a la capacitación
         </a>
     </div>
 
@@ -96,7 +96,7 @@
                                         </button>
                                     </form>
                                 @else
-                                    <span class="text-[10px] font-black uppercase text-gray-300 tracking-widest">En curso</span>
+                                    <span class="text-[10px] font-black uppercase text-gray-300 tracking-widest">En proceso</span>
                                 @endif
                             </td>
                         </tr>

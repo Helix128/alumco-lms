@@ -140,6 +140,16 @@ class SupportTicketTest extends TestCase
             ->assertForbidden();
     }
 
+    public function test_developer_can_open_support_panel_without_server_error(): void
+    {
+        $developer = $this->userWithRole('Desarrollador', ['activo' => true]);
+
+        $this->actingAs($developer)
+            ->get(route('dev.support.index'))
+            ->assertOk()
+            ->assertSee('Centro de Soporte');
+    }
+
     public function test_developer_can_manage_ticket_and_notify_requester(): void
     {
         Notification::fake();
@@ -197,6 +207,32 @@ class SupportTicketTest extends TestCase
             SupportTicketRequesterNotification::class,
             fn (SupportTicketRequesterNotification $notification): bool => $notification->type === 'waiting_user'
         );
+    }
+
+    public function test_manage_tickets_renders_without_selected_ticket(): void
+    {
+        $developer = $this->userWithRole('Desarrollador', ['activo' => true]);
+
+        Livewire::actingAs($developer)
+            ->test(ManageTickets::class)
+            ->assertOk()
+            ->assertSee('Bandeja de Entrada');
+    }
+
+    public function test_manage_tickets_renders_selected_ticket_details(): void
+    {
+        $developer = $this->userWithRole('Desarrollador', ['activo' => true]);
+        $requester = $this->userWithRole('Trabajador', ['activo' => true]);
+        $ticket = SupportTicket::factory()->for($requester, 'requester')->create([
+            'subject' => 'Error con certificado',
+        ]);
+
+        Livewire::actingAs($developer)
+            ->test(ManageTickets::class)
+            ->call('selectTicket', $ticket->id)
+            ->assertOk()
+            ->assertSee('Error con certificado')
+            ->assertSee($requester->name);
     }
 
     public function test_private_attachments_require_ticket_permission(): void

@@ -88,11 +88,11 @@
 
                         <dl class="mt-8 grid gap-4 sm:grid-cols-2">
                             <div class="rounded-2xl border border-green-200/50 bg-white/60 p-5 shadow-sm">
-                                <dt class="text-xs font-black uppercase tracking-wider text-green-700/60">Participante</dt>
+                                <dt class="text-xs font-black uppercase tracking-wider text-green-700/60">Colaborador/a</dt>
                                 <dd class="mt-1 text-xl font-black text-Alumco-gray">{{ $certificado->user->name }}</dd>
                             </div>
                             <div class="rounded-2xl border border-green-200/50 bg-white/60 p-5 shadow-sm">
-                                <dt class="text-xs font-black uppercase tracking-wider text-green-700/60">Curso</dt>
+                                <dt class="text-xs font-black uppercase tracking-wider text-green-700/60">Capacitación</dt>
                                 <dd class="mt-1 text-xl font-black text-Alumco-gray">{{ $certificado->curso->titulo }}</dd>
                             </div>
                             <div class="rounded-2xl border border-green-200/50 bg-white/60 p-5 shadow-sm">

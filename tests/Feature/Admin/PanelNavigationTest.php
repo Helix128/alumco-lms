@@ -29,8 +29,28 @@ class PanelNavigationTest extends TestCase
             ->assertSee('Estadísticas')
             ->assertSee('Material')
             ->assertSee('Gestión')
+            ->assertSee('Dashboard analítico')
+            ->assertSee('Reportes de capacitación')
+            ->assertSee('Directorio de usuarios')
+            ->assertSee('Estamentos')
             ->assertSee('Firma institucional')
+            ->assertDontSee('Dashboard capacitador')
             ->assertDontSee('Desarrollador');
+    }
+
+    public function test_panel_profile_prioritizes_signature_without_duplicate_options_or_warning(): void
+    {
+        $admin = $this->userWithRole('Administrador');
+
+        $this
+            ->actingAs($admin)
+            ->get(route('admin.perfil.index'))
+            ->assertOk()
+            ->assertSee('Perfil y firma')
+            ->assertSee('Firma para Certificados')
+            ->assertSee('Subir Archivo')
+            ->assertDontSee('Cuenta Administrativa')
+            ->assertDontSee('Son las mismas opciones del botón Opciones');
     }
 
     public function test_capacitador_sees_panel_groups_without_developer_or_institutional_links(): void
@@ -44,12 +64,16 @@ class PanelNavigationTest extends TestCase
             ->assertSee('Estadísticas')
             ->assertSee('Material')
             ->assertSee('Gestión')
+            ->assertSee('Dashboard capacitador')
+            ->assertSee('Capacitaciones y material')
             ->assertSee('Perfil y firma')
+            ->assertDontSee('Dashboard analítico')
+            ->assertDontSee('Directorio de usuarios')
             ->assertDontSee('Desarrollador')
             ->assertDontSee('Firma institucional');
     }
 
-    public function test_developer_sees_developer_navigation_group(): void
+    public function test_developer_sees_admin_navigation_plus_developer_navigation(): void
     {
         $developer = $this->userWithRole('Desarrollador');
 
@@ -57,9 +81,18 @@ class PanelNavigationTest extends TestCase
             ->actingAs($developer)
             ->get(route('admin.perfil.index'))
             ->assertOk()
+            ->assertSee('Perfil y firma')
+            ->assertSee('Dashboard analítico')
+            ->assertSee('Reportes de capacitación')
+            ->assertSee('Directorio de usuarios')
+            ->assertSee('Estamentos')
+            ->assertSee('Capacitaciones y material')
+            ->assertSee('Firma institucional')
             ->assertSee('Desarrollador')
             ->assertSee('Lógica de negocio')
-            ->assertSee('Salud LMS');
+            ->assertSee('Salud LMS')
+            ->assertSee('Soporte técnico')
+            ->assertDontSee('Dashboard capacitador');
     }
 
     private function userWithRole(string $role): User

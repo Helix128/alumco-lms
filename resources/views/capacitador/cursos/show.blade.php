@@ -2,7 +2,7 @@
 
 @section('title', $curso->titulo)
 
-@section('header_title', 'Visor de Curso')
+@section('header_title', 'Visor de capacitación')
 
 @push('styles')
 <style>
@@ -102,7 +102,7 @@
                     <svg class="w-4 h-4 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                     </svg>
-                    Mis cursos
+                    Mis capacitaciones
                 </a>
                 
                 <div>
@@ -130,7 +130,7 @@
                 <a href="{{ route('capacitador.cursos.editar', $curso) }}"
                    class="flex-1 lg:flex-none inline-flex items-center justify-center gap-2 bg-Alumco-blue text-white font-display font-black text-[11px] uppercase tracking-widest py-4 px-8 rounded-2xl shadow-lg shadow-Alumco-blue/20 hover:brightness-110 transition-all active:scale-95">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                    Editar curso
+                    Editar capacitación
                 </a>
             </div>
         </div>
@@ -141,7 +141,7 @@
             <div class="xl:col-span-2 space-y-8">
                 <div class="flex items-center justify-between">
                     <div>
-                        <h3 class="text-lg font-display font-black text-Alumco-blue">Estructura Académica</h3>
+                        <h3 class="text-lg font-display font-black text-Alumco-blue">Estructura de la capacitación</h3>
                         <p class="text-xs font-bold text-Alumco-gray/65 uppercase tracking-widest mt-1">Organiza el contenido en etapas</p>
                     </div>
                     <div class="flex gap-2">
@@ -213,7 +213,7 @@
             {{-- Columna Derecha: Audiencia --}}
             <div class="space-y-6">
                 <div class="bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
-                    <h3 class="text-sm font-black text-Alumco-blue uppercase tracking-[0.2em]">Analytics del curso</h3>
+                    <h3 class="text-sm font-black text-Alumco-blue uppercase tracking-[0.2em]">Analytics de la capacitación</h3>
                     <div class="mt-5 grid grid-cols-2 gap-3">
                         <div class="rounded-2xl bg-Alumco-blue/5 p-4">
                             <p class="text-[10px] font-black uppercase text-Alumco-blue/50">Participantes</p>

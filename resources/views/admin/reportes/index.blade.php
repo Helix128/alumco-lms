@@ -31,10 +31,10 @@
                 <x-picker-multi name="estamento_id" :options="$estamentos->pluck('nombre', 'id')->toArray()" :selected="$selectedEstamentos" placeholder="Todos los estamentos" />
             </div>
 
-            {{-- Cursos (Multi) --}}
+            {{-- Capacitaciones (Multi) --}}
             <div class="lg:col-span-4 space-y-2">
-                <label class="admin-page-eyebrow">Cursos Aprobados</label>
-                <x-picker-multi name="curso_id" :options="$cursos->pluck('titulo', 'id')->toArray()" :selected="$selectedCursos" placeholder="Cualquier curso" />
+                <label class="admin-page-eyebrow">Capacitaciones aprobadas</label>
+                <x-picker-multi name="curso_id" :options="$cursos->pluck('titulo', 'id')->toArray()" :selected="$selectedCursos" placeholder="Cualquier capacitación" />
             </div>
 
             {{-- Rango Etario --}}
@@ -64,7 +64,7 @@
                     <option value="en_progreso" @selected($estadoSeleccionado === 'en_progreso')>En progreso</option>
                     <option value="certificado" @selected($estadoSeleccionado === 'certificado')>Certificado</option>
                 </select>
-                <p class="text-[10px] font-bold text-Alumco-gray/40">Se aplica al seleccionar un solo curso.</p>
+                <p class="text-[10px] font-bold text-Alumco-gray/40">Se aplica al seleccionar una sola capacitación.</p>
             </div>
 
             <!-- Footer del Formulario -->
@@ -127,7 +127,7 @@
                     <th class="px-6 py-5 text-[11px] font-display font-bold uppercase tracking-widest text-gray-400 border-b border-gray-100">Edad</th>
                     <th class="px-6 py-5 text-[11px] font-display font-bold uppercase tracking-widest text-gray-400 border-b border-gray-100">Estamento</th>
                     <th class="px-6 py-5 text-[11px] font-display font-bold uppercase tracking-widest text-gray-400 border-b border-gray-100">Sede</th>
-                    <th class="px-6 py-5 text-[11px] font-display font-bold uppercase tracking-widest text-gray-400 border-b border-gray-100">Cursos</th>
+                    <th class="px-6 py-5 text-[11px] font-display font-bold uppercase tracking-widest text-gray-400 border-b border-gray-100">Capacitaciones</th>
                     @if($cursoSeleccionado)
                         <th class="px-6 py-5 text-[11px] font-display font-bold uppercase tracking-widest text-gray-400 border-b border-gray-100 text-right">Progreso</th>
                         <th class="px-6 py-5 text-[11px] font-display font-bold uppercase tracking-widest text-gray-400 border-b border-gray-100 text-right">Estado</th>
@@ -173,10 +173,10 @@
                                  @mouseleave="open = false" 
                                  class="relative cursor-help inline-block">
                                 <span class="text-sm font-black text-Alumco-blue underline underline-offset-4 decoration-Alumco-blue/30 decoration-dotted">
-                                    {{ $user->certificados->count() }} {{ Str::plural('curso', $user->certificados->count()) }}
+                                    {{ $user->certificados->count() }} {{ $user->certificados->count() === 1 ? 'capacitación' : 'capacitaciones' }}
                                 </span>
                                 
-                                {{-- Tooltip con lista de cursos (Teleportado para evitar clipping) --}}
+                                {{-- Tooltip con lista de capacitaciones (Teleportado para evitar clipping) --}}
                                 <template x-teleport="body">
                                     <div x-show="open" 
                                          x-cloak
@@ -190,7 +190,7 @@
                                          :style="`left: ${x}px; top: ${y}px; transform: translate(-50%, calc(-100% - 10px))`">
                                         
                                         <div class="flex items-center justify-between mb-4 pb-2 border-b border-gray-50">
-                                            <h4 class="font-display font-black uppercase tracking-widest text-[10px] text-Alumco-blue">Historial Académico</h4>
+                                            <h4 class="font-display font-black uppercase tracking-widest text-[10px] text-Alumco-blue">Historial de capacitaciones</h4>
                                             <span class="text-[9px] font-bold text-gray-300 bg-gray-50 px-2 py-0.5 rounded-full">{{ $user->certificados->count() }} total</span>
                                         </div>
                                         
@@ -303,10 +303,10 @@
                 email:     { label: 'Correo', data: ['j.perez@alumco.cl', 'm.ignacia@alumco.cl', 'c.ruiz@alumco.cl'] },
                 sede:      { label: 'Sede', data: ['Sede Central', 'Sede Norte', 'Sede Sur'] },
                 estamento: { label: 'Estamento', data: ['Auxiliares', 'Enfermería', 'Directivos'] },
-                cursos:    { label: 'Cursos Aprobados', data: ['Curso A (20/04)', 'Curso B (15/04)', '—'] },
+                cursos:    { label: 'Capacitaciones aprobadas', data: ['Capacitación A (20/04)', 'Capacitación B (15/04)', '—'] },
                 estado_capacitacion: { label: 'Estado capacitación', data: ['En progreso', 'Certificado', 'No iniciado'] },
                 progreso:  { label: 'Progreso (%)', data: ['45', '100', '0'] },
-                feedback:  { label: 'Feedback curso', data: ['5/5 utilidad', 'Sin feedback', '4/5 claridad'] }
+                feedback:  { label: 'Feedback capacitación', data: ['5/5 utilidad', 'Sin feedback', '4/5 claridad'] }
             },
             selectedKeys: ['rut', 'nombre', 'sexo', 'edad', 'email', 'sede', 'estamento', 'cursos', 'estado_capacitacion', 'progreso', 'feedback'],
             

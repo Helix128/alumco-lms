@@ -4,12 +4,15 @@
     'badge' => null,
     'accent' => '32 80 153',
     'canvasClass' => 'chart-panel__canvas',
+    'eyebrow' => null,
 ])
 
 <section {{ $attributes->merge(['class' => 'chart-panel p-6']) }} style="--chart-accent: {{ $accent }};">
     <div class="chart-panel__header">
         <div>
-            <span class="chart-panel__eyebrow">Dashboard Analítico</span>
+            @if($eyebrow)
+                <p class="chart-panel__eyebrow">{{ $eyebrow }}</p>
+            @endif
             <h3 class="chart-panel__title">{{ $title }}</h3>
             @if($description)
                 <p class="chart-panel__description">{{ $description }}</p>
@@ -17,7 +20,9 @@
         </div>
 
         @if($badge)
-            <span class="chart-panel__badge">{{ $badge }}</span>
+            <span class="chart-panel__badge">
+                {{ $badge }}
+            </span>
         @endif
     </div>
 

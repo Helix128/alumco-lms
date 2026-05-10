@@ -3,23 +3,22 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Estamento extends Model
 {
     use SoftDeletes;
 
-    // Permitir la asignación masiva del campo nombre
     protected $fillable = ['nombre'];
 
-    // Relación: Un estamento tiene muchos usuarios
-    public function users()
+    public function users(): HasMany
     {
         return $this->hasMany(User::class);
     }
 
-    // Relación: Un estamento tiene acceso a muchos cursos
-    public function cursos()
+    public function cursos(): BelongsToMany
     {
         return $this->belongsToMany(Curso::class);
     }

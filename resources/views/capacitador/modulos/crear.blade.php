@@ -13,7 +13,7 @@
                 <svg class="w-4 h-4 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                 </svg>
-                Volver al curso
+                Volver a la capacitación
             </a>
             <h2 class="text-3xl font-display font-black text-Alumco-blue">Agregar módulo</h2>
             <p class="text-Alumco-gray/50 font-bold uppercase tracking-wider text-[10px] mt-1">Nuevo recurso para: {{ $curso->titulo }}</p>
@@ -86,7 +86,7 @@
                         </div>
                         <div>
                             <span class="block text-sm font-black text-Alumco-blue uppercase tracking-widest">Generación de Evaluación</span>
-                            <span class="block text-xs text-Alumco-gray/60 mt-1 font-medium italic">Al guardar, se creará una evaluación vinculada. Podrás configurar las preguntas desde el panel del curso.</span>
+                            <span class="block text-xs text-Alumco-gray/60 mt-1 font-medium italic">Al guardar, se creará una evaluación vinculada. Podrás configurar las preguntas desde el panel de la capacitación.</span>
                         </div>
                     </div>
                 </div>

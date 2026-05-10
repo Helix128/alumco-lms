@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Profile;
 
-use Illuminate\Support\Facades\Storage;
+use App\Support\Signatures\SignatureImage;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -18,26 +18,24 @@ class DigitalSignature extends Component
 
     public function mount(): void
     {
-        abort_unless(auth()->user()?->isCapacitador(), 403);
+        abort_unless(auth()->user()?->hasAdminAccess() || auth()->user()?->isCapacitador(), 403);
 
         $this->firma_actual = auth()->user()->firma_digital ?? '';
     }
 
     public function guardar(): void
     {
-        abort_unless(auth()->user()?->isCapacitador(), 403);
+        abort_unless(auth()->user()?->hasAdminAccess() || auth()->user()?->isCapacitador(), 403);
 
         $this->validate([
-            'firma_digital' => 'required|image|max:1024',
+            'firma_digital' => SignatureImage::rules(),
         ]);
 
         $user = auth()->user();
 
-        if ($user->firma_digital) {
-            Storage::disk('public')->delete($user->firma_digital);
-        }
+        SignatureImage::delete($user->firma_digital);
 
-        $path = $this->firma_digital->store('firmas', 'public');
+        $path = $this->firma_digital->store(SignatureImage::Directory, 'public');
 
         $user->forceFill([
             'firma_digital' => $path,

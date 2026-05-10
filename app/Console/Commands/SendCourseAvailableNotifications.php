@@ -17,18 +17,13 @@ use Illuminate\Console\Command;
 #[Description('Envía correos a trabajadores cuando un curso queda disponible.')]
 class SendCourseAvailableNotifications extends Command
 {
-    private const TIMEZONE = 'America/Santiago';
-
-    /**
-     * Execute the console command.
-     */
     public function handle(CourseNotificationAudience $audience, CourseProgressRepository $courseProgressRepository): int
     {
         $taskRun = SystemTaskRun::start('lms:send-course-available-notifications');
         $sent = 0;
 
         try {
-            $today = now(self::TIMEZONE)->startOfDay();
+            $today = now()->startOfDay();
 
             PlanificacionCurso::query()
                 ->with(['curso.estamentos', 'curso.modulos'])

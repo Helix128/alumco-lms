@@ -479,11 +479,11 @@ html {
     position: relative;
     overflow: hidden;
     border: 1px solid rgba(255, 255, 255, 0.84);
-    border-radius: 1.5rem;
+    border-radius: 0.5rem;
     background:
-        linear-gradient(180deg, rgb(var(--chart-accent) / 0.07), transparent 30%),
+        linear-gradient(180deg, rgb(var(--chart-accent) / 0.035), transparent 30%),
         linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 255, 0.95));
-    box-shadow: 0 24px 54px rgba(32, 80, 153, 0.08);
+    box-shadow: 0 18px 40px rgba(32, 80, 153, 0.06);
 }
 
 .chart-panel::before {
@@ -534,8 +534,8 @@ html {
 .chart-panel__badge {
     flex-shrink: 0;
     border: 1px solid color-mix(in srgb, rgb(var(--chart-accent)) 22%, white);
-    border-radius: 9999px;
-    background: rgb(var(--chart-accent) / 0.08);
+    border-radius: 0.375rem;
+    background: rgb(var(--chart-accent) / 0.06);
     padding: 0.45rem 0.75rem;
     font-size: 0.68rem;
     font-weight: 900;
@@ -575,6 +575,26 @@ html {
 
 .chart-panel__placeholder--lg {
     min-height: 360px;
+}
+
+.bi-view-panel {
+    view-transition-name: bi-dashboard-view;
+}
+
+::view-transition-old(bi-dashboard-view),
+::view-transition-new(bi-dashboard-view) {
+    animation-duration: 180ms;
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .bi-view-panel,
+    .bi-view-panel *,
+    ::view-transition-old(bi-dashboard-view),
+    ::view-transition-new(bi-dashboard-view) {
+        animation: none !important;
+        transition: none !important;
+    }
 }
 
 .admin-action-button {

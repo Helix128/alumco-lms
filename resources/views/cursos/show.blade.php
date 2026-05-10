@@ -37,7 +37,7 @@
                                  stroke="currentColor" stroke-width="2.5" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
                             </svg>
-                            Mis cursos
+                            Mis capacitaciones
                         </a>
                         <span class="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-black {{ $statusClass }}">
                             <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
@@ -67,7 +67,7 @@
                              aria-valuenow="{{ $progreso }}"
                              aria-valuemin="0"
                              aria-valuemax="100"
-                             aria-label="Progreso total del curso">
+                             aria-label="Progreso total de la capacitación">
                             <div class="h-full rounded-full bg-Alumco-blue transition-all duration-[400ms] ease-out"
                                  style="width: {{ $progreso }}%"></div>
                         </div>
@@ -107,7 +107,7 @@
 <section class="mx-auto max-w-5xl pb-16">
     <div class="mb-12 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
         <div>
-            <h2 class="font-display text-3xl font-black text-Alumco-gray">Programa del curso</h2>
+            <h2 class="font-display text-3xl font-black text-Alumco-gray">Programa de la capacitación</h2>
             <p class="text-lg font-medium text-Alumco-gray/65">Avanza etapa por etapa para completar tu capacitación.</p>
         </div>
         <div class="mt-4 flex items-center gap-3 rounded-2xl bg-Alumco-blue/5 px-5 py-3 sm:mt-0">
@@ -152,7 +152,7 @@
                         <div>
                             <h3 class="font-display text-xl font-black text-Alumco-gray lg:text-2xl">{{ $seccion->titulo }}</h3>
                             <div class="mt-1 flex items-center gap-3">
-                                <span class="text-xs font-bold uppercase tracking-widest text-Alumco-gray/50">Etapa del curso</span>
+                                <span class="text-xs font-bold uppercase tracking-widest text-Alumco-gray/50">Etapa de la capacitación</span>
                                 <span class="h-1 w-1 rounded-full bg-gray-300"></span>
                                 <span class="text-xs font-black text-Alumco-blue">{{ $totalSeccion }} {{ $totalSeccion === 1 ? 'actividad' : 'actividades' }}</span>
                             </div>
@@ -221,7 +221,7 @@
 
         @if ($curso->modulos->isEmpty())
             <div class="worker-card px-5 py-14 text-center">
-                <p class="text-lg font-bold text-Alumco-gray/70">Este curso aún no tiene módulos.</p>
+                <p class="text-lg font-bold text-Alumco-gray/70">Esta capacitación aún no tiene módulos.</p>
                 <div class="mt-8">
                     <a href="{{ route('cursos.index') }}" 
                        wire:navigate
@@ -229,7 +229,7 @@
                         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
                         </svg>
-                        Volver a Mis Cursos
+                        Volver a mis capacitaciones
                     </a>
                 </div>
             </div>

@@ -12,7 +12,7 @@
             </p>
             <a href="{{ route('cursos.show', $curso) }}"
                class="worker-focus mt-7 inline-flex rounded-full bg-Alumco-blue px-8 py-4 text-lg font-black text-white shadow-sm">
-                Volver al curso
+                Volver a la capacitación
             </a>
         </div>
 
@@ -125,7 +125,7 @@
             <div class="mt-7">
                 <a href="{{ route('cursos.show', $curso) }}"
                    class="worker-focus inline-flex rounded-full bg-Alumco-blue px-8 py-4 text-lg font-black text-white shadow-sm">
-                    Volver al curso
+                    Volver a la capacitación
                 </a>
             </div>
 

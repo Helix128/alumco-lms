@@ -2,16 +2,13 @@
 
 namespace App\Livewire\Support;
 
-use App\Models\SupportTicket;
-use App\Models\SupportTicketMessage;
-use App\Notifications\SupportTicketRequesterNotification;
-use Illuminate\Contracts\View\View;
-use Illuminate\Database\Eloquent\Builder;
 use App\Actions\Support\CreateSupportTicketAction;
 use App\Models\SupportTicket;
 use App\Models\SupportTicketMessage;
-use App\Models\User;
 use App\Notifications\SupportTicketRequesterNotification;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\Rule;
@@ -25,46 +22,25 @@ class ManageTickets extends Component
     use WithFileUploads;
     use WithPagination;
 
+    #[Url(as: 'q', except: '')]
     public string $search = '';
 
-    public string $status = '';
-
-    public string $assigned = '';
-
-    public ?int $selectedTicketId = null;
-
-    public string $newStatus = SupportTicket::StatusNew;
-
-    public string $newPriority = SupportTicket::PriorityMedium;
-
-    public bool $isInternalReply = false;
-
-    public string $replyBody = '';
     #[Url(as: 'estado', except: '')]
     public string $status = '';
-
-    #[Url(as: 'prioridad', except: '')]
-    public string $priority = '';
-
-    #[Url(as: 'categoria', except: '')]
-    public string $category = '';
 
     #[Url(as: 'asignado', except: '')]
     public string $assigned = '';
 
-    #[Url(as: 'q', except: '')]
-    public string $search = '';
-
     #[Url(as: 'ticket', except: null)]
     public ?int $selectedTicketId = null;
-
-    public string $replyBody = '';
-
-    public bool $isInternalReply = false;
 
     public string $newStatus = SupportTicket::StatusInReview;
 
     public string $newPriority = SupportTicket::PriorityMedium;
+
+    public bool $isInternalReply = false;
+
+    public string $replyBody = '';
 
     /**
      * @var array<int, mixed>
@@ -73,85 +49,92 @@ class ManageTickets extends Component
 
     protected string $paginationTheme = 'tailwind';
 
-    protected $queryString = [
-        'search' => ['except' => ''],
-        'status' => ['except' => ''],
-        'assigned' => ['except' => ''],
-        'selectedTicketId' => ['except' => null],
-    ];
-
-    public function selectTicket(int $ticketId): void
-    {
-        $this->selectedTicketId = $ticketId;
-        $selected = $this->selectedTicket();
-        if ($selected !== null) {
-            $this->newStatus = $selected->status;
-            $this->newPriority = $selected->priority;
-        }
     public function mount(): void
     {
         abort_unless(auth()->user()?->isDesarrollador(), 403);
+
+        if ($this->selectedTicketId !== null) {
+            $ticket = $this->selectedTicket();
+
+            if ($ticket === null) {
+                $this->selectedTicketId = null;
+
+                return;
+            }
+
+            $this->syncSelectionState($ticket);
+        }
     }
 
     public function updated(string $property): void
     {
-        if (in_array($property, ['status', 'priority', 'category', 'assigned', 'search'], true)) {
+        if (in_array($property, ['search', 'status', 'assigned'], true)) {
             $this->resetPage();
         }
     }
 
     public function selectTicket(int $ticketId): void
     {
-        $ticket = SupportTicket::findOrFail($ticketId);
-        $this->authorizeDeveloper($ticket);
-        $this->selectedTicketId = $ticket->id;
-        $this->newStatus = $ticket->status;
-        $this->newPriority = $ticket->priority;
-        $this->reset(['replyBody', 'replyAttachments', 'isInternalReply']);
+        $ticket = SupportTicket::query()->findOrFail($ticketId);
+
+        $this->syncSelectionState($ticket);
     }
 
     public function assignToMe(): void
     {
         $ticket = $this->selectedTicket();
+
         if ($ticket === null) {
             return;
         }
 
+        $status = $ticket->status === SupportTicket::StatusNew
+            ? SupportTicket::StatusInReview
+            : $ticket->status;
+
         $ticket->update([
             'assigned_to_id' => auth()->id(),
-            'status' => $ticket->status === SupportTicket::StatusNew
-                ? SupportTicket::StatusInReview
-                : $ticket->status,
+            'status' => $status,
             'last_activity_at' => now(),
-        $ticket->update([
-            'assigned_to_id' => auth()->id(),
-            'status' => $ticket->status === SupportTicket::StatusNew ? SupportTicket::StatusInReview : $ticket->status,
         ]);
+
+        $this->newStatus = $status;
     }
 
     public function updateTicket(): void
     {
         $ticket = $this->selectedTicket();
+
         if ($ticket === null) {
             return;
         }
 
-        $ticket->update([
-            'status' => $this->newStatus,
-            'priority' => $this->newPriority,
-            'last_activity_at' => now(),
-            'resolved_at' => $this->newStatus === SupportTicket::StatusResolved ? now() : $ticket->resolved_at,
-            'closed_at' => $this->newStatus === SupportTicket::StatusClosed ? now() : $ticket->closed_at,
+        $data = $this->validate([
+            'newStatus' => ['required', Rule::in(SupportTicket::Statuses)],
+            'newPriority' => ['required', Rule::in(SupportTicket::Priorities)],
         ]);
 
-        if ($ticket->requester !== null) {
-            if ($this->newStatus === SupportTicket::StatusResolved) {
-                $ticket->requester->notify(new SupportTicketRequesterNotification($ticket->fresh(), 'resolved'));
-            }
+        $wasResolved = $ticket->status === SupportTicket::StatusResolved;
+        $wasWaitingUser = $ticket->status === SupportTicket::StatusWaitingUser;
+        $isResolved = $data['newStatus'] === SupportTicket::StatusResolved;
+        $isClosed = $data['newStatus'] === SupportTicket::StatusClosed;
 
-            if ($this->newStatus === SupportTicket::StatusWaitingUser) {
-                $ticket->requester->notify(new SupportTicketRequesterNotification($ticket->fresh(), 'waiting_user'));
-            }
+        $ticket->update([
+            'status' => $data['newStatus'],
+            'priority' => $data['newPriority'],
+            'last_activity_at' => now(),
+            'resolved_at' => $isResolved ? ($ticket->resolved_at ?? now()) : null,
+            'closed_at' => $isClosed ? ($ticket->closed_at ?? now()) : null,
+        ]);
+
+        $ticket->refresh();
+
+        if ($isResolved && ! $wasResolved) {
+            $this->notifyRequester($ticket, 'resolved');
+        }
+
+        if ($ticket->status === SupportTicket::StatusWaitingUser && ! $wasWaitingUser) {
+            $this->notifyRequester($ticket, 'waiting_user');
         }
     }
 
@@ -163,90 +146,12 @@ class ManageTickets extends Component
     public function replyAndResolve(): void
     {
         $this->persistReply(true);
-
-        $data = $this->validate([
-            'newStatus' => ['required', Rule::in(SupportTicket::Statuses)],
-            'newPriority' => ['required', Rule::in(SupportTicket::Priorities)],
-        ]);
-
-        $wasResolved = $ticket->status === SupportTicket::StatusResolved;
-        $isResolved = $data['newStatus'] === SupportTicket::StatusResolved;
-        $isClosed = $data['newStatus'] === SupportTicket::StatusClosed;
-        $movedToWaitingUser = $ticket->status !== SupportTicket::StatusWaitingUser
-            && $data['newStatus'] === SupportTicket::StatusWaitingUser;
-
-        $ticket->update([
-            'status' => $data['newStatus'],
-            'priority' => $data['newPriority'],
-            'resolved_at' => $isResolved && ! $wasResolved ? now() : $ticket->resolved_at,
-            'closed_at' => $isClosed ? now() : $ticket->closed_at,
-            'last_activity_at' => now(),
-        ]);
-
-        if ($isResolved && ! $wasResolved) {
-            $this->notifyRequester($ticket->refresh(), 'resolved');
-        } elseif ($movedToWaitingUser) {
-            $this->notifyRequester($ticket->refresh(), 'waiting_user');
-        }
-    }
-
-    public function reply(CreateSupportTicketAction $attachmentsAction): void
-    {
-        $ticket = $this->selectedTicket();
-
-        $data = $this->validate([
-            'replyBody' => ['required', 'string', 'min:3', 'max:5000'],
-            'replyAttachments' => ['array', 'max:3'],
-            'replyAttachments.*' => ['file', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
-        ], [
-            'replyBody.required' => 'Escribe una respuesta.',
-            'replyAttachments.max' => 'Puedes adjuntar hasta 3 capturas.',
-            'replyAttachments.*.mimes' => 'Las capturas deben ser jpg, jpeg, png o webp.',
-            'replyAttachments.*.max' => 'Cada captura puede pesar hasta 4 MB.',
-        ]);
-
-        $message = SupportTicketMessage::create([
-            'support_ticket_id' => $ticket->id,
-            'author_user_id' => auth()->id(),
-            'body' => $data['replyBody'],
-            'is_internal' => $this->isInternalReply,
-        ]);
-
-        $attachmentsAction->storeAttachments($ticket, $message, $data['replyAttachments'] ?? []);
-
-        if (! $this->isInternalReply) {
-            $ticket->update([
-                'status' => SupportTicket::StatusWaitingUser,
-                'last_activity_at' => now(),
-            ]);
-            $this->notifyRequester($ticket->refresh(), 'reply');
-        } else {
-            $ticket->touch('last_activity_at');
-        }
-
-        $this->reset(['replyBody', 'replyAttachments', 'isInternalReply']);
-        $this->newStatus = $ticket->status;
-    }
-
-    public function replyAndResolve(CreateSupportTicketAction $attachmentsAction): void
-    {
-        $this->reply($attachmentsAction);
-
-        $ticket = $this->selectedTicket();
-        if ($ticket->status !== SupportTicket::StatusResolved) {
-            $ticket->update([
-                'status' => SupportTicket::StatusResolved,
-                'resolved_at' => now(),
-                'last_activity_at' => now(),
-            ]);
-            $this->notifyRequester($ticket->refresh(), 'resolved');
-            $this->newStatus = SupportTicket::StatusResolved;
-        }
     }
 
     public function closeTicket(): void
     {
         $ticket = $this->selectedTicket();
+
         if ($ticket === null) {
             return;
         }
@@ -256,33 +161,56 @@ class ManageTickets extends Component
             'closed_at' => now(),
             'last_activity_at' => now(),
         ]);
+
         $this->newStatus = SupportTicket::StatusClosed;
     }
 
+    /**
+     * @return array<int, string>
+     */
     public function getStatusesProperty(): array
     {
         return SupportTicket::Statuses;
     }
 
+    /**
+     * @return array{critical: int, new: int, waiting: int, resolved_recent: int}
+     */
     public function getCountersProperty(): array
     {
-        return [
-            'critical' => SupportTicket::query()->open()->where('priority', SupportTicket::PriorityCritical)->count(),
-            'new' => SupportTicket::query()->where('status', SupportTicket::StatusNew)->count(),
-            'waiting' => SupportTicket::query()->where('status', SupportTicket::StatusWaitingUser)->count(),
-        ];
+        return Cache::flexible('support_ticket_counters', [15, 60], function (): array {
+            return [
+                'new' => SupportTicket::query()->where('status', SupportTicket::StatusNew)->count(),
+                'critical' => SupportTicket::query()->open()->where('priority', SupportTicket::PriorityCritical)->count(),
+                'waiting' => SupportTicket::query()->where('status', SupportTicket::StatusWaitingUser)->count(),
+                'resolved_recent' => SupportTicket::query()
+                    ->where('status', SupportTicket::StatusResolved)
+                    ->where('resolved_at', '>=', now()->subDays(7))
+                    ->count(),
+            ];
+        });
     }
 
-    public function getTicketsProperty()
+    public function getTicketsProperty(): LengthAwarePaginator
     {
         return SupportTicket::query()
             ->with(['requester', 'assignee'])
             ->when($this->search !== '', function (Builder $query): void {
                 $search = trim($this->search);
+
                 $query->where(function (Builder $inner) use ($search): void {
                     $inner->where('subject', 'like', "%{$search}%")
-                        ->orWhere('id', $search)
-                        ->orWhereHas('requester', fn (Builder $requester) => $requester->where('name', 'like', "%{$search}%"));
+                        ->orWhere('description', 'like', "%{$search}%")
+                        ->orWhere('contact_name', 'like', "%{$search}%")
+                        ->orWhere('contact_email', 'like', "%{$search}%")
+                        ->orWhereHas('requester', function (Builder $requester) use ($search): void {
+                            $requester->where('name', 'like', "%{$search}%")
+                                ->orWhere('email', 'like', "%{$search}%");
+                        });
+
+                    if (ctype_digit($search)) {
+                        $inner->orWhereKey((int) $search);
+                    }
                 });
             })
             ->when($this->status !== '', fn (Builder $query) => $query->where('status', $this->status))
@@ -317,6 +245,7 @@ class ManageTickets extends Component
         return SupportTicket::query()
             ->with([
                 'requester',
+                'assignee',
                 'attachments',
                 'messages' => fn ($query) => $query->with(['author', 'attachments'])->oldest(),
             ])
@@ -326,14 +255,20 @@ class ManageTickets extends Component
     private function persistReply(bool $resolveAfterReply): void
     {
         $ticket = $this->selectedTicket();
+
         if ($ticket === null) {
             return;
         }
 
         $validated = $this->validate([
-            'replyBody' => ['required', 'string', 'min:2', 'max:5000'],
+            'replyBody' => ['required', 'string', 'min:3', 'max:5000'],
             'replyAttachments' => ['array', 'max:3'],
             'replyAttachments.*' => ['file', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+        ], [
+            'replyBody.required' => 'Escribe una respuesta.',
+            'replyAttachments.max' => 'Puedes adjuntar hasta 3 capturas.',
+            'replyAttachments.*.mimes' => 'Las capturas deben ser jpg, jpeg, png o webp.',
+            'replyAttachments.*.max' => 'Cada captura puede pesar hasta 4 MB.',
         ]);
 
         $message = SupportTicketMessage::query()->create([
@@ -343,114 +278,66 @@ class ManageTickets extends Component
             'is_internal' => $this->isInternalReply,
         ]);
 
-        foreach ($validated['replyAttachments'] ?? [] as $file) {
-            $path = $file->store("support/{$ticket->id}", 'local');
-            $message->attachments()->create([
-                'support_ticket_id' => $ticket->id,
-                'path' => $path,
-                'original_name' => $file->getClientOriginalName(),
-                'mime' => $file->getClientMimeType(),
-                'size' => $file->getSize(),
-            ]);
-        }
+        app(CreateSupportTicketAction::class)->storeAttachments(
+            $ticket,
+            $message,
+            $validated['replyAttachments'] ?? [],
+        );
 
-        $newStatus = $resolveAfterReply && ! $this->isInternalReply
-            ? SupportTicket::StatusResolved
-            : ($ticket->status === SupportTicket::StatusNew ? SupportTicket::StatusInReview : $ticket->status);
+        $newStatus = $ticket->status;
+        $resolvedAt = $ticket->resolved_at;
+
+        if ($this->isInternalReply) {
+            if ($ticket->status === SupportTicket::StatusNew) {
+                $newStatus = SupportTicket::StatusInReview;
+            }
+        } elseif ($resolveAfterReply) {
+            $newStatus = SupportTicket::StatusResolved;
+            $resolvedAt = $ticket->resolved_at ?? now();
+        } else {
+            $newStatus = SupportTicket::StatusWaitingUser;
+            $resolvedAt = null;
+        }
 
         $ticket->update([
-            'status' => $newStatus,
             'assigned_to_id' => $ticket->assigned_to_id ?: auth()->id(),
+            'status' => $newStatus,
             'last_activity_at' => now(),
-            'resolved_at' => $newStatus === SupportTicket::StatusResolved ? now() : $ticket->resolved_at,
+            'resolved_at' => $resolvedAt,
+            'closed_at' => $newStatus === SupportTicket::StatusClosed ? ($ticket->closed_at ?? now()) : null,
         ]);
 
-        $this->replyBody = '';
-        $this->replyAttachments = [];
-        $this->isInternalReply = false;
-        $this->newStatus = $newStatus;
-    public function render()
-    {
-        abort_unless(auth()->user()?->isDesarrollador(), 403);
+        $ticket->refresh();
 
-        $query = SupportTicket::query()
-            ->with(['requester', 'assignee'])
-            ->when($this->status !== '', fn ($query) => $query->where('status', $this->status))
-            ->when($this->priority !== '', fn ($query) => $query->where('priority', $this->priority))
-            ->when($this->category !== '', fn ($query) => $query->where('category', $this->category))
-            ->when($this->assigned === 'mine', fn ($query) => $query->where('assigned_to_id', auth()->id()))
-            ->when($this->assigned === 'unassigned', fn ($query) => $query->whereNull('assigned_to_id'))
-            ->when($this->search !== '', function ($query): void {
-                $term = '%'.$this->search.'%';
-                $query->where(fn ($query) => $query
-                    ->where('subject', 'like', $term)
-                    ->orWhere('description', 'like', $term)
-                    ->orWhere('contact_name', 'like', $term)
-                    ->orWhere('contact_email', 'like', $term));
-            })
-            ->latest('last_activity_at')
-            ->latest();
-
-        $selectedTicket = $this->selectedTicketId
-            ? SupportTicket::with([
-                'requester',
-                'assignee',
-                'attachments',
-                'messages' => fn ($q) => $q->orderBy('created_at', 'asc'),
-                'messages.author',
-                'messages.attachments',
-            ])->find($this->selectedTicketId)
-            : null;
-
-        if ($selectedTicket && $this->newStatus === '') {
-            $this->newStatus = $selectedTicket->status;
-            $this->newPriority = $selectedTicket->priority;
+        if (! $this->isInternalReply) {
+            $this->notifyRequester($ticket, $resolveAfterReply ? 'resolved' : 'reply');
         }
 
-        $counters = Cache::flexible('support_ticket_counters', [15, 60], function (): array {
-            return [
-                'new' => SupportTicket::where('status', SupportTicket::StatusNew)->count(),
-                'critical' => SupportTicket::open()->where('priority', SupportTicket::PriorityCritical)->count(),
-                'waiting' => SupportTicket::where('status', SupportTicket::StatusWaitingUser)->count(),
-                'resolved_recent' => SupportTicket::where('status', SupportTicket::StatusResolved)
-                    ->where('resolved_at', '>=', now()->subDays(7))
-                    ->count(),
-            ];
-        });
-
-        return view('livewire.support.manage-tickets', [
-            'tickets' => $query->paginate(12),
-            'selectedTicket' => $selectedTicket,
-            'statuses' => SupportTicket::Statuses,
-            'priorities' => SupportTicket::Priorities,
-            'categories' => SupportTicket::Categories,
-            'counters' => $counters,
-        ]);
+        $this->reset(['replyBody', 'replyAttachments', 'isInternalReply']);
+        $this->newStatus = $ticket->status;
+        $this->newPriority = $ticket->priority;
     }
 
-    private function selectedTicket(): SupportTicket
+    private function syncSelectionState(SupportTicket $ticket): void
     {
-        $ticket = SupportTicket::findOrFail($this->selectedTicketId);
-        $this->authorizeDeveloper($ticket);
-
-        return $ticket;
-    }
-
-    private function authorizeDeveloper(SupportTicket $ticket): void
-    {
-        abort_unless(auth()->user()?->can('manage', $ticket), 403);
+        $this->selectedTicketId = $ticket->id;
+        $this->newStatus = $ticket->status;
+        $this->newPriority = $ticket->priority;
+        $this->reset(['replyBody', 'replyAttachments', 'isInternalReply']);
     }
 
     private function notifyRequester(SupportTicket $ticket, string $type): void
     {
-        if ($ticket->requester instanceof User) {
+        if ($ticket->requester !== null) {
             $ticket->requester->notify(new SupportTicketRequesterNotification($ticket, $type));
 
             return;
         }
 
-        if ($ticket->contact_email) {
-            Notification::route('mail', $ticket->contact_email)
+        $email = $ticket->requesterEmail();
+
+        if ($email !== null && $email !== '') {
+            Notification::route('mail', $email)
                 ->notify(new SupportTicketRequesterNotification($ticket, $type));
         }
     }

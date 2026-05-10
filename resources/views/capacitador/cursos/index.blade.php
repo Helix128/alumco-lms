@@ -1,7 +1,7 @@
 @extends('layouts.panel')
 
-@section('title', 'Cursos')
-@section('header_title', 'Cursos y Material')
+@section('title', 'Capacitaciones')
+@section('header_title', 'Capacitaciones y material')
 
 @section('content')
 <div class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -14,7 +14,7 @@
         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
         </svg>
-        Nuevo curso
+        Nueva capacitación
     </a>
 </div>
 
@@ -24,7 +24,7 @@
         <table class="w-full text-left border-collapse">
             <thead>
                 <tr class="bg-gray-50/50">
-                    <th class="px-8 py-5 text-[11px] font-display font-bold uppercase tracking-widest text-gray-400 border-b border-gray-100 hidden md:table-cell">Curso</th>
+                    <th class="px-8 py-5 text-[11px] font-display font-bold uppercase tracking-widest text-gray-400 border-b border-gray-100 hidden md:table-cell">Capacitación</th>
                     <th class="px-8 py-5 text-[11px] font-display font-bold uppercase tracking-widest text-gray-400 border-b border-gray-100">Capacitador</th>
                     <th class="px-8 py-5 text-[11px] font-display font-bold uppercase tracking-widest text-gray-400 border-b border-gray-100 text-center">Estructura</th>
                     <th class="px-8 py-5 text-[11px] font-display font-bold uppercase tracking-widest text-gray-400 border-b border-gray-100 text-center">Estado</th>
@@ -68,7 +68,7 @@
                             @else
                                 <div class="flex flex-col">
                                     <span class="text-sm font-bold text-Alumco-gray leading-tight">{{ $curso->capacitador->name }}</span>
-                                    <span class="text-[10px] text-Alumco-gray/40 font-bold uppercase tracking-widest">Colaborador</span>
+                                    <span class="text-[10px] text-Alumco-gray/40 font-bold uppercase tracking-widest">Capacitador</span>
                                 </div>
                             @endif
                         </td>
@@ -120,9 +120,9 @@
                                 </button>
 
                                 <form action="{{ route('capacitador.cursos.destroy', $curso) }}" method="POST"
-                                      onsubmit="return confirm('¿Eliminar este curso? Esta acción no se puede deshacer.')" class="inline">
+                                      onsubmit="return confirm('¿Eliminar esta capacitación? Esta acción no se puede deshacer.')" class="inline">
                                     @csrf @method('DELETE')
-                                    <button type="submit" class="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-50 text-Alumco-gray hover:bg-Alumco-coral hover:text-white transition-all shadow-sm" title="Eliminar Curso">
+                                    <button type="submit" class="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-50 text-Alumco-gray hover:bg-Alumco-coral hover:text-white transition-all shadow-sm" title="Eliminar capacitación">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                         </svg>
@@ -136,8 +136,8 @@
                         <td colspan="5" class="px-8 py-20 text-center">
                             <div class="flex flex-col items-center opacity-40">
                                 <svg class="w-12 h-12 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
-                                <p class="font-display font-bold">No has creado cursos aún</p>
-                                <a href="{{ route('capacitador.cursos.crear') }}" class="text-sm font-bold text-Alumco-blue hover:underline mt-2">Crear el primero</a>
+                                <p class="font-display font-bold">No has creado capacitaciones aún</p>
+                                <a href="{{ route('capacitador.cursos.crear') }}" class="text-sm font-bold text-Alumco-blue hover:underline mt-2">Crear la primera</a>
                             </div>
                         </td>
                     </tr>
@@ -152,7 +152,7 @@
     @endif
 </div>
 
-<!-- Modal Duplicar Curso -->
+<!-- Modal Duplicar capacitación -->
 <div id="duplicate-modal-backdrop" class="fixed inset-0 bg-Alumco-gray/40 backdrop-blur-sm z-50 opacity-0 pointer-events-none transition-opacity duration-300" aria-hidden="true"></div>
 <div id="duplicate-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all duration-300 scale-95" aria-hidden="true">
     <div class="bg-white w-full max-w-md rounded-3xl shadow-xl overflow-hidden">
@@ -164,7 +164,7 @@
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"></path></svg>
                     </div>
                     <div>
-                        <h3 class="text-xl font-display font-black text-Alumco-blue">Duplicar Curso</h3>
+                        <h3 class="text-xl font-display font-black text-Alumco-blue">Duplicar capacitación</h3>
                         <p class="text-[10px] font-bold text-Alumco-gray/40 uppercase tracking-widest mt-1">Crear nueva versión</p>
                     </div>
                 </div>
@@ -187,31 +187,63 @@
 </div>
 
 <script>
-    const dupBackdrop = document.getElementById('duplicate-modal-backdrop');
-    const dupModal = document.getElementById('duplicate-modal');
-    const dupForm = document.getElementById('duplicate-form');
-    const dupTitle = document.getElementById('duplicate-title');
-    let isDupOpen = false;
+    window.alumcoDuplicateModal = window.alumcoDuplicateModal || {
+        isOpen: false,
+        backdropClickBound: false,
+        escapeKeyBound: false,
+    };
 
-    function openDuplicateModal(actionUrl, tituloActual) {
+    window.openDuplicateModal = function (actionUrl, tituloActual) {
+        const dupBackdrop = document.getElementById('duplicate-modal-backdrop');
+        const dupModal = document.getElementById('duplicate-modal');
+        const dupForm = document.getElementById('duplicate-form');
+        const dupTitle = document.getElementById('duplicate-title');
+
+        if (! dupBackdrop || ! dupModal || ! dupForm || ! dupTitle) {
+            return;
+        }
+
         dupForm.action = actionUrl;
         dupTitle.value = tituloActual + ' (Copia)';
-        
+
         dupBackdrop.classList.remove('opacity-0', 'pointer-events-none');
         dupModal.classList.remove('opacity-0', 'pointer-events-none', 'scale-95');
         dupModal.classList.add('scale-100');
         dupTitle.focus();
-        isDupOpen = true;
-    }
+        window.alumcoDuplicateModal.isOpen = true;
+    };
 
-    function closeDuplicateModal() {
+    window.closeDuplicateModal = function () {
+        const dupBackdrop = document.getElementById('duplicate-modal-backdrop');
+        const dupModal = document.getElementById('duplicate-modal');
+
+        if (! dupBackdrop || ! dupModal) {
+            window.alumcoDuplicateModal.isOpen = false;
+            return;
+        }
+
         dupBackdrop.classList.add('opacity-0', 'pointer-events-none');
         dupModal.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
         dupModal.classList.remove('scale-100');
-        isDupOpen = false;
+        window.alumcoDuplicateModal.isOpen = false;
+    };
+
+    if (! window.alumcoDuplicateModal.backdropClickBound) {
+        document.addEventListener('click', (event) => {
+            if (event.target?.id === 'duplicate-modal-backdrop') {
+                window.closeDuplicateModal();
+            }
+        });
+        window.alumcoDuplicateModal.backdropClickBound = true;
     }
 
-    dupBackdrop.addEventListener('click', closeDuplicateModal);
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && isDupOpen) closeDuplicateModal(); });
+    if (! window.alumcoDuplicateModal.escapeKeyBound) {
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && window.alumcoDuplicateModal.isOpen) {
+                window.closeDuplicateModal();
+            }
+        });
+        window.alumcoDuplicateModal.escapeKeyBound = true;
+    }
 </script>
 @endsection

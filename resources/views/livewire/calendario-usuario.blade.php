@@ -81,7 +81,7 @@
                                         </span>
                                     </div>
 
-                                    {{-- Chips de cursos --}}
+                                    {{-- Chips de capacitaciones --}}
                                     <div class="space-y-0.5">
                                         @foreach(array_slice($dia['cursos'], 0, 2) as $curso)
                                             <div class="rounded px-1 py-0.5 {{ $curso['bg'] }} truncate text-white text-[10px] sm:text-xs leading-tight" title="{{ $curso['titulo'] }}">
@@ -101,7 +101,7 @@
             </div>
         </div>
 
-        {{-- ── Cursos activos / del mes ──────────────────────────────────── --}}
+        {{-- ── Capacitaciones activas / del mes ──────────────────────────────────── --}}
         <div>
             <h2 class="text-xl font-bold text-Alumco-gray mb-4 flex items-center gap-2">
                 <span class="inline-block w-2 h-6 bg-Alumco-green-vivid rounded-full"></span>
@@ -128,7 +128,7 @@
                             @if($item['activo'])
                                 <span class="self-start sm:self-center shrink-0 inline-flex items-center gap-1 bg-green-100 text-green-800 text-sm font-medium px-3 py-1 rounded-full">
                                     <span class="w-2 h-2 bg-green-500 rounded-full"></span>
-                                    En curso
+                                    En proceso
                                 </span>
                             @else
                                 <span class="self-start sm:self-center shrink-0 inline-flex items-center gap-1 bg-blue-50 text-Alumco-blue text-sm font-medium px-3 py-1 rounded-full">

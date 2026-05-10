@@ -69,10 +69,15 @@ class UserHierarchyTest extends TestCase
             ->assertForbidden();
     }
 
-    public function test_a_developer_can_edit_an_admin()
+    public function test_a_developer_can_access_admin_user_management_and_edit_an_admin()
     {
         $dev = $this->createDev();
         $admin = $this->createAdmin();
+
+        $this
+            ->actingAs($dev)
+            ->get(route('admin.usuarios.index'))
+            ->assertOk();
 
         Livewire::actingAs($dev)
             ->test(UserManagement::class)

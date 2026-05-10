@@ -9,16 +9,6 @@
     $cloudTopBase64 = file_exists($cloudTopPath) ? base64_encode(file_get_contents($cloudTopPath)) : null;
     $cloudBottomBase64 = file_exists($cloudBottomPath) ? base64_encode(file_get_contents($cloudBottomPath)) : null;
 
-    $firmaCapBase64 = null;
-    if ($capacitador->firma_digital && Storage::disk('public')->exists($capacitador->firma_digital)) {
-        $firmaCapBase64 = base64_encode(Storage::disk('public')->get($capacitador->firma_digital));
-    }
-
-    $firmaRepBase64 = null;
-    if ($firmaRepLegal && Storage::disk('public')->exists($firmaRepLegal)) {
-        $firmaRepBase64 = base64_encode(Storage::disk('public')->get($firmaRepLegal));
-    }
-
     $sexoUsuario = strtolower(trim((string) ($user->sexo ?? '')));
     if (in_array($sexoUsuario, ['m', 'masculino', 'hombre'], true)) {
         $articulo = 'el';
@@ -366,15 +356,15 @@
                 <div class="body">
                     <p class="prelude">{{ $presentacion }}</p>
                     <p class="student-name">{{ $user->name }}</p>
-                    <p class="completion-text">ha completado satisfactoriamente el curso</p>
+                    <p class="completion-text">ha completado satisfactoriamente la capacitación</p>
                     <p class="course-name">"{{ $curso->titulo }}"</p>
                 </div>
 
                 <div class="signatures">
                     <div class="signature-box">
                         <div class="signature-image-wrapper">
-                            @if ($firmaCapBase64)
-                                <img class="signature-image" src="data:image/png;base64,{{ $firmaCapBase64 }}" alt="Firma de {{ $capacitador->name }}">
+                            @if ($firmaCapDataUri)
+                                <img class="signature-image" src="{{ $firmaCapDataUri }}" alt="Firma de {{ $capacitador->name }}">
                             @endif
                         </div>
                         <div class="signature-line"></div>
@@ -384,8 +374,8 @@
 
                     <div class="signature-box-right">
                         <div class="signature-image-wrapper">
-                            @if ($firmaRepBase64)
-                                <img class="signature-image" src="data:image/png;base64,{{ $firmaRepBase64 }}" alt="Firma del representante legal">
+                            @if ($firmaRepDataUri)
+                                <img class="signature-image" src="{{ $firmaRepDataUri }}" alt="Firma del representante legal">
                             @endif
                         </div>
                         <div class="signature-line"></div>

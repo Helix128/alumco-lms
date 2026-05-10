@@ -13,7 +13,7 @@
     @endphp
 
     <div class="mb-8">
-        <h2 class="text-xl font-display font-bold text-Alumco-blue/70">Resumen de Actividad Académica</h2>
+        <h2 class="text-xl font-display font-bold text-Alumco-blue/70">Resumen de Actividad de capacitación</h2>
     </div>
 
     {{-- KPI Cards --}}
@@ -26,7 +26,7 @@
             </div>
             <div>
                 <p class="text-3xl font-display font-black text-Alumco-blue">{{ $stats['cursos'] }}</p>
-                <p class="text-[11px] font-display font-black text-gray-400 uppercase tracking-widest">Mis Cursos</p>
+                <p class="text-[11px] font-display font-black text-gray-400 uppercase tracking-widest">Mis capacitaciones</p>
             </div>
         </div>
 
@@ -70,10 +70,10 @@
         </div>
     </div>
 
-    {{-- Últimos cursos --}}
+    {{-- Últimas capacitaciones --}}
     <div class="bg-white p-8 rounded-[32px] border border-gray-200 shadow-none flex flex-col overflow-hidden">
             <div class="flex items-center justify-between mb-6">
-                <h3 class="text-lg font-display font-black text-Alumco-blue">Últimos Cursos</h3>
+                <h3 class="text-lg font-display font-black text-Alumco-blue">Últimas capacitaciones</h3>
                 <a href="{{ route('capacitador.cursos.index') }}" class="text-xs font-bold text-Alumco-blue hover:underline">Ver todos</a>
             </div>
             
@@ -106,7 +106,7 @@
                                 </td>
                             </tr>
                         @empty
-                            <tr><td colspan="2" class="py-10 text-center text-Alumco-gray/30 font-medium">No has creado cursos aún.</td></tr>
+                            <tr><td colspan="2" class="py-10 text-center text-Alumco-gray/30 font-medium">No has creado capacitaciones aún.</td></tr>
                         @endforelse
                     </tbody>
                 </table>

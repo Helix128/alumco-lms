@@ -10,12 +10,11 @@ class EstamentoSeeder extends Seeder
     public function run(): void
     {
         $estamentos = [
-            'Directivos',
             'Profesionales',
-            'Técnicos',
-            'Administrativos',
-            'Operarios',
             'Auxiliares de servicio',
+            'Manipuladores de alimentos',
+            'Asistentes de trato directo (ATD)',
+            'Personal de administración',
         ];
 
         foreach ($estamentos as $nombre) {

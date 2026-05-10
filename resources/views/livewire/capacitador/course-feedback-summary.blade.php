@@ -1,7 +1,7 @@
 <div class="space-y-4">
     <div class="flex items-center justify-between gap-3">
         <div>
-            <h3 class="text-sm font-black text-Alumco-blue uppercase tracking-[0.2em]">Feedback del curso</h3>
+            <h3 class="text-sm font-black text-Alumco-blue uppercase tracking-[0.2em]">Feedback de la capacitación</h3>
             <p class="text-[10px] text-Alumco-gray/65 font-bold uppercase mt-1">Satisfacción y comentarios</p>
         </div>
         <span class="rounded-full bg-Alumco-green/25 px-3 py-1 text-xs font-black text-Alumco-green-accessible">

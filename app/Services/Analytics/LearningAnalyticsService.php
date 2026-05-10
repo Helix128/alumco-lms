@@ -79,6 +79,30 @@ class LearningAnalyticsService
     }
 
     /**
+     * @param  Collection<int, int>  $courseIds
+     * @return array{total_participantes: int, iniciados: int, completados: int, en_riesgo: int, feedback_promedio: float|null}
+     */
+    public function summaryForCourseIds(Collection $courseIds): array
+    {
+        if ($courseIds->isEmpty()) {
+            return [
+                'total_participantes' => 0,
+                'iniciados' => 0,
+                'completados' => 0,
+                'en_riesgo' => 0,
+                'feedback_promedio' => null,
+            ];
+        }
+
+        return $this->summaryForCourses(
+            Curso::query()
+                ->whereIn('id', $courseIds)
+                ->with(['estamentos.users', 'planificaciones'])
+                ->get()
+        );
+    }
+
+    /**
      * @return array{total_participantes: int, iniciados: int, completados: int, en_riesgo: int, feedback_promedio: float|null}
      */
     public function summaryFromAggregates(): array

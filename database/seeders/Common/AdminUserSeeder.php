@@ -2,7 +2,6 @@
 
 namespace Database\Seeders\Common;
 
-use App\Models\Estamento;
 use App\Models\Sede;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -13,8 +12,6 @@ class AdminUserSeeder extends Seeder
     public function run(): void
     {
         $sede = Sede::query()->first();
-        // El estamento ahora es opcional para administradores de sistema
-        $estamentoDirectivo = Estamento::where('nombre', 'Directivos')->first();
 
         if (! $sede) {
             return;
@@ -27,7 +24,7 @@ class AdminUserSeeder extends Seeder
                 'password' => Hash::make('password'),
                 'rut' => '11.111.111-1',
                 'sede_id' => $sede->id,
-                'estamento_id' => $estamentoDirectivo?->id,
+                'estamento_id' => null,
                 'activo' => true,
             ]
         );
@@ -40,7 +37,7 @@ class AdminUserSeeder extends Seeder
                 'password' => Hash::make('password'),
                 'rut' => '22.222.222-2',
                 'sede_id' => $sede->id,
-                'estamento_id' => $estamentoDirectivo?->id,
+                'estamento_id' => null,
                 'activo' => true,
             ]
         );

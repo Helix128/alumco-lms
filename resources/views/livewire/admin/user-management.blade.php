@@ -164,7 +164,7 @@
                         <th class="px-6 py-5 text-[11px] font-display font-bold uppercase tracking-widest text-gray-400 border-b border-gray-100">Colaborador</th>
                         <th class="px-6 py-5 text-[11px] font-display font-bold uppercase tracking-widest text-gray-400 border-b border-gray-100">Email</th>
                         <th class="px-6 py-5 text-[11px] font-display font-bold uppercase tracking-widest text-gray-400 border-b border-gray-100">RUT</th>
-                        <th class="px-6 py-5 text-[11px] font-display font-bold uppercase tracking-widest text-gray-400 border-b border-gray-100">Rol</th>
+                        <th class="px-6 py-5 text-[11px] font-display font-bold uppercase tracking-widest text-gray-400 border-b border-gray-100">Perfil</th>
                         <th class="px-6 py-5 text-[11px] font-display font-bold uppercase tracking-widest text-gray-400 border-b border-gray-100">Estamento</th>
                         <th class="px-6 py-5 text-[11px] font-display font-bold uppercase tracking-widest text-gray-400 border-b border-gray-100">Sede</th>
                         <th class="px-6 py-5 text-[11px] font-display font-bold uppercase tracking-widest text-gray-400 border-b border-gray-100 text-center">Estado</th>
@@ -194,7 +194,7 @@
                         
                         <td class="px-6 py-5">
                             <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider bg-Alumco-blue/10 text-Alumco-blue border border-Alumco-blue/5">
-                                {{ $user->roles->first()?->name ?? 'Sin Rol' }}
+                                {{ $user->roles->first()?->name ?? 'Sin perfil' }}
                             </span>
                         </td>
 
@@ -373,7 +373,7 @@
                             
                             <div class="grid grid-cols-1 gap-5">
                                 <div class="space-y-1">
-                                    <label for="input-role" class="drawer-field-label">Rol en el Sistema <span class="text-Alumco-coral">*</span></label>
+                                    <label for="input-role" class="drawer-field-label">Perfil en la plataforma <span class="text-Alumco-coral">*</span></label>
                                     <select wire:model.live="role" id="input-role" required class="drawer-select">
                                         <option value="">Seleccionar...</option>
                                         @foreach($roles as $r)
@@ -405,15 +405,27 @@
                                     @error('sede_id') <span class="text-xs text-red-600 font-bold">{{ $message }}</span> @enderror
                                 </div>
 
-                                <div class="space-y-1" x-show="$wire.role === 'Capacitador'" x-transition>
+                                <div class="space-y-1" x-show="['Capacitador Interno', 'Capacitador Externo'].includes($wire.role)" x-transition>
                                     <label for="input-firma" class="drawer-field-label">Firma Digital</label>
-                                    <input type="file" wire:model="firma_digital" id="input-firma" accept="image/*" class="drawer-input text-xs">
+                                    <input type="file" wire:model="firma_digital" id="input-firma" accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp" class="drawer-input text-xs">
                                     <p class="text-[10px] text-Alumco-gray/40 italic">PNG transparente de 300x150px recomendado.</p>
                                     @error('firma_digital') <span class="text-xs text-red-600 font-bold">{{ $message }}</span> @enderror
                                     
-                                    @if ($firma_digital)
+                                    @php
+                                        $firmaPreviewUrl = null;
+
+                                        if ($firma_digital) {
+                                            try {
+                                                $firmaPreviewUrl = $firma_digital->temporaryUrl();
+                                            } catch (Throwable) {
+                                                $firmaPreviewUrl = null;
+                                            }
+                                        }
+                                    @endphp
+
+                                    @if ($firmaPreviewUrl)
                                         <div class="mt-2 p-2 bg-gray-50 rounded-xl border border-gray-100">
-                                            <img src="{{ $firma_digital->temporaryUrl() }}" class="h-16 object-contain mix-blend-multiply mx-auto">
+                                            <img src="{{ $firmaPreviewUrl }}" class="h-16 object-contain mix-blend-multiply mx-auto">
                                         </div>
                                     @elseif ($firma_digital_url)
                                         <div class="mt-2 p-2 bg-gray-50 rounded-xl border border-gray-100">

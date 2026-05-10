@@ -1,6 +1,6 @@
 @extends('layouts.panel')
 
-@section('title', 'Nuevo curso')
+@section('title', 'Nueva capacitación')
 
 @section('header_title', 'Gestión de Contenido')
 
@@ -13,9 +13,9 @@
                 <svg class="w-4 h-4 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                 </svg>
-                Volver a mis cursos
+                Volver a mis capacitaciones
             </a>
-            <h2 class="text-3xl font-display font-black text-Alumco-blue">Crear nuevo curso</h2>
+            <h2 class="text-3xl font-display font-black text-Alumco-blue">Crear nueva capacitación</h2>
             <p class="text-Alumco-gray/50 font-bold uppercase tracking-wider text-[10px] mt-1">Configuración inicial del material educativo</p>
         </div>
 
@@ -27,7 +27,7 @@
             <div class="grid grid-cols-1 gap-8">
                 {{-- Título --}}
                 <div class="space-y-2">
-                    <label class="block text-sm font-black text-Alumco-blue/40 uppercase tracking-widest">Título del Curso <span class="text-Alumco-coral">*</span></label>
+                    <label class="block text-sm font-black text-Alumco-blue/40 uppercase tracking-widest">Título de la capacitación <span class="text-Alumco-coral">*</span></label>
                     <input type="text" name="titulo" value="{{ old('titulo') }}" required placeholder="Ej: Prevención de Riesgos Laborales"
                            class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3.5 text-Alumco-gray font-medium focus:ring-4 focus:ring-Alumco-blue/10 focus:border-Alumco-blue outline-none transition-all @error('titulo') border-Alumco-coral @enderror">
                     @error('titulo') <p class="text-Alumco-coral text-xs font-bold mt-1">{{ $message }}</p> @enderror
@@ -36,15 +36,15 @@
                 {{-- Descripción --}}
                 <div class="space-y-2">
                     <label class="block text-sm font-black text-Alumco-blue/40 uppercase tracking-widest">Descripción</label>
-                    <textarea name="descripcion" rows="4" placeholder="Breve resumen de los objetivos del curso..."
+                    <textarea name="descripcion" rows="4" placeholder="Breve resumen de los objetivos de la capacitación..."
                               class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3.5 text-Alumco-gray font-medium focus:ring-4 focus:ring-Alumco-blue/10 focus:border-Alumco-blue outline-none transition-all">{{ old('descripcion') }}</textarea>
                 </div>
 
                 <div class="space-y-2">
                     <label class="block text-sm font-black text-Alumco-blue/40 uppercase tracking-widest">Nota para participantes</label>
-                    <textarea name="nota_capacitador" rows="3" maxlength="1200" placeholder="Aclaración breve sobre fechas, requisitos o recomendaciones para este curso..."
+                    <textarea name="nota_capacitador" rows="3" maxlength="1200" placeholder="Aclaración breve sobre fechas, requisitos o recomendaciones para esta capacitación..."
                               class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3.5 text-Alumco-gray font-medium focus:ring-4 focus:ring-Alumco-blue/10 focus:border-Alumco-blue outline-none transition-all">{{ old('nota_capacitador') }}</textarea>
-                    <p class="text-[11px] text-Alumco-gray/40 italic mt-1">Se mostrará en la vista del curso como una aclaración operativa, no como anuncio masivo.</p>
+                    <p class="text-[11px] text-Alumco-gray/40 italic mt-1">Se mostrará en la vista de la capacitación como una aclaración operativa, no como anuncio masivo.</p>
                 </div>
 
                 {{-- Imagen de Portada --}}
@@ -62,9 +62,9 @@
                     @error('imagen_portada') <p class="text-Alumco-coral text-xs font-bold mt-1">{{ $message }}</p> @enderror
                 </div>
 
-                {{-- Color del Curso --}}
+                {{-- Color de la capacitación --}}
                 <div class="space-y-3" x-data="{ autoColor: true }">
-                    <label class="block text-sm font-black text-Alumco-blue/40 uppercase tracking-widest">Estética del Curso</label>
+                    <label class="block text-sm font-black text-Alumco-blue/40 uppercase tracking-widest">Estética de la capacitación</label>
                     
                     <div class="flex flex-col gap-4 p-5 bg-Alumco-cream/20 rounded-2xl border border-gray-100">
                         <label class="flex items-center gap-3 cursor-pointer group">
@@ -107,7 +107,7 @@
                 <button type="submit"
                         class="bg-Alumco-blue hover:bg-Alumco-blue/90 text-white font-display font-black text-xs uppercase tracking-[0.2em] py-4 px-12 rounded-xl shadow-lg shadow-Alumco-blue/20 transition-all active:scale-95 flex items-center justify-center gap-3">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                    Crear curso
+                    Crear capacitación
                 </button>
             </div>
         </form>

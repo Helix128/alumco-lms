@@ -44,6 +44,40 @@ class InstitutionalSignatureTest extends TestCase
         Storage::disk('public')->assertMissing('firmas/anterior.png');
     }
 
+    public function test_developer_can_upload_institutional_signature(): void
+    {
+        Storage::fake('public');
+        $developer = $this->userWithRole('Desarrollador');
+
+        $this
+            ->actingAs($developer)
+            ->get(route('admin.acreditacion.index'))
+            ->assertOk()
+            ->assertSee('Firma Institucional');
+
+        Livewire::actingAs($developer)
+            ->test(InstitutionalSignature::class)
+            ->set('firma_representante_legal', UploadedFile::fake()->image('firma.jpg'))
+            ->call('guardar')
+            ->assertHasNoErrors();
+
+        $path = GlobalSetting::get('firma_representante_legal');
+
+        $this->assertIsString($path);
+        Storage::disk('public')->assertExists($path);
+    }
+
+    public function test_institutional_signature_requires_a_supported_image(): void
+    {
+        $admin = $this->userWithRole('Administrador');
+
+        Livewire::actingAs($admin)
+            ->test(InstitutionalSignature::class)
+            ->set('firma_representante_legal', UploadedFile::fake()->create('firma.pdf', 64, 'application/pdf'))
+            ->call('guardar')
+            ->assertHasErrors(['firma_representante_legal']);
+    }
+
     public function test_capacitador_cannot_access_institutional_signature(): void
     {
         $capacitador = $this->userWithRole('Capacitador Interno');

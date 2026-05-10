@@ -2,9 +2,9 @@
 # Hola, {{ $name }}.
 
 @if($type === 'updated')
-La planificación del curso **{{ $courseTitle }}** fue actualizada.
+La planificación de la capacitación **{{ $courseTitle }}** fue actualizada.
 @else
-Tienes una nueva planificación para el curso **{{ $courseTitle }}**.
+Tienes una nueva planificación para la capacitación **{{ $courseTitle }}**.
 @endif
 
 <x-mail::panel>
@@ -13,7 +13,7 @@ Término: **{{ $endDate }}**
 </x-mail::panel>
 
 <x-mail::button :url="$courseUrl" color="primary">
-Ver curso
+Ver capacitación
 </x-mail::button>
 
 @include('emails.components.signature')

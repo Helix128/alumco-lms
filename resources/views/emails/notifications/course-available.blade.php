@@ -1,13 +1,13 @@
 <x-mail::message>
 # Hola, {{ $name }}.
 
-El curso **{{ $courseTitle }}** ya está disponible para ti.
+La capacitación **{{ $courseTitle }}** ya está disponible para ti.
 
 <x-mail::button :url="$courseUrl" color="primary">
-Ingresar al curso
+Ingresar a la capacitación
 </x-mail::button>
 
-Estará habilitado hasta el **{{ $availableUntil }}**.
+Estará habilitada hasta el **{{ $availableUntil }}**.
 
 @include('emails.components.signature')
 </x-mail::message>

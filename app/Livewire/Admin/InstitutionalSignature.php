@@ -3,7 +3,7 @@
 namespace App\Livewire\Admin;
 
 use App\Models\GlobalSetting;
-use Illuminate\Support\Facades\Storage;
+use App\Support\Signatures\SignatureImage;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -29,14 +29,12 @@ class InstitutionalSignature extends Component
         abort_unless(auth()->user()?->hasAdminAccess(), 403);
 
         $this->validate([
-            'firma_representante_legal' => 'required|image|max:1024',
+            'firma_representante_legal' => SignatureImage::rules(),
         ]);
 
-        if ($this->firma_actual !== '') {
-            Storage::disk('public')->delete($this->firma_actual);
-        }
+        SignatureImage::delete($this->firma_actual);
 
-        $path = $this->firma_representante_legal->store('firmas', 'public');
+        $path = $this->firma_representante_legal->store(SignatureImage::Directory, 'public');
 
         GlobalSetting::set('firma_representante_legal', $path);
 

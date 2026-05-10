@@ -7,7 +7,7 @@
     <div class="space-y-8">
         <div>
             <h2 class="admin-page-title">Salud operacional del LMS</h2>
-            <p class="admin-page-subtitle">Señales técnicas y académicas que requieren revisión del equipo dev.</p>
+            <p class="admin-page-subtitle">Señales técnicas y de capacitación que requieren revisión del equipo dev.</p>
         </div>
 
         <section class="grid gap-5 md:grid-cols-2 xl:grid-cols-5">

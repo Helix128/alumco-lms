@@ -50,7 +50,7 @@
              x-data
              @click="$dispatch('show-alert', { 
                 title: 'Contenido Bloqueado', 
-                message: 'Para acceder a este módulo, primero debes completar todas las actividades anteriores del curso.',
+                message: 'Para acceder a este módulo, primero debes completar todas las actividades anteriores de la capacitación.',
                 type: 'info'
              })">
             <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gray-200 font-display text-base font-black text-gray-400 lg:h-12 lg:w-12 lg:text-lg">

@@ -4,108 +4,134 @@
 @section('header_title', 'Perfil de Usuario')
 
 @section('content')
-<div class="max-w-4xl mx-auto">
-    <div class="mb-8">
-        <h2 class="admin-page-title">Mi Perfil</h2>
-        <p class="admin-page-subtitle">Información de tu cuenta en el panel</p>
+@php
+    $initials = collect(explode(' ', trim($user->name)))
+        ->map(fn ($word) => strtoupper($word[0] ?? ''))
+        ->take(2)
+        ->join('');
+@endphp
+
+<div class="mx-auto max-w-5xl space-y-6 animate-page-entry">
+    {{-- Page Header --}}
+    <div class="flex flex-col gap-1">
+        <h2 class="admin-page-title">Mi Perfil Profesional</h2>
+        <p class="admin-page-subtitle">Identidad administrativa y firma autorizada.</p>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <!-- Columna Izquierda: Avatar y Rol -->
-        <div class="lg:col-span-1">
-            <div class="admin-surface p-8 text-center">
-                @php
-                    $initials = collect(explode(' ', trim($user->name)))
-                        ->map(fn($w) => strtoupper($w[0] ?? ''))
-                        ->take(2)
-                        ->join('');
-                @endphp
-                <div class="w-24 h-24 rounded-full bg-Alumco-blue/5 text-Alumco-blue flex items-center justify-center mx-auto mb-6 shadow-sm">
-                    <span class="font-display font-black text-3xl">{{ $initials }}</span>
-                </div>
-
-                <h3 class="font-display font-bold text-xl text-Alumco-gray leading-tight mb-1">{{ $user->name }}</h3>
-                <p class="text-sm text-Alumco-gray/50 mb-4">{{ $user->email }}</p>
-
-                <div class="inline-flex items-center px-3 py-1 rounded-full bg-Alumco-blue text-white text-[10px] font-black uppercase tracking-widest">
-                    {{ $user->roles->first()?->name ?? 'Administrador' }}
-                </div>
-            </div>
-        </div>
-
-        <!-- Columna Derecha: Detalles -->
-        <div class="lg:col-span-2">
-            <div class="admin-surface overflow-hidden">
-                <div class="px-8 py-6 border-b border-gray-50 bg-gray-50/30">
-                    <h4 class="admin-page-eyebrow">Datos Personales</h4>
+    <div class="grid grid-cols-1 gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
+        {{-- Sidebar Card - Compact Organic --}}
+        <aside class="space-y-6">
+            <div class="worker-soft-panel overflow-hidden border-none shadow-lg shadow-Alumco-blue/5">
+                <div class="relative h-20 bg-Alumco-blue">
+                    <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(circle at 2px 2px, white 1px, transparent 0); background-size: 16px 16px;"></div>
                 </div>
                 
-                <div class="p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div class="space-y-1">
-                        <p class="text-[11px] font-black text-Alumco-blue/70 uppercase tracking-widest">Nombre Completo</p>
-                        <p class="font-bold text-Alumco-gray">{{ $user->name }}</p>
+                <div class="relative px-6 pb-6 text-center">
+                    <div class="-mt-10 mb-4 flex justify-center">
+                        <div class="inline-flex h-20 w-20 items-center justify-center rounded-3xl bg-white p-1 shadow-lg shadow-Alumco-blue/10">
+                            <div class="flex h-full w-full items-center justify-center rounded-2xl bg-gradient-to-br from-Alumco-blue to-Alumco-blue/80 text-white">
+                                <span class="font-display text-[24px] font-black">{{ $initials }}</span>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="space-y-1">
-                        <p class="text-[11px] font-black text-Alumco-blue/70 uppercase tracking-widest">Correo Electrónico</p>
-                        <p class="font-bold text-Alumco-gray">{{ $user->email }}</p>
+                        <h3 class="font-display text-[20px] font-black text-Alumco-blue tracking-tight leading-tight">{{ $user->name }}</h3>
+                        <p class="text-[10px] font-black text-Alumco-gray/40 uppercase tracking-widest">{{ $user->email }}</p>
                     </div>
 
-                    <div class="space-y-1">
-                        <p class="text-[11px] font-black text-Alumco-blue/70 uppercase tracking-widest">Fecha de Nacimiento</p>
-                        <p class="font-bold text-Alumco-gray">
-                            {{ $user->fecha_nacimiento ? \Carbon\Carbon::parse($user->fecha_nacimiento)->format('d/m/Y') : 'No registrada' }}
-                        </p>
+                    <div class="mt-4 flex flex-wrap justify-center gap-1.5">
+                        @foreach ($user->roles as $role)
+                            <span class="rounded-xl bg-Alumco-yellow/10 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-Alumco-gold-accessible ring-1 ring-Alumco-yellow/15">
+                                {{ $role->name }}
+                            </span>
+                        @endforeach
                     </div>
 
-                    <div class="space-y-1">
-                        <p class="text-[11px] font-black text-Alumco-blue/70 uppercase tracking-widest">Sexo / Género</p>
-                        <p class="font-bold text-Alumco-gray">
-                            @if($user->sexo == 'M') Masculino @elseif($user->sexo == 'F') Femenino @else {{ $user->sexo ?? 'No informado' }} @endif
-                        </p>
-                    </div>
-                </div>
-
-                <div class="px-8 py-6 border-b border-t border-gray-50 bg-gray-50/30">
-                    <h4 class="admin-page-eyebrow">Organización</h4>
-                </div>
-
-                <div class="p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div class="space-y-1">
-                        <p class="text-[11px] font-black text-Alumco-blue/70 uppercase tracking-widest">Sede Asignada</p>
-                        <p class="font-bold text-Alumco-gray">{{ $user->sede->nombre ?? 'Sin Sede' }}</p>
-                    </div>
-
-                    <div class="space-y-1">
-                        <p class="text-[11px] font-black text-Alumco-blue/70 uppercase tracking-widest">Estamento / Área</p>
-                        <p class="font-bold text-Alumco-gray">{{ $user->estamento->nombre ?? 'Sin Estamento' }}</p>
+                    <div class="mt-6 space-y-3 border-t border-slate-100 pt-5">
+                        <div class="flex justify-between items-center px-1">
+                            <span class="text-[10px] font-black uppercase tracking-widest text-Alumco-blue/30">Sede</span>
+                            <span class="text-[14px] font-bold text-Alumco-gray">{{ $user->sede->nombre ?? 'N/A' }}</span>
+                        </div>
+                        <div class="flex justify-between items-center px-1">
+                            <span class="text-[10px] font-black uppercase tracking-widest text-Alumco-blue/30">Área</span>
+                            <span class="text-[14px] font-bold text-Alumco-gray">{{ $user->estamento->nombre ?? 'N/A' }}</span>
+                        </div>
                     </div>
                 </div>
             </div>
-            
-            @if($user->hasAdminAccess())
-                <div class="mt-8 p-6 rounded-[24px] bg-amber-50 border border-amber-100 flex gap-4">
-                    <svg class="w-6 h-6 text-amber-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86l-7.1 12.3A1 1 0 004.06 18h15.88a1 1 0 00.87-1.84l-7.1-12.3a1 1 0 00-1.74 0z"></path>
-                    </svg>
-                    <div>
-                        <p class="text-sm text-amber-800 font-bold mb-1">Cuenta Administrativa</p>
-                        <p class="text-xs text-amber-700 leading-relaxed">
-                            Tienes acceso a funciones críticas del sistema. Para cambiar tu contraseña o datos sensibles, contacta al soporte técnico o utiliza el flujo de recuperación de contraseña al iniciar sesión.
-                        </p>
+
+            {{-- Support Card - Compact (Solo para no-desarrolladores) --}}
+            @if (!$user->isDesarrollador())
+                <div class="worker-card p-4 bg-slate-50 border-none shadow-sm">
+                    <div class="flex items-start gap-3">
+                        <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-Alumco-yellow/20 text-Alumco-gold-accessible">
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <div class="space-y-1">
+                            <h4 class="text-[10px] font-black text-Alumco-blue uppercase tracking-widest">Soporte</h4>
+                            <p class="text-[11px] font-bold text-Alumco-gray/50 leading-tight">¿Necesitas cambiar datos? Contacta con nosotros.</p>
+                            <a href="{{ route('support.index') }}" class="inline-flex items-center gap-1 text-[11px] font-black text-Alumco-blue group">
+                                <span>Ayuda</span>
+                                <svg class="h-3 w-3 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                                </svg>
+                            </a>
+                        </div>
                     </div>
                 </div>
             @endif
 
-            @if($user->isCapacitador())
-                <div class="mt-8">
-                    @livewire('profile.digital-signature')
-                </div>
-            @endif
+        </aside>
 
-            <div class="mt-8 admin-surface p-6">
-                <x-accessibility-preferences title="Preferencias de accesibilidad" description="Son las mismas opciones del botón Opciones" />
-            </div>
+        {{-- Main Content area --}}
+        <div class="space-y-6">
+            {{-- Account Information Section - Compact --}}
+            <section class="worker-card overflow-hidden border-none shadow-lg shadow-Alumco-blue/5">
+                <div class="border-b border-slate-50 bg-slate-50/20 px-6 py-4">
+                    <div class="flex items-center gap-2">
+                        <div class="h-2 w-2 rounded-full bg-Alumco-green"></div>
+                        <h3 class="font-display text-[18px] font-black text-Alumco-blue uppercase tracking-tight">Información de Identidad</h3>
+                    </div>
+                </div>
+
+                <div class="p-6">
+                    <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-black uppercase tracking-widest text-Alumco-blue/30 ml-2">Nombre completo</label>
+                            <div class="rounded-2xl bg-slate-50/50 px-5 py-3.5 text-[14px] font-bold text-Alumco-blue border border-transparent">
+                                {{ $user->name }}
+                            </div>
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-black uppercase tracking-widest text-Alumco-blue/30 ml-2">Correo institucional</label>
+                            <div class="rounded-2xl bg-slate-50/50 px-5 py-3.5 text-[14px] font-bold text-Alumco-blue border border-transparent break-all">
+                                {{ $user->email }}
+                            </div>
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-black uppercase tracking-widest text-Alumco-blue/30 ml-2">Nacimiento</label>
+                            <div class="rounded-2xl bg-slate-50/50 px-5 py-3.5 text-[14px] font-bold text-Alumco-blue border border-transparent">
+                                {{ $user->fecha_nacimiento ? \Carbon\Carbon::parse($user->fecha_nacimiento)->translatedFormat('d F, Y') : 'No registrado' }}
+                            </div>
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-black uppercase tracking-widest text-Alumco-blue/30 ml-2">Género / Sexo</label>
+                            <div class="rounded-2xl bg-slate-50/50 px-5 py-3.5 text-[14px] font-bold text-Alumco-blue border border-transparent">
+                                @if ($user->sexo === 'M') Masculino @elseif ($user->sexo === 'F') Femenino @else {{ $user->sexo ?? 'N/E' }} @endif
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {{-- Signature Section (Livewire) --}}
+            @livewire('profile.digital-signature')
         </div>
     </div>
 </div>

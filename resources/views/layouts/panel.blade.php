@@ -56,10 +56,29 @@
             border-right: 4px solid var(--color-Alumco-cyan);
         }
 
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(74, 74, 74, 0.2) transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: rgba(94, 94, 94, 0.2);
-            border-radius: 9999px;
+            background: rgba(74, 74, 74, 0.15);
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(74, 74, 74, 0.25);
+        }
+
+        /* Sidebar scrollbar homogenization */
+        .admin-sidebar .custom-scrollbar {
+            scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+        }
+        .admin-sidebar .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.18);
+        }
+        .admin-sidebar .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
         }
 
         .custom-scrollbar-light::-webkit-scrollbar { width: 4px; }
@@ -118,7 +137,7 @@
     <header class="admin-topbar admin-topbar-persistent border-b border-white/10 px-6 py-3 flex items-center justify-between z-[80] shrink-0">
         <div class="flex items-center gap-4">
             <div class="flex items-center">
-                <a href="{{ auth()->user()->hasAdminAccess() ? route('admin.dashboard.index') : route('capacitador.dashboard') }}" wire:navigate.hover class="flex items-center text-white">
+            <a href="{{ route(\App\Support\UserAreaRedirector::canonicalRouteName(auth()->user())) }}" wire:navigate.hover class="flex items-center text-white">
                     <x-logo-alumco class="h-8 w-auto" width="120" height="32" />
                 </a>
             </div>
@@ -182,19 +201,25 @@
                class="admin-sidebar sidebar-transition bg-Alumco-blue flex flex-col z-[70] shrink-0 overflow-hidden w-72"
                :style="sidebarOpen ? '' : 'transform: translateX(-100%); margin-left: -18rem'">
             
-            <div class="flex-1 py-5 px-2 flex flex-col gap-1.5 overflow-y-auto custom-scrollbar border-r border-white/10 min-w-[18rem]">
+            <div class="flex-1 py-5 px-2 flex flex-col gap-1.5 overflow-y-auto custom-scrollbar border-r border-white/10 min-w-[18rem]"
+                 x-data="{ 
+                    persistScroll() { sessionStorage.setItem('admin-sidebar-scroll', $el.scrollTop); },
+                    restoreScroll() { $el.scrollTop = sessionStorage.getItem('admin-sidebar-scroll') || 0; }
+                 }"
+                 x-init="restoreScroll()"
+                 @scroll.debounce.150ms="persistScroll()">
                 
                 @if(session('preview_mode'))
-                    {{-- Opciones de Trabajador en Vista Previa --}}
-                    <h2 class="admin-sidebar-section-label mb-2 select-none">Vista Previa: Trabajador</h2>
+                    {{-- Opciones de Colaborador en Vista Previa --}}
+                    <h2 class="admin-sidebar-section-label mb-2 select-none">Vista previa: colaborador/a</h2>
                     
-                    <x-nav-link-admin href="{{ route('cursos.index') }}" :active="request()->routeIs('cursos.*')" title="Mis Cursos">
+                    <x-nav-link-admin href="{{ route('cursos.index') }}" :active="request()->routeIs('cursos.*')" title="Mis capacitaciones">
                         <x-slot name="icon">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
                             </svg>
                         </x-slot>
-                        Mis Cursos
+                        Mis capacitaciones
                     </x-nav-link-admin>
 
                     <x-nav-link-admin href="{{ route('calendario-cursos.index') }}" :active="request()->routeIs('calendario-cursos.*')" title="Calendario">
@@ -237,18 +262,18 @@
                         @endif
 
                         @if($user->hasAdminAccess())
-                            <x-nav-link-admin href="{{ route('admin.reportes.index') }}" :active="request()->routeIs('admin.reportes.*')" title="Reportes académicos">
+                            <x-nav-link-admin href="{{ route('admin.reportes.index') }}" :active="request()->routeIs('admin.reportes.*')" title="Reportes de capacitación">
                                 <x-slot name="icon"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4V7m2 14H7a2 2 0 01-2-2V5"/></svg></x-slot>
-                                Reportes académicos
+                                Reportes de capacitación
                             </x-nav-link-admin>
                         @endif
                     </x-sidebar-nav-group>
 
                     <x-sidebar-nav-group title="Material" :active="request()->routeIs('capacitador.*cursos*', 'capacitador.calendario.*')">
                         @if($user->isCapacitador() || $user->hasAdminAccess())
-                            <x-nav-link-admin href="{{ route('capacitador.cursos.index') }}" :active="request()->routeIs('capacitador.*cursos*')" title="Cursos y material">
+                            <x-nav-link-admin href="{{ route('capacitador.cursos.index') }}" :active="request()->routeIs('capacitador.*cursos*')" title="Capacitaciones y material">
                                 <x-slot name="icon"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg></x-slot>
-                                Cursos y material
+                                Capacitaciones y material
                             </x-nav-link-admin>
 
                             <x-nav-link-admin href="{{ route('capacitador.calendario.index') }}" :active="request()->routeIs('capacitador.calendario.*')" title="Calendario institucional">
@@ -258,11 +283,16 @@
                         @endif
                     </x-sidebar-nav-group>
 
-                    <x-sidebar-nav-group title="Gestión" :active="request()->routeIs('admin.usuarios.*', 'admin.perfil.*', 'admin.acreditacion.*')">
+                    <x-sidebar-nav-group title="Gestión" :active="request()->routeIs('admin.usuarios.*', 'admin.estamentos.*', 'admin.perfil.*', 'admin.acreditacion.*')">
                         @if($user->hasAdminAccess())
                             <x-nav-link-admin href="{{ route('admin.usuarios.index') }}" :active="request()->routeIs('admin.usuarios.*')" title="Directorio de usuarios">
                                 <x-slot name="icon"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg></x-slot>
                                 Directorio de usuarios
+                            </x-nav-link-admin>
+
+                            <x-nav-link-admin href="{{ route('admin.estamentos.index') }}" :active="request()->routeIs('admin.estamentos.*')" title="Estamentos">
+                                <x-slot name="icon"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h16M4 12h16M4 17h10"/></svg></x-slot>
+                                Estamentos
                             </x-nav-link-admin>
                         @endif
 

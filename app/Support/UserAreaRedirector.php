@@ -14,7 +14,11 @@ class UserAreaRedirector
             return 'cursos.index';
         }
 
-        if ($user->hasAdminAccess()) {
+        if ($user->isDesarrollador()) {
+            return 'dev.salud-lms';
+        }
+
+        if ($user->isAdmin()) {
             return 'admin.dashboard.index';
         }
 
@@ -52,7 +56,11 @@ class UserAreaRedirector
 
     public static function userAreaFallbackRouteName(User $user): string
     {
-        if ($user->hasAdminAccess()) {
+        if ($user->isDesarrollador()) {
+            return 'dev.salud-lms';
+        }
+
+        if ($user->isAdmin()) {
             return 'admin.dashboard.index';
         }
 
@@ -73,6 +81,14 @@ class UserAreaRedirector
 
         if ($path === '/') {
             return true;
+        }
+
+        if (self::isSharedPanelAreaPath($path)) {
+            return $user->hasAdminAccess() || $user->isCapacitador();
+        }
+
+        if (self::isSharedAdminDeveloperAreaPath($path)) {
+            return $user->hasAdminAccess();
         }
 
         if (self::isAdminAreaPath($path)) {
@@ -114,7 +130,17 @@ class UserAreaRedirector
     private static function isAdminAreaPath(string $path): bool
     {
         return Str::is('/admin/*', $path)
-            && ! in_array($path, ['/admin/preview-mode/toggle', '/admin/perfil'], true);
+            && ! in_array($path, ['/admin/preview-mode/toggle', '/admin/perfil', '/admin/acreditacion'], true);
+    }
+
+    private static function isSharedPanelAreaPath(string $path): bool
+    {
+        return $path === '/admin/perfil';
+    }
+
+    private static function isSharedAdminDeveloperAreaPath(string $path): bool
+    {
+        return $path === '/admin/acreditacion';
     }
 
     private static function isCapacitadorAreaPath(string $path): bool
@@ -124,7 +150,10 @@ class UserAreaRedirector
 
     private static function isDevAreaPath(string $path): bool
     {
-        return in_array($path, ['/dev/configuracion', '/dev/salud-lms'], true);
+        return $path === '/dev/configuracion'
+            || $path === '/dev/salud-lms'
+            || Str::is('/dev/salud-lms/*', $path)
+            || $path === '/dev/soporte';
     }
 
     private static function isUserAreaPath(string $path): bool

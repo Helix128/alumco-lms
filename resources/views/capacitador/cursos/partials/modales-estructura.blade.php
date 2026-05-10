@@ -32,7 +32,68 @@
     </div>
 </div>
 
-<!-- Modal Duplicar Curso (Ya existía, lo movemos aquí para consistencia si es necesario) -->
+<script>
+    window.alumcoDuplicateModal = window.alumcoDuplicateModal || {
+        isOpen: false,
+        backdropClickBound: false,
+        escapeKeyBound: false,
+    };
+
+    window.openDuplicateModal = function (actionUrl, tituloActual) {
+        const dupBackdrop = document.getElementById('duplicate-modal-backdrop');
+        const dupModal = document.getElementById('duplicate-modal');
+        const dupForm = document.getElementById('duplicate-form');
+        const dupTitle = document.getElementById('duplicate-title');
+
+        if (! dupBackdrop || ! dupModal || ! dupForm || ! dupTitle) {
+            return;
+        }
+
+        dupForm.action = actionUrl;
+        dupTitle.value = tituloActual + ' (Copia)';
+
+        dupBackdrop.classList.remove('opacity-0', 'pointer-events-none');
+        dupModal.classList.remove('opacity-0', 'pointer-events-none', 'scale-95');
+        dupModal.classList.add('scale-100');
+        dupTitle.focus();
+        window.alumcoDuplicateModal.isOpen = true;
+    };
+
+    window.closeDuplicateModal = function () {
+        const dupBackdrop = document.getElementById('duplicate-modal-backdrop');
+        const dupModal = document.getElementById('duplicate-modal');
+
+        if (! dupBackdrop || ! dupModal) {
+            window.alumcoDuplicateModal.isOpen = false;
+            return;
+        }
+
+        dupBackdrop.classList.add('opacity-0', 'pointer-events-none');
+        dupModal.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
+        dupModal.classList.remove('scale-100');
+        window.alumcoDuplicateModal.isOpen = false;
+    };
+
+    if (! window.alumcoDuplicateModal.backdropClickBound) {
+        document.addEventListener('click', (event) => {
+            if (event.target?.id === 'duplicate-modal-backdrop') {
+                window.closeDuplicateModal();
+            }
+        });
+        window.alumcoDuplicateModal.backdropClickBound = true;
+    }
+
+    if (! window.alumcoDuplicateModal.escapeKeyBound) {
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && window.alumcoDuplicateModal.isOpen) {
+                window.closeDuplicateModal();
+            }
+        });
+        window.alumcoDuplicateModal.escapeKeyBound = true;
+    }
+</script>
+
+<!-- Modal Duplicar capacitación (Ya existía, lo movemos aquí para consistencia si es necesario) -->
 <div id="duplicate-modal-backdrop" class="fixed inset-0 bg-Alumco-gray/40 backdrop-blur-sm z-50 opacity-0 pointer-events-none transition-opacity duration-300" aria-hidden="true"></div>
 <div id="duplicate-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all duration-300 scale-95" aria-hidden="true">
     <div class="bg-white w-full max-w-md rounded-3xl shadow-xl overflow-hidden">
@@ -44,7 +105,7 @@
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"></path></svg>
                     </div>
                     <div>
-                        <h3 class="text-xl font-display font-black text-Alumco-blue">Duplicar Curso</h3>
+                        <h3 class="text-xl font-display font-black text-Alumco-blue">Duplicar capacitación</h3>
                         <p class="text-[10px] font-bold text-Alumco-gray/65 uppercase tracking-widest mt-1">Crear nueva versión</p>
                     </div>
                 </div>

@@ -6,7 +6,9 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Sentry\Laravel\Integration;
@@ -48,11 +50,11 @@ class Handler extends ExceptionHandler
 
             $traceId = $this->resolveTraceId();
 
-            return response()->json([
+            return $this->jsonResponseWithTraceId([
                 'message' => 'Los datos proporcionados no son válidos.',
                 'errors' => $exception->errors(),
                 'trace_id' => $traceId,
-            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+            ], Response::HTTP_UNPROCESSABLE_ENTITY, $traceId);
         });
 
         $this->renderable(function (Throwable $exception, Request $request) {
@@ -64,19 +66,16 @@ class Handler extends ExceptionHandler
             [$statusCode, $message] = $this->mapExceptionToStatusAndMessage($exception);
 
             if ($request->expectsJson()) {
-                return response()->json([
+                return $this->jsonResponseWithTraceId([
                     'error' => [
                         'code' => $statusCode,
                         'message' => $message,
                         'trace_id' => $traceId,
                     ],
-                ], $statusCode);
+                ], $statusCode, $traceId);
             }
 
-            return response()->view('errors.generic', [
-                'traceId' => $traceId,
-                'statusCode' => $statusCode,
-            ], $statusCode);
+            return $this->htmlErrorResponse($statusCode, $traceId);
         });
     }
 
@@ -109,6 +108,30 @@ class Handler extends ExceptionHandler
         app()->instance('exception.trace_id', $traceId);
 
         return $traceId;
+    }
+
+    /**
+     * The same short trace id is shown in the HTML error screen, returned in
+     * JSON payloads, and attached as the `X-Trace-Id` header so support can go
+     * from the user-facing code straight to the corresponding log entry.
+     *
+     * @param  array<string, mixed>  $payload
+     */
+    private function jsonResponseWithTraceId(array $payload, int $statusCode, string $traceId): JsonResponse
+    {
+        return response()
+            ->json($payload, $statusCode)
+            ->header('X-Trace-Id', $traceId);
+    }
+
+    private function htmlErrorResponse(int $statusCode, string $traceId): HttpResponse
+    {
+        return response()
+            ->view('errors.generic', [
+                'traceId' => $traceId,
+                'statusCode' => $statusCode,
+            ], $statusCode)
+            ->header('X-Trace-Id', $traceId);
     }
 
     private function reportToMonitoring(Throwable $exception, string $traceId): void

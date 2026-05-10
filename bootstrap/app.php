@@ -2,8 +2,10 @@
 
 use App\Exceptions\Handler as AppExceptionHandler;
 use App\Http\Middleware\EnsureAdminAccess;
+use App\Http\Middleware\EnsureAdminOrDeveloperAccess;
 use App\Http\Middleware\EnsureCapacitadorAccess;
 use App\Http\Middleware\EnsureCapacitadorInternoAccess;
+use App\Http\Middleware\EnsureDeveloperAccess;
 use App\Http\Middleware\EnsureWorkerAreaAccess;
 use Illuminate\Contracts\Debug\ExceptionHandler as ExceptionHandlerContract;
 use Illuminate\Foundation\Application;
@@ -29,8 +31,10 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'admin' => EnsureAdminAccess::class,
+            'admin.or.developer' => EnsureAdminOrDeveloperAccess::class,
             'capacitador' => EnsureCapacitadorAccess::class,
             'capacitador.interno' => EnsureCapacitadorInternoAccess::class,
+            'developer' => EnsureDeveloperAccess::class,
             'worker.area' => EnsureWorkerAreaAccess::class,
         ]);
     })

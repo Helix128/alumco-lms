@@ -74,7 +74,7 @@
     <div class="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
         <div>
             <h2 class="text-2xl font-display font-black text-Alumco-blue tracking-tight">Editor de planificación</h2>
-            <p class="mt-1 text-sm font-medium text-gray-500">Organiza cursos por semana y sede para el año académico.</p>
+            <p class="mt-1 text-sm font-medium text-gray-500">Organiza capacitaciones por semana y sede para el año de planificación.</p>
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
@@ -154,7 +154,7 @@
 
             @if($modoPlaneacion)
                 <div class="mt-3 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm font-semibold text-blue-800">
-                    Haz clic en una celda para crear un curso en una semana. Arrastra sobre varias semanas para crear un rango. En bloques existentes puedes mover, estirar bordes o eliminar.
+                    Haz clic en una celda para programar una capacitación en una semana. Arrastra sobre varias semanas para crear un rango. En bloques existentes puedes mover, estirar bordes o eliminar.
                 </div>
             @endif
         </div>
@@ -166,11 +166,11 @@
             @if($esAdmin && $modoPlaneacion)
                 <aside class="sticky top-4 z-[55] self-start rounded-2xl bg-white shadow-sm ring-1 ring-gray-100">
                     <div class="border-b border-gray-100 p-4">
-                        <h3 class="font-display text-lg font-black text-Alumco-blue">Cursos disponibles</h3>
+                        <h3 class="font-display text-lg font-black text-Alumco-blue">Capacitaciones disponibles</h3>
                         <input
                             type="search"
                             wire:model.live.debounce.500ms="busquedaSidebar"
-                            placeholder="Buscar curso"
+                            placeholder="Buscar capacitación"
                             class="mt-3 w-full rounded-xl border border-gray-100 bg-gray-50 px-3 py-2 text-sm font-semibold text-Alumco-blue outline-none focus:border-Alumco-blue/30 focus:ring-4 focus:ring-Alumco-blue/10"
                         >
 
@@ -210,7 +210,7 @@
                             </button>
                         @empty
                             <p class="px-2 py-8 text-center text-xs font-black uppercase tracking-widest text-gray-300">
-                                {{ $busquedaSidebar ? 'Sin resultados' : ($filtroSidebarEstado === 'pendientes' ? 'Sin cursos pendientes' : 'No hay cursos disponibles') }}
+                                {{ $busquedaSidebar ? 'Sin resultados' : ($filtroSidebarEstado === 'pendientes' ? 'Sin capacitaciones pendientes' : 'No hay capacitaciones disponibles') }}
                             </p>
                         @endforelse
                     </div>
@@ -444,7 +444,7 @@
                             <div class="flex items-start justify-between gap-4">
                                 <div>
                                     <h3 id="modal-plan-title" class="font-display text-2xl font-black text-Alumco-blue">{{ $editandoId ? 'Editar bloque' : 'Nueva planificación' }}</h3>
-                                    <p class="mt-1 text-xs font-black uppercase tracking-widest text-Alumco-blue/40">Cursos por semana y sede</p>
+                                    <p class="mt-1 text-xs font-black uppercase tracking-widest text-Alumco-blue/40">Capacitaciones por semana y sede</p>
                                 </div>
                                 <button wire:click="cerrarModal" class="rounded-xl bg-white px-3 py-2 text-sm font-black text-gray-400 shadow-sm ring-1 ring-gray-100">Cerrar</button>
                             </div>
@@ -452,8 +452,8 @@
 
                         <div class="planning-scroll flex-1 space-y-6 overflow-y-auto p-6">
                             <div>
-                                <label class="text-[10px] font-black uppercase tracking-widest text-gray-400">Curso</label>
-                                <input type="search" wire:model.live.debounce.200ms="queryModal" placeholder="Buscar curso" class="mt-2 w-full rounded-xl border border-gray-100 bg-gray-50 px-3 py-3 text-sm font-bold text-Alumco-blue outline-none focus:ring-4 focus:ring-Alumco-blue/10">
+                                <label class="text-[10px] font-black uppercase tracking-widest text-gray-400">Capacitación</label>
+                                <input type="search" wire:model.live.debounce.200ms="queryModal" placeholder="Buscar capacitación" class="mt-2 w-full rounded-xl border border-gray-100 bg-gray-50 px-3 py-3 text-sm font-bold text-Alumco-blue outline-none focus:ring-4 focus:ring-Alumco-blue/10">
                                 <div class="planning-scroll mt-2 max-h-48 space-y-1 overflow-y-auto rounded-xl bg-gray-50 p-2">
                                     @forelse($modalList as $curso)
                                         <button type="button" wire:click="seleccionarCurso({{ $curso['id'] }})" @class([
@@ -569,7 +569,7 @@
 
                             @if($anioDestinoTienePlanificaciones)
                                 <div class="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold text-amber-800">
-                                    El año {{ $anioDestino }} ya tiene planificaciones. Puedes añadir los cursos de {{ $anioOrigen }} o reemplazar primero la planificación del destino.
+                                    El año {{ $anioDestino }} ya tiene planificaciones. Puedes añadir las capacitaciones de {{ $anioOrigen }} o reemplazar primero la planificación del destino.
                                 </div>
                             @else
                                 <p class="text-sm font-medium text-gray-500">El año {{ $anioDestino }} no tiene planificaciones solapadas. La copia se puede aplicar directamente desde {{ $anioOrigen }}.</p>
@@ -953,7 +953,7 @@
                     create: 'Nuevo bloque',
                     move: 'Mover bloque',
                     resize: this.edge === 'inicio' ? 'Ajustar inicio' : 'Ajustar fin',
-                    course: 'Soltar curso',
+                    course: 'Soltar capacitación',
                 };
 
                 const isOutline = this.action === 'move';

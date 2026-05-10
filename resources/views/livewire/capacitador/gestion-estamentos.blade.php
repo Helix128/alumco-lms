@@ -7,7 +7,7 @@
         {{-- Estamentos asignados --}}
         <div class="space-y-4">
             <div class="flex items-center gap-2">
-                <h4 class="text-[11px] font-display font-black uppercase tracking-[0.2em] text-Alumco-blue/40">Estamentos con acceso al curso</h4>
+                <h4 class="text-[11px] font-display font-black uppercase tracking-[0.2em] text-Alumco-blue/40">Estamentos con acceso a la capacitación</h4>
                 <div class="h-px bg-gray-100 flex-1"></div>
             </div>
             

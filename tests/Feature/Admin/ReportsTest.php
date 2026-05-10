@@ -42,8 +42,8 @@ class ReportsTest extends TestCase
             ->assertSee('Reportes e Impacto')
             ->assertSee('Ver como Usuario')
             ->assertSee('Dashboard analítico')
-            ->assertSee('Cursos y material')
-            ->assertSee('Reportes académicos')
+            ->assertSee('Capacitaciones y material')
+            ->assertSee('Reportes de capacitación')
             ->assertSee('Directorio de usuarios')
             ->assertSee('Cerrar sesión');
     }

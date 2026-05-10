@@ -11,7 +11,6 @@ use App\Http\Controllers\Capacitador\ModuloController as CapacitadorModulo;
 use App\Http\Controllers\Capacitador\ParticipanteController as CapacitadorParticipante;
 use App\Http\Controllers\Capacitador\SeccionCursoController;
 use App\Http\Controllers\CursoController;
-use App\Http\Controllers\DevHealthController;
 use App\Http\Controllers\MisCertificadosController;
 use App\Http\Controllers\ModuloController;
 use App\Http\Controllers\PerfilController;
@@ -20,6 +19,7 @@ use App\Http\Controllers\SupportTicketAttachmentController;
 use App\Http\Controllers\VerificarCertificadoController;
 use App\Livewire\CalendarioUsuario;
 use App\Livewire\Capacitador\CalendarioCapacitaciones;
+use App\Livewire\Developer\SaludLms;
 use App\Models\SupportTicket;
 use App\Support\UserAreaRedirector;
 use Illuminate\Support\Facades\Route;
@@ -171,17 +171,7 @@ Route::middleware(['auth', 'throttle:120,1'])->group(function () {
         });
     });
 
-    // --- SOLO DESARROLLADOR ---
-    Route::get('/dev/configuracion', function () {
-        if (! auth()->user()->isDesarrollador()) {
-            abort(403);
-        }
-
-        return view('admin.configuracion');
-    })->name('dev.configuracion');
-    Route::get('/dev/salud-lms', DevHealthController::class)->name('dev.salud-lms');
-    Route::view('/dev/soporte', 'dev.support')->name('dev.support.index');
-
+    // --- PERFIL COMPARTIDO PANEL ---
     Route::get('/admin/perfil', function () {
         if (! auth()->user()->hasAdminAccess() && ! auth()->user()->isCapacitador()) {
             abort(403);
@@ -190,16 +180,17 @@ Route::middleware(['auth', 'throttle:120,1'])->group(function () {
         return app(PerfilController::class)->showAdmin();
     })->name('admin.perfil.index');
 
-    Route::get('/dev/soporte', function () {
-        if (! auth()->user()->isDesarrollador()) {
-            abort(403);
-        }
+    // --- ADMIN / DEV COMPARTIDO ---
+    Route::view('/admin/acreditacion', 'admin.acreditacion.index')
+        ->middleware('admin.or.developer')
+        ->name('admin.acreditacion.index');
 
-        return view('dev.support');
-    })->name('dev.support.index');
-
-    Route::get('/dev/salud-lms', DevHealthController::class)
-        ->name('dev.salud-lms');
+    // --- SOLO DESARROLLADOR ---
+    Route::middleware('developer')->prefix('dev')->name('dev.')->group(function () {
+        Route::view('/configuracion', 'admin.configuracion')->name('configuracion');
+        Route::view('/soporte', 'dev.support')->name('support.index');
+        Route::get('/salud-lms', SaludLms::class)->name('salud-lms');
+    });
 
     // RUTAS DE ADMINISTRACIÓN
     Route::middleware(['admin'])->prefix('admin')->name('admin.')->group(function () {
@@ -210,17 +201,11 @@ Route::middleware(['auth', 'throttle:120,1'])->group(function () {
         Route::get('/reportes', [ReporteController::class, 'index'])->name('reportes.index');
         Route::get('/reportes/exportar', [ReporteController::class, 'exportar'])->name('reportes.exportar');
 
-        // Acreditación institucional
-        Route::view('/acreditacion', 'admin.acreditacion.index')->name('acreditacion.index');
-
         // Usuarios
         Route::get('/usuarios', function () {
             return view('admin.usuarios.index');
         })->name('usuarios.index');
 
-        // Acreditación
-        Route::get('/acreditacion', function () {
-            return view('admin.acreditacion.index');
-        })->name('acreditacion.index');
+        Route::view('/estamentos', 'admin.estamentos.index')->name('estamentos.index');
     });
 });

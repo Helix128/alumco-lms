@@ -1,62 +1,53 @@
 # Roles y Permisos (ACL)
 
-Alumco LMS gestiona el acceso jerárquico mediante la librería oficial de `spatie/laravel-permission`. 
-Existen 5 grandes roles principales en el sistema. Todo modelo `User` en la plataforma tiene asignado un Rol, que le garantiza (o deniega) el acceso a ciertas vistas y módulos.
+Alumco LMS gestiona el acceso jerárquico mediante `spatie/laravel-permission`. En la interfaz se debe hablar de colaboradores/as y capacitaciones; los nombres técnicos de roles y entidades se mantienen para compatibilidad.
 
 ## 1. Desarrollador (`Desarrollador`)
-- Es el super administrador del sistema (Súper Usuario).
-- Generalmente asociado a los creadores de la plataforma o personal TI de alto nivel.
-- Tiene acceso absoluto y sin restricciones a cualquier sección, controlador y función de la web. Posee poder destructivo total (Eliminar cursos, modificar todos los usuarios, etc.).
+
+- Super administrador del sistema.
+- Tiene acceso absoluto a secciones, controladores y funciones.
 
 ## 2. Administrador (`Administrador`)
+
 - Administrador general de la ONG Alumco.
-- **Competencias**:
-  - Gestión completa de Usuarios (Crear, Editar, Eliminar Trabajadores y Capacitadores).
-  - Gestión transversal sobre Sedes y Estamentos de toda la organización.
-  - Visualización del Dashboard general de reportes (Estadísticas macro del LMS).
-- Al igual que el Desarrollador, la función `$user->hasAdminAccess()` retornará `true`.
+- Gestiona usuarios, capacitadores, sedes, estamentos y reportes.
+- `hasAdminAccess()` retorna `true` para este rol.
 
 ## 3. Capacitador Interno (`Capacitador Interno`)
-- Personal de Alumco dedicado a generar el contenido de formación.
-- **Competencias**:
-  - Crear Cursos, Planificaciones, Módulos y Evaluaciones.
-  - Asignar sus propios cursos a diversos Estamentos.
-  - **Restricción**: A diferencia de un Administrador, un Capacitador Interno *sólo puede editar o eliminar aquellos cursos que él mismo creó*. Si el curso fue creado por el usuario X, el usuario Y (ambos capacitadores) no puede modificarlo ni borrar su contenido.
+
+- Personal de Alumco dedicado a generar contenido de formación.
+- Puede crear capacitaciones, planificaciones, módulos y evaluaciones.
+- Puede asignar sus capacitaciones a estamentos.
+- Solo puede editar o eliminar capacitaciones que creó, salvo que tenga acceso administrativo.
 
 ## 4. Capacitador Externo (`Capacitador Externo`)
-- Personal contratado externamente o consultor que imparte un curso en específico.
-- **Competencias**: Similares al Capacitador Interno. Posee un dashboard de estadísticas enfocado únicamente en la tasa de aprobación y rendimiento de los **cursos que le pertenecen**.
 
-## 5. Trabajador (`Trabajador`)
-- Usuario final del sistema, empleado de la ONG Alumco.
-- **Competencias**:
-  - Entrar al panel de `Mis Cursos`. Sólo visualiza los Cursos que le han sido asignados explícitamente a su **Estamento** respectivo (mediante la tabla pivote `curso_estamento`).
-  - Explorar el contenido multimedia del curso (Video, PDF, Imágenes, Texto) organizados en secciones y módulos.
-  - Realizar Evaluaciones con intentos limitados (parámetro configurable globalmente en `GlobalSetting`).
-  - Generar automáticamente y descargar **Certificados de Aprobación** cuando finaliza y aprueba un curso.
-  - Ver el módulo de `Mis Logros` donde reposan todos sus certificados descargables.
-  - Configurar **Preferencias de Accesibilidad** (tamaño de fuente, contraste, velocidad de animaciones, etc.) que se persisten en el perfil.
-  - Visualizar un **Calendario de Eventos** con capacitaciones programadas.
+- Persona externa o consultora que imparte una capacitación específica.
+- Tiene acceso a estadísticas enfocadas en sus propias capacitaciones.
 
-## Gestión en el Código
+## 5. Colaborador/a (`Trabajador`)
 
-Cualquier validación de vistas (`Blade`) y Controladores debe hacerse mediante middleware o las funciones *helper* implementadas nativamente en el modelo `User.php`.
+- Usuario final del sistema.
+- El rol técnico sigue siendo `Trabajador`, pero la interfaz debe mostrar “colaborador/a”, “colaboradores” o “colaboradoras y colaboradores” según contexto.
+- Accede a **Mis capacitaciones** (`/cursos`) y solo visualiza capacitaciones asignadas a su estamento.
+- Realiza evaluaciones, descarga certificados y configura preferencias de accesibilidad.
 
-**Ejemplo en Controlador:**
+## Gestión en el código
+
+Las validaciones deben hacerse mediante middleware, policies o helpers existentes en `User.php`. No renombrar rutas, modelos ni roles técnicos sin una migración específica.
+
 ```php
-// app/Http/Controllers/Capacitador/CursoController.php
 if (auth()->user()->hasAdminAccess()) {
-    // Es desarrollador o admin, pasa directo
     return;
 }
-abort_unless($curso->capacitador_id === auth()->id(), 403, 'No puedes editar cursos de terceros.');
+
+abort_unless($curso->capacitador_id === auth()->id(), 403, 'No puedes editar capacitaciones de terceros.');
 ```
 
-**Ejemplo en Blade:**
 ```blade
 @if(auth()->user()->isTrabajador())
-    <a href="/mis-cursos">Ir al Salón Virtual</a>
+    <a href="{{ route('cursos.index') }}">Ir a mis capacitaciones</a>
 @elseif(auth()->user()->isCapacitador())
-    <a href="/capacitador/panel">Panel de Capacitación</a>
+    <a href="{{ route('capacitador.dashboard') }}">Panel de capacitación</a>
 @endif
 ```

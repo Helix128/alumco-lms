@@ -13,7 +13,7 @@
                 <svg class="w-4 h-4 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                 </svg>
-                Volver al curso
+                Volver a la capacitación
             </a>
             <h2 class="text-3xl font-display font-black text-Alumco-blue">Editar módulo</h2>
             <p class="text-Alumco-gray/50 font-bold uppercase tracking-wider text-[10px] mt-1">Modificando: {{ $modulo->titulo }}</p>

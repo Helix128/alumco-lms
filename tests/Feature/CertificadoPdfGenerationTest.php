@@ -9,6 +9,7 @@ use App\Models\GlobalSetting;
 use App\Models\Modulo;
 use App\Models\User;
 use App\Services\CertificadoService;
+use App\Support\Signatures\SignatureImage;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -118,10 +119,13 @@ class CertificadoPdfGenerationTest extends TestCase
         Storage::fake('public');
         Role::firstOrCreate(['name' => 'Capacitador Interno']);
 
-        $capacitadorSignature = UploadedFile::fake()->image('firma-capacitador.png');
+        $capacitadorSignature = UploadedFile::fake()->image('firma-capacitador.jpg');
         $institutionalSignature = UploadedFile::fake()->image('firma-institucional.png');
-        $capacitadorPath = Storage::disk('public')->putFileAs('firmas', $capacitadorSignature, 'capacitador.png');
+        $capacitadorPath = Storage::disk('public')->putFileAs('firmas', $capacitadorSignature, 'capacitador.jpg');
         $institutionalPath = Storage::disk('public')->putFileAs('firmas', $institutionalSignature, 'institucional.png');
+
+        $this->assertStringStartsWith('data:image/jpeg;base64,', SignatureImage::dataUri($capacitadorPath));
+        $this->assertStringStartsWith('data:image/png;base64,', SignatureImage::dataUri($institutionalPath));
 
         $capacitador = User::factory()->create([
             'firma_digital' => $capacitadorPath,
@@ -183,6 +187,6 @@ class CertificadoPdfGenerationTest extends TestCase
             ->actingAs($capacitador)
             ->post(route('capacitador.certificados.generar', [$curso, $trabajador]))
             ->assertRedirect()
-            ->assertSessionHas('error', 'El certificado no se puede generar porque el trabajador aun no aprueba la evaluacion requerida del curso.');
+            ->assertSessionHas('error', 'El certificado no se puede generar porque el colaborador o colaboradora aun no aprueba la evaluacion requerida de la capacitacion.');
     }
 }

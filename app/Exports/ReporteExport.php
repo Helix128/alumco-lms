@@ -50,7 +50,7 @@ class ReporteExport implements FromQuery, ShouldAutoSize, WithHeadings, WithMapp
             'rut', 'nombre', 'sexo', 'edad', 'email', 'sede', 'estamento', 'cursos', 'estado_capacitacion', 'progreso', 'feedback',
         ]);
 
-        // Arreglo de nombres personalizados (ej: ['nombre' => 'Nombre del Trabajador'])
+        // Arreglo de nombres personalizados (ej: ['nombre' => 'Nombre del Colaborador'])
         $this->nombresPersonalizados = $request->input('nombres', [
             'rut' => 'RUT',
             'nombre' => 'Nombre completo',
@@ -59,10 +59,10 @@ class ReporteExport implements FromQuery, ShouldAutoSize, WithHeadings, WithMapp
             'email' => 'Correo electrónico',
             'sede' => 'Sede asignada',
             'estamento' => 'Estamento / Rol',
-            'cursos' => 'Cursos aprobados',
+            'cursos' => 'Capacitaciones aprobadas',
             'estado_capacitacion' => 'Estado capacitación',
             'progreso' => 'Progreso (%)',
-            'feedback' => 'Feedback curso',
+            'feedback' => 'Feedback capacitación',
         ]);
     }
 
@@ -114,7 +114,7 @@ class ReporteExport implements FromQuery, ShouldAutoSize, WithHeadings, WithMapp
                     $rowData[] = $user->estamento->nombre ?? 'N/A';
                     break;
                 case 'cursos':
-                    $rowData[] = $user->certificados->map(fn ($c) => $c->curso->titulo.' ('.$c->fecha_emision->format('d/m/Y').')')->implode(', ') ?: 'Sin cursos aprobados';
+                    $rowData[] = $user->certificados->map(fn ($c) => $c->curso->titulo.' ('.$c->fecha_emision->format('d/m/Y').')')->implode(', ') ?: 'Sin capacitaciones aprobadas';
                     break;
                 case 'estado_capacitacion':
                     $rowData[] = $this->courseStatusFor($user);

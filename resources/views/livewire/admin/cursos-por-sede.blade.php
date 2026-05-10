@@ -1,6 +1,6 @@
 <x-admin.chart-panel
-    title="Cursos programados por sede"
-    description="Compara cursos únicos y sesiones planificadas del año en curso."
+    title="Capacitaciones programadas por sede"
+    description="Compara capacitaciones únicas y sesiones planificadas del año actual."
     :badge="$sedeLider"
     accent="165 182 245"
     canvas-class="chart-panel__canvas chart-panel__canvas--lg"
@@ -9,7 +9,7 @@
         <div class="chart-panel__placeholder">Todavía no hay planificaciones asignadas a sedes este año.</div>
     @else
         <div class="mb-4 flex flex-wrap items-center gap-2 text-[11px] font-black uppercase tracking-[0.18em] text-Alumco-blue/60">
-            <span class="rounded-full bg-Alumco-blue/8 px-3 py-1 text-Alumco-blue">Cursos únicos: {{ $totalCursos }}</span>
+            <span class="rounded-full bg-Alumco-blue/8 px-3 py-1 text-Alumco-blue">Capacitaciones únicas: {{ $totalCursos }}</span>
             <span class="rounded-full bg-Alumco-cyan/20 px-3 py-1 text-Alumco-gray">Sesiones: {{ $totalPlanificaciones }}</span>
             <span class="rounded-full bg-Alumco-green/20 px-3 py-1 text-Alumco-green-accessible">Lidera: {{ $sedeLiderCantidad }}</span>
         </div>
@@ -33,7 +33,7 @@
                 labels: data.labels,
                 datasets: [
                     {
-                        label: 'Cursos únicos',
+                        label: 'Capacitaciones únicas',
                         data: data.uniqueCourses,
                         backgroundColor: '#205099',
                         borderRadius: 10,

@@ -31,7 +31,7 @@ class CoursePlanningNotification extends Notification implements ShouldQueue
     {
         $subject = $this->type === 'updated'
             ? 'Actualización de planificación: '.$this->curso->titulo
-            : 'Nueva planificación de curso: '.$this->curso->titulo;
+            : 'Nueva planificación de capacitación: '.$this->curso->titulo;
 
         return (new MailMessage)
             ->subject($subject)
@@ -39,8 +39,8 @@ class CoursePlanningNotification extends Notification implements ShouldQueue
                 'name' => $notifiable->name,
                 'courseTitle' => $this->curso->titulo,
                 'courseUrl' => route('cursos.show', $this->curso),
-                'startDate' => $this->planificacion->fecha_inicio->timezone('America/Santiago')->format('d/m/Y'),
-                'endDate' => $this->planificacion->fecha_fin->timezone('America/Santiago')->format('d/m/Y'),
+                'startDate' => $this->planificacion->fecha_inicio->format('d/m/Y'),
+                'endDate' => $this->planificacion->fecha_fin->format('d/m/Y'),
                 'type' => $this->type,
             ]);
     }

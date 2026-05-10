@@ -64,6 +64,6 @@ class CoursePlanningNotifier
 
     private function isFuturePlanning(PlanificacionCurso $planificacion): bool
     {
-        return $planificacion->fecha_inicio->startOfDay()->gt(now('America/Santiago')->startOfDay());
+        return $planificacion->fecha_inicio->startOfDay()->gt(now()->startOfDay());
     }
 }

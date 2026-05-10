@@ -326,7 +326,7 @@ class CalendarioCapacitacionesTest extends TestCase
         Livewire::test(CalendarioCapacitaciones::class)
             ->set('anioActual', 2026)
             ->call('cambiarVista', 'anual')
-            ->assertDontSee('Cursos disponibles')
+            ->assertDontSee('Capacitaciones disponibles')
             ->assertDontSee('abrirModalBorrado', false);
     }
 
@@ -347,7 +347,7 @@ class CalendarioCapacitacionesTest extends TestCase
             ->set('anioActual', 2026)
             ->call('cambiarVista', 'anual')
             ->set('modoPlaneacion', true)
-            ->assertSee('Cursos disponibles')
+            ->assertSee('Capacitaciones disponibles')
             ->assertSee('abrirModalBorrado', false)
             ->assertSee('cursor-grab', false);
     }

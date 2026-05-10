@@ -37,13 +37,13 @@ class CourseDeadlineReminderNotification extends Notification implements ShouldQ
         $url = route('cursos.show', $this->curso);
 
         return (new MailMessage)
-            ->subject('Tu curso vence pronto: '.$this->curso->titulo)
+            ->subject('Tu capacitación vence pronto: '.$this->curso->titulo)
             ->markdown('emails.notifications.course-deadline-reminder', [
                 'name' => $notifiable->name,
                 'courseTitle' => $this->curso->titulo,
                 'courseUrl' => $url,
                 'progress' => $this->progreso,
-                'deadlineDate' => $this->planificacion->fecha_fin->timezone('America/Santiago')->format('d/m/Y'),
+                'deadlineDate' => $this->planificacion->fecha_fin->format('d/m/Y'),
             ]);
     }
 

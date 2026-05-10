@@ -4,6 +4,7 @@ namespace App\Services\Certificados;
 
 use App\Models\Certificado;
 use App\Models\GlobalSetting;
+use App\Support\Signatures\SignatureImage;
 use Barryvdh\DomPDF\Facade\Pdf as PdfFacade;
 use Barryvdh\DomPDF\PDF;
 use Endroid\QrCode\Builder\Builder;
@@ -26,13 +27,15 @@ class CertificatePdfRenderer
         $curso = $certificado->curso;
         $capacitador = $curso->capacitador;
         $firmaRepLegal = GlobalSetting::get('firma_representante_legal', '');
+        $firmaCapDataUri = SignatureImage::dataUri($capacitador->firma_digital);
+        $firmaRepDataUri = SignatureImage::dataUri($firmaRepLegal);
         $codigo = $certificado->codigo_verificacion;
         $verificationUrl = route('certificados.verificar.show', $codigo);
         $qrCodeDataUri = $this->qrCodeDataUri($verificationUrl);
         $codigoDisplayLines = $this->codigoDisplayLines($codigo);
         $fechaEmision = $certificado->fecha_emision ?? $certificado->created_at;
 
-        return PdfFacade::loadView('capacitador.certificados.plantilla', compact('user', 'curso', 'codigo', 'capacitador', 'firmaRepLegal', 'verificationUrl', 'qrCodeDataUri', 'codigoDisplayLines', 'fechaEmision'))
+        return PdfFacade::loadView('capacitador.certificados.plantilla', compact('user', 'curso', 'codigo', 'capacitador', 'firmaCapDataUri', 'firmaRepDataUri', 'verificationUrl', 'qrCodeDataUri', 'codigoDisplayLines', 'fechaEmision'))
             ->setOptions([
                 'default_paper_size' => 'letter',
                 'default_paper_orientation' => 'portrait',

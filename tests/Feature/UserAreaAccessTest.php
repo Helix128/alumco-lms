@@ -38,14 +38,14 @@ class UserAreaAccessTest extends TestCase
         ])->assertRedirect(route('admin.dashboard.index'));
     }
 
-    public function test_developer_login_redirects_to_admin_reports(): void
+    public function test_developer_login_redirects_to_developer_health_dashboard(): void
     {
         $user = $this->createUserWithRole('Desarrollador');
 
         $this->post('/login', [
             'email' => $user->email,
             'password' => 'password',
-        ])->assertRedirect(route('admin.dashboard.index'));
+        ])->assertRedirect(route('dev.salud-lms'));
     }
 
     public function test_capacitador_login_redirects_to_capacitador_dashboard(): void
@@ -71,6 +71,28 @@ class UserAreaAccessTest extends TestCase
             ->assertRedirect(route('admin.dashboard.index'));
     }
 
+    public function test_developer_can_open_admin_dashboard(): void
+    {
+        $user = $this->createUserWithRole('Desarrollador');
+
+        $this
+            ->actingAs($user)
+            ->get(route('admin.dashboard.index'))
+            ->assertOk()
+            ->assertSee('Dashboard analítico');
+    }
+
+    public function test_developer_can_open_shared_institutional_accreditation(): void
+    {
+        $user = $this->createUserWithRole('Desarrollador');
+
+        $this
+            ->actingAs($user)
+            ->get(route('admin.acreditacion.index'))
+            ->assertOk()
+            ->assertSee('Firma Institucional');
+    }
+
     public function test_trabajador_with_worker_intended_redirects_to_worker_portal(): void
     {
         $user = $this->createUserWithRole('Trabajador');
@@ -92,6 +114,16 @@ class UserAreaAccessTest extends TestCase
             ->actingAs($user)
             ->get(route('cursos.index'))
             ->assertRedirect(route('admin.dashboard.index'));
+    }
+
+    public function test_developer_without_preview_is_redirected_from_worker_portal(): void
+    {
+        $user = $this->createUserWithRole('Desarrollador');
+
+        $this
+            ->actingAs($user)
+            ->get(route('cursos.index'))
+            ->assertRedirect(route('dev.salud-lms'));
     }
 
     public function test_capacitador_without_preview_is_redirected_from_worker_portal(): void
@@ -142,6 +174,11 @@ class UserAreaAccessTest extends TestCase
             ->actingAs($this->createUserWithRole('Administrador'))
             ->get('/')
             ->assertRedirect(route('admin.dashboard.index'));
+
+        $this
+            ->actingAs($this->createUserWithRole('Desarrollador'))
+            ->get('/')
+            ->assertRedirect(route('dev.salud-lms'));
 
         $this
             ->actingAs($this->createUserWithRole('Capacitador Interno'))

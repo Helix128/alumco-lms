@@ -7,6 +7,7 @@ use App\Models\Sede;
 use App\Models\User;
 use App\Notifications\SetupPasswordNotification;
 use App\Services\Authorization\UserHierarchyService;
+use App\Support\Signatures\SignatureImage;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Storage;
@@ -57,6 +58,11 @@ class UserManagement extends Component
     public function boot(UserHierarchyService $userHierarchyService): void
     {
         $this->userHierarchyService = $userHierarchyService;
+    }
+
+    public function mount(): void
+    {
+        abort_unless(auth()->user()?->hasAdminAccess(), 403);
     }
 
     public function updatingSearch()
@@ -118,10 +124,8 @@ class UserManagement extends Component
         ];
 
         if ($this->firma_digital) {
-            if ($this->editingUser && $this->editingUser->firma_digital) {
-                Storage::disk('public')->delete($this->editingUser->firma_digital);
-            }
-            $data['firma_digital'] = $this->firma_digital->store('firmas', 'public');
+            SignatureImage::delete($this->editingUser?->firma_digital);
+            $data['firma_digital'] = $this->firma_digital->store(SignatureImage::Directory, 'public');
         }
 
         if ($this->editingUser) {
@@ -229,7 +233,7 @@ class UserManagement extends Component
             'estamento_id' => 'nullable|exists:estamentos,id',
             'sede_id' => 'required|exists:sedes,id',
             'role' => 'required|exists:roles,name',
-            'firma_digital' => 'nullable|image|max:1024',
+            'firma_digital' => SignatureImage::rules(required: false),
             'fecha_nacimiento' => 'nullable|date',
             'sexo' => 'nullable|in:F,M,Otro',
         ];
@@ -244,7 +248,7 @@ class UserManagement extends Component
             'estamento_id' => 'nullable|exists:estamentos,id',
             'sede_id' => 'required|exists:sedes,id',
             'role' => 'required|exists:roles,name',
-            'firma_digital' => 'nullable|image|max:1024',
+            'firma_digital' => SignatureImage::rules(required: false),
             'fecha_nacimiento' => 'nullable|date',
             'sexo' => 'nullable|in:F,M,Otro',
         ];
