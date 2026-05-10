@@ -2,6 +2,7 @@
     $accessibilityPreferences = \App\Support\AccessibilityPreferences::normalize(auth()->user()?->accessibility_preferences);
     $accessibilityFontSize = \App\Support\AccessibilityPreferences::fontSizeFor($accessibilityPreferences['fontLevel']);
     $user = auth()->user();
+    $adminHeaderTitle = trim($__env->yieldContent('header_title')) ?: 'Centro de Gestión';
 @endphp
 
 <!DOCTYPE html>
@@ -134,7 +135,20 @@
 
     <!-- Topbar -->
     @persist('admin-topbar')
-    <header class="admin-topbar admin-topbar-persistent border-b border-white/10 px-6 py-3 flex items-center justify-between z-[80] shrink-0">
+    <header
+        x-data="{
+            title: @js($adminHeaderTitle),
+            syncTitle() {
+                const content = document.querySelector('[data-admin-header-title]');
+
+                if (content?.dataset.adminHeaderTitle) {
+                    this.title = content.dataset.adminHeaderTitle;
+                }
+            },
+        }"
+        x-init="syncTitle()"
+        x-on:livewire:navigated.document="$nextTick(() => syncTitle())"
+        class="admin-topbar admin-topbar-persistent border-b border-white/10 px-6 py-3 flex items-center justify-between z-[80] shrink-0">
         <div class="flex items-center gap-4">
             <div class="flex items-center">
             <a href="{{ route(\App\Support\UserAreaRedirector::canonicalRouteName(auth()->user())) }}" wire:navigate.hover class="flex items-center text-white">
@@ -142,8 +156,8 @@
                 </a>
             </div>
             <div class="admin-topbar-divider h-6 w-px hidden md:block"></div>
-            <h1 class="hidden md:block font-display font-black text-lg text-white tracking-tight">
-                @yield('header_title', 'Centro de Gestión')
+            <h1 class="hidden md:block font-display font-black text-lg text-white tracking-tight" x-text="title">
+                {{ $adminHeaderTitle }}
             </h1>
         </div>
 
@@ -356,6 +370,7 @@
             <div id="admin-content-{{ md5(request()->fullUrl()) }}"
                  class="max-w-[1600px] mx-auto animate-page-entry"
                  data-nav-content
+                 data-admin-header-title="{{ $adminHeaderTitle }}"
                  data-page-kind="{{ $navigationPageKind }}"
                  aria-busy="false">
                 <div class="nav-skeleton nav-skeleton--dense" data-nav-skeleton aria-hidden="true">

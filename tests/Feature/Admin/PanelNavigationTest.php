@@ -53,6 +53,25 @@ class PanelNavigationTest extends TestCase
             ->assertDontSee('Son las mismas opciones del botón Opciones');
     }
 
+    public function test_persistent_topbar_syncs_header_title_from_current_panel_view(): void
+    {
+        $admin = $this->userWithRole('Administrador');
+
+        $this
+            ->actingAs($admin)
+            ->get(route('admin.dashboard.index'))
+            ->assertOk()
+            ->assertSee('x-on:livewire:navigated.document', false)
+            ->assertSee('x-text="title"', false)
+            ->assertSee('data-admin-header-title="Dashboard Analítico"', false);
+
+        $this
+            ->actingAs($admin)
+            ->get(route('admin.usuarios.index'))
+            ->assertOk()
+            ->assertSee('data-admin-header-title="Gestión de Colaboradores"', false);
+    }
+
     public function test_capacitador_sees_panel_groups_without_developer_or_institutional_links(): void
     {
         $capacitador = $this->userWithRole('Capacitador Interno');
