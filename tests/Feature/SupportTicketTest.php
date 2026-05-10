@@ -15,6 +15,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -101,6 +102,25 @@ class SupportTicketTest extends TestCase
             ->assertHasErrors(['contact_email']);
     }
 
+    public function test_support_route_names_are_unique(): void
+    {
+        $duplicateRouteNames = collect(Route::getRoutes()->getRoutes())
+            ->map(fn ($route) => $route->getName())
+            ->filter(fn (?string $name): bool => $name !== null && str_starts_with($name, 'support.'))
+            ->countBy()
+            ->filter(fn (int $count): bool => $count > 1);
+
+        $this->assertSame([], $duplicateRouteNames->all());
+    }
+
+    public function test_public_support_route_uses_canonical_contact_path(): void
+    {
+        $this->assertSame(url('/soporte/contacto'), route('support.public.create'));
+
+        $this->get('/soporte/contacto')->assertOk();
+        $this->get('/soporte-publico')->assertRedirect('/soporte/contacto');
+    }
+
     public function test_authenticated_user_creates_ticket_associated_to_account(): void
     {
         Notification::fake();
@@ -129,6 +149,16 @@ class SupportTicketTest extends TestCase
 
         $this->actingAs($owner)->get(route('support.show', $ticket))->assertOk();
         $this->actingAs($other)->get(route('support.show', $ticket))->assertForbidden();
+    }
+
+    public function test_legacy_authenticated_support_ticket_url_redirects_to_canonical_route(): void
+    {
+        $owner = $this->userWithRole('Trabajador');
+        $ticket = SupportTicket::factory()->for($owner, 'requester')->create();
+
+        $this->actingAs($owner)
+            ->get("/soporte/{$ticket->id}")
+            ->assertRedirect(route('support.show', $ticket));
     }
 
     public function test_admin_without_developer_role_cannot_open_support_panel(): void

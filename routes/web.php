@@ -36,7 +36,7 @@ Route::middleware('guest')->group(function () {
         ->middleware('throttle:6,1')
         ->name('support.public.create');
 
-    Route::view('/soporte-publico', 'support.public-create')->name('support.public.create');
+    Route::redirect('/soporte-publico', '/soporte/contacto', 301);
 
     // Password Reset
     Route::get('/forgot-password', [PasswordResetController::class, 'showForgotForm'])->name('password.request');
@@ -55,6 +55,7 @@ Route::middleware(['auth', 'throttle:120,1'])->group(function () {
             'ticket' => $ticket->load(['attachments', 'messages.author', 'messages.attachments']),
         ]);
     })->name('support.show');
+    Route::get('/soporte/{ticket}', fn (SupportTicket $ticket) => redirect()->route('support.show', $ticket));
     Route::get('/soporte/adjuntos/{attachment}', SupportTicketAttachmentController::class)
         ->name('support.attachments.download');
 
@@ -76,22 +77,7 @@ Route::middleware(['auth', 'throttle:120,1'])->group(function () {
         // Perfil del colaborador
         Route::get('/perfil', [PerfilController::class, 'show'])->name('perfil.index');
 
-        // Soporte técnico de usuario autenticado
-        Route::view('/soporte', 'support.index')->name('support.index');
-        Route::get('/soporte/{ticket}', function (SupportTicket $ticket) {
-            abort_unless(auth()->user()?->can('view', $ticket), 403);
-
-            return view('support.show', [
-                'ticket' => $ticket->load([
-                    'attachments',
-                    'messages' => fn ($query) => $query->with('author')->latest(),
-                ]),
-            ]);
-        })->name('support.show');
     });
-
-    Route::get('/soporte/adjuntos/{attachment}', SupportTicketAttachmentController::class)
-        ->name('support.attachments.download');
 
     // --- MODO VISTA PREVIA (Admin/Dev) ---
     Route::post('/admin/preview-mode/toggle', function () {
