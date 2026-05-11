@@ -67,7 +67,8 @@
                     </span>
                     <input
                         id="password"
-                        :type="showPassword ? 'text' : 'password'"
+                        type="password"
+                        x-bind:type="showPassword ? 'text' : 'password'"
                         name="password"
                         required
                         autocomplete="current-password"
