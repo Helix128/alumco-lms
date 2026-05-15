@@ -128,7 +128,8 @@
                                 </p>
                             </div>
                             <a href="{{ route('mis-certificados.descargar', $cert) }}"
-                               class="worker-focus rounded-full bg-Alumco-blue px-4 py-2.5 text-sm font-black text-white">
+                               class="worker-focus rounded-full bg-Alumco-blue px-4 py-2.5 text-sm font-black text-white"
+                               aria-label="Descargar certificado: {{ $cert->curso->titulo }}">
                                 Descargar
                             </a>
                         </div>

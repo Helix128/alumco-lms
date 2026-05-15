@@ -46,13 +46,14 @@
             </div>
         </a>
     @else
-        <div class="worker-focus worker-card group flex cursor-pointer items-center gap-5 bg-gray-50/50 p-5 transition-all hover:bg-gray-100/80 lg:p-6"
-             x-data
-             @click="$dispatch('show-alert', { 
-                title: 'Contenido Bloqueado', 
-                message: 'Para acceder a este módulo, primero debes completar todas las actividades anteriores de la capacitación.',
-                type: 'info'
-             })">
+        <button type="button"
+                class="worker-focus worker-card group flex w-full cursor-pointer items-center gap-5 bg-gray-50/50 p-5 text-left transition-all hover:bg-gray-100/80 lg:p-6"
+                x-data
+                @click="$dispatch('show-alert', {
+                   title: 'Contenido Bloqueado',
+                   message: 'Para acceder a este módulo, primero debes completar todas las actividades anteriores de la capacitación.',
+                   type: 'info'
+                })">
             <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gray-200 font-display text-base font-black text-gray-400 lg:h-12 lg:w-12 lg:text-lg">
                 {{ $index }}
             </div>
@@ -74,6 +75,6 @@
                     <path d="M18 8h-1V6A5 5 0 0 0 7 6v2H6a2 2 0 00-2 2v10a2 2 0 00 2 2h12a2 2 0 00 2-2V10a2 2 0 00-2-2Zm-6 9a2 2 0 1 1 0-4 2 2 0 0 1 0 4Zm3-9H9V6a3 3 0 0 1 6 0v2Z"/>
                 </svg>
             </div>
-        </div>
+        </button>
     @endif
 </div>

@@ -121,7 +121,22 @@
 </head>
 
 <body class="admin-shell font-sans text-Alumco-gray h-screen flex flex-col overflow-hidden antialiased"
-      x-data="{ sidebarOpen: true, toggleSidebar() { this.sidebarOpen = !this.sidebarOpen; } }">
+      x-data="{
+          sidebarOpen: window.innerWidth >= 1024,
+          toggleSidebar() { this.sidebarOpen = !this.sidebarOpen; },
+          init() {
+              this.$watch('sidebarOpen', v => {
+                  document.body.classList.toggle('sidebar-is-open', v && window.innerWidth < 1024);
+              });
+              window.addEventListener('resize', () => {
+                  if (window.innerWidth >= 1024) {
+                      this.sidebarOpen = true;
+                      document.body.classList.remove('sidebar-is-open');
+                  }
+              });
+          }
+      }"
+      @admin-toggle-sidebar.window="toggleSidebar()">
     @persist('admin-nav-progress')
         <div class="nav-progress-bar"
              data-nav-progress
@@ -150,34 +165,44 @@
         x-on:livewire:navigated.document="$nextTick(() => syncTitle())"
         class="admin-topbar admin-topbar-persistent border-b border-white/10 px-6 py-3 flex items-center justify-between z-[80] shrink-0">
         <div class="flex items-center gap-4">
+            <!-- Hamburger — mobile only -->
+            <button @click="$dispatch('admin-toggle-sidebar')"
+                    class="lg:hidden admin-icon-button shrink-0"
+                    aria-label="Abrir menú">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                          d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+            </button>
             <div class="flex items-center">
             <a href="{{ route(\App\Support\UserAreaRedirector::canonicalRouteName(auth()->user())) }}" wire:navigate.hover class="flex items-center text-white">
                     <x-logo-alumco class="h-8 w-auto" width="120" height="32" />
                 </a>
             </div>
-            <div class="admin-topbar-divider h-6 w-px hidden md:block"></div>
-            <h1 class="hidden md:block font-display font-black text-lg text-white tracking-tight" x-text="title">
+            <div class="admin-topbar-divider h-6 w-px hidden lg:block"></div>
+            <h1 class="hidden lg:block font-display font-black text-lg text-white tracking-tight" x-text="title">
                 {{ $adminHeaderTitle }}
             </h1>
         </div>
 
-        <div class="flex items-center gap-4">
+        <div class="flex items-center gap-2 sm:gap-4">
             @auth
             @include('partials.accessibility-modal', [
-                'buttonClass' => 'worker-focus admin-topbar-action hidden sm:inline-flex',
+                'buttonClass' => 'worker-focus admin-icon-button',
+                'showLabel'   => false,
             ])
 
             @if(auth()->user()->hasAdminAccess())
                 <form action="{{ route('admin.preview.toggle') }}" method="POST">
                     @csrf
-                    <button type="submit" 
+                    <button type="submit"
                             data-active="{{ session('preview_mode') ? 'true' : 'false' }}"
                             class="worker-focus admin-topbar-action admin-topbar-action--preview">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                         </svg>
-                        {{ session('preview_mode') ? 'Saliendo de Vista Previa' : 'Ver como Usuario' }}
+                        <span class="hidden md:inline">{{ session('preview_mode') ? 'Saliendo de Vista Previa' : 'Ver como Usuario' }}</span>
                     </button>
                 </form>
             @endif
@@ -197,12 +222,6 @@
                class="worker-focus admin-avatar-button select-none">
                 {{ $initials }}
             </a>
-            <div class="sm:hidden">
-                @include('partials.accessibility-modal', [
-                    'buttonClass' => 'worker-focus admin-icon-button',
-                    'showLabel' => false,
-                ])
-            </div>
             @endauth
         </div>
     </header>
@@ -210,11 +229,35 @@
 
     <div class="flex-1 flex overflow-hidden">
 
+        <!-- Backdrop — mobile only, closes sidebar on click -->
+        <div class="admin-sidebar-backdrop lg:hidden"
+             x-show="sidebarOpen"
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             @click="sidebarOpen = false"
+             style="display:none">
+        </div>
+
         <!-- Expandable Sidebar -->
         <aside id="sidebar"
                class="admin-sidebar sidebar-transition bg-Alumco-blue flex flex-col z-[70] shrink-0 overflow-hidden w-72"
                :style="sidebarOpen ? '' : 'transform: translateX(-100%); margin-left: -18rem'">
-            
+
+            <!-- Close button — mobile only -->
+            <div class="lg:hidden flex justify-end px-3 pt-3 pb-0">
+                <button @click="sidebarOpen = false"
+                        class="admin-icon-button shrink-0"
+                        aria-label="Cerrar menú">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
             <div class="flex-1 py-5 px-2 flex flex-col gap-1.5 overflow-y-auto custom-scrollbar border-r border-white/10 min-w-[18rem]"
                  x-data="{ 
                     persistScroll() { sessionStorage.setItem('admin-sidebar-scroll', $el.scrollTop); },

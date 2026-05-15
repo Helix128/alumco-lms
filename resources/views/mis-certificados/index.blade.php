@@ -29,11 +29,13 @@
 
             @if ($certificados->isNotEmpty())
             <div class="relative sm:w-72 shrink-0">
+                <label for="cert-buscar" class="sr-only">Buscar certificados por nombre de capacitación</label>
                 <svg class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-Alumco-gray/40"
                      fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.636 5.636a7.5 7.5 0 0 0 10.607 10.607Z"/>
                 </svg>
                 <input x-model="search"
+                       id="cert-buscar"
                        type="search"
                        placeholder="Buscar por capacitación…"
                        class="w-full rounded-2xl border border-Alumco-gray/15 bg-white py-2.5 pl-10 pr-4 text-sm font-semibold text-Alumco-gray placeholder:text-Alumco-gray/40 focus:border-Alumco-blue/30 focus:outline-none focus:ring-4 focus:ring-Alumco-blue/10 transition-shadow">
@@ -86,7 +88,8 @@
                     </div>
 
                     <a href="{{ route('mis-certificados.descargar', $cert) }}"
-                       class="worker-focus inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-Alumco-blue px-4 py-3 text-sm font-black text-white shadow-sm transition-all hover:brightness-110 active:scale-[0.98]">
+                       class="worker-focus inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-Alumco-blue px-4 py-3 text-sm font-black text-white shadow-sm transition-all hover:brightness-110 active:scale-[0.98]"
+                       aria-label="Descargar PDF: {{ $cert->curso->titulo }}">
                         <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/>
                         </svg>

@@ -435,7 +435,7 @@
                                 </div>
                             </div>
 
-                            <div class="grid grid-cols-2 gap-5">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                                 <div class="space-y-1">
                                     <label for="input-sexo" class="drawer-field-label">Sexo</label>
                                     <select wire:model="sexo" id="input-sexo" class="drawer-select">

@@ -6,6 +6,7 @@
 @endphp
 
 <nav id="app-bottom-nav"
+     aria-label="Navegación inferior"
      class="fixed bottom-0 inset-x-0 z-50 h-16 border-t border-white/10 bg-Alumco-blue px-2
             lg:hidden">
 

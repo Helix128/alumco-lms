@@ -1460,3 +1460,42 @@ html {
 #app-bottom-nav, #sidebar {
     view-transition-name: bottom-nav;
 }
+
+/* ============================================================
+   Panel Admin/Capacitador — Mobile Responsive (< 1024px)
+   Desktop (>= 1024px) unchanged.
+   ============================================================ */
+@media (max-width: 1023px) {
+    /* Sidebar becomes a fixed drawer */
+    .admin-sidebar {
+        position: fixed !important;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        z-index: 200;
+        overflow-y: auto;
+        /* width and margin-left come from Tailwind classes / Alpine :style binding */
+    }
+
+    /* When sidebar is closed the transform is applied via Alpine :style,
+       which already does translateX(-100%) — no override needed. */
+
+    /* Backdrop overlay */
+    .admin-sidebar-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 199;
+        background: rgba(18, 44, 82, 0.5);
+        backdrop-filter: blur(3px);
+    }
+
+    /* Prevent body scroll when drawer open */
+    body.sidebar-is-open {
+        overflow: hidden;
+    }
+
+    /* Main area takes full width — sidebar no longer in flex flow */
+    .admin-sidebar ~ main {
+        width: 100% !important;
+    }
+}

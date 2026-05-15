@@ -47,23 +47,37 @@
     </section>
 
     {{-- Navegación de Pestañas --}}
-    <div class="flex items-center gap-2 border-b border-gray-100 pb-1">
-        <button @click="tab = 'disponibles'" 
+    <div role="tablist" aria-label="Categorías de capacitaciones"
+         class="-mx-4 flex items-center gap-0 overflow-x-auto border-b border-gray-100 px-4 pb-1 sm:mx-0 sm:px-0">
+        <button role="tab"
+                id="tab-disponibles"
+                aria-controls="panel-disponibles"
+                :aria-selected="tab === 'disponibles'"
+                @click="tab = 'disponibles'"
                 :class="tab === 'disponibles' ? 'border-Alumco-blue text-Alumco-blue' : 'border-transparent text-Alumco-gray/50 hover:text-Alumco-gray hover:border-gray-200'"
-                class="worker-focus relative px-6 py-4 text-sm font-black uppercase tracking-widest transition-all border-b-4 -mb-[2px]">
-            Capacitaciones disponibles
+                class="worker-focus relative -mb-[2px] shrink-0 border-b-4 px-4 py-4 text-sm font-black uppercase tracking-widest transition-all sm:px-6">
+            <span class="sm:hidden">Disponibles</span>
+            <span class="hidden sm:inline">Capacitaciones disponibles</span>
         </button>
-        <button @click="tab = 'historial'" 
+        <button role="tab"
+                id="tab-historial"
+                aria-controls="panel-historial"
+                :aria-selected="tab === 'historial'"
+                @click="tab = 'historial'"
                 :class="tab === 'historial' ? 'border-Alumco-blue text-Alumco-blue' : 'border-transparent text-Alumco-gray/50 hover:text-Alumco-gray hover:border-gray-200'"
-                class="worker-focus relative px-6 py-4 text-sm font-black uppercase tracking-widest transition-all border-b-4 -mb-[2px]">
-            Historial de capacitaciones
+                class="worker-focus relative -mb-[2px] shrink-0 border-b-4 px-4 py-4 text-sm font-black uppercase tracking-widest transition-all sm:px-6">
+            <span class="sm:hidden">Historial</span>
+            <span class="hidden sm:inline">Historial de capacitaciones</span>
         </button>
     </div>
 
     {{-- Contenedor de Contenido con Stack de Grid para Transición Fluida --}}
     <div class="grid">
         {{-- Contenido Pestaña: Disponibles --}}
-        <div x-show="tab === 'disponibles'" 
+        <div role="tabpanel"
+             id="panel-disponibles"
+             aria-labelledby="tab-disponibles"
+             x-show="tab === 'disponibles'"
              x-transition:enter="transition ease-out duration-150"
              x-transition:enter-start="opacity-0"
              x-transition:enter-end="opacity-100"
@@ -230,7 +244,10 @@
         </div>
 
         {{-- Contenido Pestaña: Historial --}}
-        <div x-cloak x-show="tab === 'historial'" 
+        <div role="tabpanel"
+             id="panel-historial"
+             aria-labelledby="tab-historial"
+             x-cloak x-show="tab === 'historial'"
              x-transition:enter="transition ease-out duration-150"
              x-transition:enter-start="opacity-0"
              x-transition:enter-end="opacity-100"

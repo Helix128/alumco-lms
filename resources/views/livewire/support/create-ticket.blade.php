@@ -10,6 +10,7 @@
             <div class="space-y-2">
                 <label for="support-contact-name" class="text-sm font-black text-Alumco-gray">Nombre</label>
                 <input id="support-contact-name" type="text" wire:model="contact_name" @auth readonly @endauth
+                       required
                        class="worker-focus w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-bold text-Alumco-gray outline-none focus:border-Alumco-blue disabled:bg-gray-50">
                 @error('contact_name') <p class="text-sm font-bold text-Alumco-coral-accessible">{{ $message }}</p> @enderror
             </div>
@@ -17,6 +18,7 @@
             <div class="space-y-2">
                 <label for="support-contact-email" class="text-sm font-black text-Alumco-gray">Correo</label>
                 <input id="support-contact-email" type="email" wire:model="contact_email" @auth readonly @endauth
+                       required
                        class="worker-focus w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-bold text-Alumco-gray outline-none focus:border-Alumco-blue disabled:bg-gray-50">
                 @error('contact_email') <p class="text-sm font-bold text-Alumco-coral-accessible">{{ $message }}</p> @enderror
             </div>
@@ -37,6 +39,7 @@
             <div class="space-y-2">
                 <label for="support-subject" class="text-sm font-black text-Alumco-gray">Asunto</label>
                 <input id="support-subject" type="text" wire:model="subject" maxlength="160"
+                       required
                        class="worker-focus w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-bold text-Alumco-gray outline-none focus:border-Alumco-blue">
                 @error('subject') <p class="text-sm font-bold text-Alumco-coral-accessible">{{ $message }}</p> @enderror
             </div>
@@ -45,6 +48,7 @@
         <div class="space-y-2">
             <label for="support-description" class="text-sm font-black text-Alumco-gray">Descripción</label>
             <textarea id="support-description" wire:model="description" rows="6" maxlength="5000"
+                      required
                       class="worker-focus w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold leading-relaxed text-Alumco-gray outline-none focus:border-Alumco-blue"></textarea>
             @error('description') <p class="text-sm font-bold text-Alumco-coral-accessible">{{ $message }}</p> @enderror
         </div>

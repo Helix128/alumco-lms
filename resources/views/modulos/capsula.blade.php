@@ -97,6 +97,7 @@
             @if ($esYoutube)
                 <div class="worker-card relative w-full overflow-hidden" style="aspect-ratio: 16/9">
                     <iframe src="{{ $embedUrl }}"
+                            title="{{ $modulo->titulo }}"
                             class="absolute inset-0 h-full w-full"
                             frameborder="0"
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"

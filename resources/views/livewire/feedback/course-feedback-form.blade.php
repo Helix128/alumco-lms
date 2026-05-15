@@ -18,8 +18,8 @@
         <form wire:submit="guardar" class="space-y-4">
             <div class="grid gap-4 sm:grid-cols-2">
                 <div>
-                    <label class="mb-2 block text-xs font-black uppercase tracking-widest text-Alumco-blue/50">Valoración</label>
-                    <select wire:model="rating" class="worker-focus w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-bold text-Alumco-gray outline-none focus:border-Alumco-blue">
+                    <label for="feedback-rating" class="mb-2 block text-xs font-black uppercase tracking-widest text-Alumco-blue/50">Valoración</label>
+                    <select id="feedback-rating" wire:model="rating" class="worker-focus w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-bold text-Alumco-gray outline-none focus:border-Alumco-blue">
                         <option value="">Selecciona una nota</option>
                         <option value="5">5 · Muy útil</option>
                         <option value="4">4 · Útil</option>
@@ -31,8 +31,8 @@
                 </div>
 
                 <div>
-                    <label class="mb-2 block text-xs font-black uppercase tracking-widest text-Alumco-blue/50">Tema principal</label>
-                    <select wire:model="categoria" class="worker-focus w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-bold text-Alumco-gray outline-none focus:border-Alumco-blue">
+                    <label for="feedback-categoria" class="mb-2 block text-xs font-black uppercase tracking-widest text-Alumco-blue/50">Tema principal</label>
+                    <select id="feedback-categoria" wire:model="categoria" class="worker-focus w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-bold text-Alumco-gray outline-none focus:border-Alumco-blue">
                         <option value="utilidad">Utilidad para el trabajo</option>
                         <option value="claridad">Claridad</option>
                         <option value="contenido">Contenido</option>
@@ -41,7 +41,8 @@
                 </div>
             </div>
 
-            <textarea wire:model="mensaje" rows="3" maxlength="1200"
+            <label for="feedback-mensaje" class="sr-only">Comentario opcional</label>
+            <textarea id="feedback-mensaje" wire:model="mensaje" rows="3" maxlength="1200"
                       placeholder="Comentario opcional..."
                       class="worker-focus w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-Alumco-gray outline-none focus:border-Alumco-blue"></textarea>
 

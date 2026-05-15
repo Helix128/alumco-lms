@@ -47,12 +47,12 @@
 
         {{-- ── Grid mensual ─────────────────────────────────────────────── --}}
         <div class="bg-white rounded-2xl shadow-sm overflow-hidden overflow-x-auto">
-            <div class="min-w-[600px]">
+            <div role="grid" aria-label="Calendario {{ ucfirst($nombresMes[$mesActual - 1]) }} {{ $anioActual }}" class="min-w-[600px]">
                 {{-- Cabecera días de la semana --}}
-                <div class="grid grid-cols-7 border-b border-gray-200">
-                    @foreach(['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'] as $dia)
-                        <div class="py-3 text-center text-sm font-semibold text-gray-500 uppercase tracking-wide">
-                            {{ $dia }}
+                <div role="row" class="grid grid-cols-7 border-b border-gray-200">
+                    @foreach([['Lun','Lunes'],['Mar','Martes'],['Mié','Miércoles'],['Jue','Jueves'],['Vie','Viernes'],['Sáb','Sábado'],['Dom','Domingo']] as [$abrev, $nombre])
+                        <div role="columnheader" aria-label="{{ $nombre }}" class="py-3 text-center text-sm font-semibold text-gray-500 uppercase tracking-wide">
+                            {{ $abrev }}
                         </div>
                     @endforeach
                 </div>
@@ -60,9 +60,9 @@
                 {{-- Semanas --}}
                 <div class="divide-y divide-gray-100">
                     @foreach($semanasDelMes as $semana)
-                        <div class="grid grid-cols-7">
+                        <div role="row" class="grid grid-cols-7">
                             @foreach($semana['dias'] as $dia)
-                                <div @class([
+                                <div role="gridcell" @class([
                                     'min-h-[80px] p-1.5 border-r border-gray-100 last:border-r-0',
                                     'bg-gray-50' => !$dia['esMesActual'] || $dia['esPasado'],
                                     'bg-white'   => $dia['esMesActual'] && !$dia['esPasado'],

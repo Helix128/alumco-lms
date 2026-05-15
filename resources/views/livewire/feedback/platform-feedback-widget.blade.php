@@ -1,4 +1,6 @@
-<div class="fixed bottom-24 right-4 z-[55] lg:bottom-6 lg:right-6">
+<div class="fixed bottom-24 right-4 z-[55] lg:bottom-6 lg:right-6"
+     x-data
+     @keydown.escape.window="$wire.set('open', false)">
     @if ($open)
         <div class="mb-3 w-[min(22rem,calc(100vw-2rem))] rounded-3xl border border-gray-100 bg-white p-5 shadow-2xl shadow-Alumco-blue/10">
             <div class="mb-4 flex items-start justify-between gap-3">
@@ -13,13 +15,15 @@
             </div>
 
             <form wire:submit="guardar" class="space-y-3">
-                <select wire:model="categoria" class="worker-focus w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-bold text-Alumco-gray outline-none focus:border-Alumco-blue">
+                <label for="pfb-categoria" class="sr-only">Categoría del feedback</label>
+                <select id="pfb-categoria" wire:model="categoria" class="worker-focus w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-bold text-Alumco-gray outline-none focus:border-Alumco-blue">
                     <option value="sugerencia">Sugerencia</option>
                     <option value="problema">Problema técnico</option>
                     <option value="accesibilidad">Accesibilidad</option>
                     <option value="contenido">Contenido incorrecto</option>
                 </select>
-                <textarea wire:model="mensaje" rows="4" maxlength="1200"
+                <label for="pfb-mensaje" class="sr-only">Descripción</label>
+                <textarea id="pfb-mensaje" wire:model="mensaje" rows="4" maxlength="1200"
                           class="worker-focus w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-Alumco-gray outline-none focus:border-Alumco-blue"
                           placeholder="Cuéntanos qué ocurrió o qué mejorarías..."></textarea>
                 @error('mensaje') <p class="text-sm font-bold text-Alumco-coral-accessible">{{ $message }}</p> @enderror

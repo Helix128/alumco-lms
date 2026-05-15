@@ -95,7 +95,7 @@
         </section>
 
     @else
-        <div class="worker-card mx-auto max-w-2xl px-5 py-12 text-center lg:px-8">
+        <div class="worker-card mx-auto max-w-2xl px-5 py-12 text-center lg:px-8" aria-live="polite">
             <div class="mb-3 inline-flex h-24 w-24 items-center justify-center rounded-full
                         {{ $aprobado ? 'bg-Alumco-green-accessible/10' : 'bg-Alumco-coral/10' }} mx-auto">
                 <span class="font-display text-3xl font-black {{ $aprobado ? 'text-Alumco-green-accessible' : 'text-Alumco-coral-accessible' }}">

@@ -199,7 +199,7 @@
         @endif
 
         {{-- CONTENIDO PRINCIPAL --}}
-        <main class="pb-28 w-full max-w-2xl mx-auto lg:max-w-[90rem] lg:pb-12 lg:px-8 pb-[calc(7rem+env(safe-area-inset-bottom,0px))]">
+        <main class="w-full max-w-2xl mx-auto lg:max-w-[90rem] lg:pb-12 lg:px-8 pb-[calc(7rem+env(safe-area-inset-bottom,0px))]">
             @php
                 $navigationPageKind = trim($__env->yieldContent('page_kind')) ?: 'default';
             @endphp
@@ -268,7 +268,9 @@
          class="fixed inset-0 z-[100] flex items-center justify-center p-4"
          :role="type === 'error' ? 'alert' : 'dialog'"
          aria-modal="true"
-         aria-labelledby="global-alert-title">
+         aria-labelledby="global-alert-title"
+         @keydown.escape.window="open = false"
+         x-effect="open && $nextTick(() => $refs.alertOkBtn && $refs.alertOkBtn.focus())">
         
         <div x-show="open" 
              x-transition:enter="ease-out duration-300"
@@ -298,7 +300,8 @@
                 <h3 id="global-alert-title" class="font-display text-2xl font-black text-Alumco-gray" x-text="title"></h3>
                 <p class="mt-3 text-lg font-bold text-Alumco-gray/60 leading-relaxed" x-text="message"></p>
                 
-                <button @click="open = false" 
+                <button @click="open = false"
+                        x-ref="alertOkBtn"
                         class="mt-8 w-full rounded-2xl py-4 text-sm font-black uppercase tracking-widest text-white shadow-lg transition-all hover:brightness-110 active:scale-[0.98]"
                         :class="type === 'error' ? 'bg-Alumco-coral-accessible shadow-Alumco-coral/20' : (type === 'success' ? 'bg-Alumco-green-accessible shadow-Alumco-green-accessible/20' : 'bg-Alumco-blue shadow-Alumco-blue/20')">
                     Entendido
