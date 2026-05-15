@@ -29,6 +29,8 @@ Thumbs.db
 /.claude
 /.gemini
 /.agents
+/.codex
+/.github/skills
 AGENTS.md
 CLAUDE.md
 GEMINI.md
