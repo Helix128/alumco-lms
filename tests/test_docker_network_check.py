@@ -106,6 +106,48 @@ class DefaultBridgeTests(unittest.TestCase):
         self.assertIn("DNS failed", rendered)
 
 
+class ConnManRouteContaminationTests(unittest.TestCase):
+    def test_healthy_physical_default_and_selected_route(self):
+        CHECK.check_connman_route_contamination(
+            [
+                "default via 192.168.1.1 dev enp2s0 proto dhcp src 192.168.1.87 metric 100",
+                "169.254.0.0/16 dev enp2s0 scope link metric 1000",
+            ],
+            "1.1.1.1 via 192.168.1.1 dev enp2s0 src 192.168.1.87 uid 1000",
+        )
+
+    def test_real_connman_pollution_fixture_has_dedicated_exit(self):
+        routes = [
+            "default dev veth7578720 scope link src 169.254.17.42 metric 205",
+            "0.0.0.0 dev veth9123456 scope link proto boot src 169.254.21.8 metric 206",
+            "169.254.0.0/16 dev veth7578720 proto kernel scope link src 169.254.17.42",
+            "default via 192.168.1.1 dev enp2s0 proto dhcp src 192.168.1.87 metric 100",
+        ]
+        selected = "1.1.1.1 dev veth7578720 src 169.254.17.42 uid 1000"
+
+        with self.assertRaises(SystemExit) as raised:
+            CHECK.check_connman_route_contamination(routes, selected)
+
+        self.assertEqual(CHECK.EXIT_CONNMAN_ROUTE, raised.exception.code)
+
+    def test_selected_virtual_route_is_rejected_without_default_or_boot_marker(self):
+        with self.assertRaises(SystemExit) as raised:
+            CHECK.check_connman_route_contamination(
+                ["default via 192.168.1.1 dev enp2s0"],
+                "1.1.1.1 dev br-c64d7a6cd2ae src 169.254.80.4",
+            )
+        self.assertEqual(CHECK.EXIT_CONNMAN_ROUTE, raised.exception.code)
+
+    def test_regular_docker_subnet_route_is_not_host_route_contamination(self):
+        CHECK.check_connman_route_contamination(
+            [
+                "default via 192.168.1.1 dev enp2s0",
+                "172.30.250.0/27 dev br-c64d7a6cd2ae proto kernel scope link src 172.30.250.1",
+            ],
+            "1.1.1.1 via 192.168.1.1 dev enp2s0 src 192.168.1.87",
+        )
+
+
 class ProductionRepairTests(unittest.TestCase):
     def bash(self, body):
         script = f"""
@@ -146,6 +188,21 @@ network_check prod
 status=$?
 set -e
 [ "$status" -eq 22 ]
+"""
+        )
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertNotIn("sudo must not run", result.stderr)
+
+    def test_connman_route_error_never_touches_systemctl(self):
+        result = self.bash(
+            """
+network_check_raw() { return 23; }
+sudo() { echo "sudo must not run" >&2; return 99; }
+set +e
+network_check prod
+status=$?
+set -e
+[ "$status" -eq 23 ]
 """
         )
         self.assertEqual(0, result.returncode, result.stderr)

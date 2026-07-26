@@ -33,6 +33,8 @@ EXIT_OVERLAP = 14
 EXIT_DEFAULT_BRIDGE = 20
 EXIT_CONTAINER_EGRESS = 21
 EXIT_BUILDKIT_EGRESS = 22
+EXIT_CONNMAN_ROUTE = 23
+VIRTUAL_INTERFACE_PREFIXES = ("veth", "docker", "br-")
 RFC1918 = tuple(
     ipaddress.ip_network(value) for value in ("10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16")
 )
@@ -130,6 +132,50 @@ def route_lines() -> list[str]:
     if fixture:
         return pathlib.Path(fixture).read_text().splitlines()
     return run(["ip", "-4", "route", "show"]).splitlines()
+
+
+def selected_route_line() -> str:
+    fixture = os.environ.get("LMS_NETWORK_CHECK_ROUTE_GET_FILE")
+    if fixture:
+        return pathlib.Path(fixture).read_text().strip()
+    return run(["ip", "-4", "route", "get", "1.1.1.1"]).strip()
+
+
+def route_interface(line: str) -> str | None:
+    fields = line.split()
+    try:
+        return fields[fields.index("dev") + 1]
+    except (ValueError, IndexError):
+        return None
+
+
+def is_virtual_interface(interface: str | None) -> bool:
+    return bool(interface and interface.startswith(VIRTUAL_INTERFACE_PREFIXES))
+
+
+def check_connman_route_contamination(lines: list[str], selected_route: str) -> None:
+    """Reject host egress routes installed on Docker-owned interfaces."""
+    candidates = list(lines)
+    if selected_route:
+        candidates.append(selected_route)
+
+    for line in candidates:
+        fields = line.split()
+        interface = route_interface(line)
+        if not is_virtual_interface(interface):
+            continue
+        is_default = bool(fields and fields[0] in ("default", "0.0.0.0", "0.0.0.0/0"))
+        is_connman_boot_route = any(
+            fields[index:index + 2] == ["proto", "boot"]
+            for index in range(len(fields) - 1)
+        )
+        is_selected_route = line == selected_route
+        if is_default or is_connman_boot_route or is_selected_route:
+            fail(
+                f"la ruta principal del host usa la interfaz virtual {interface}: {line}. "
+                "Revise NetworkInterfaceBlacklist en /etc/connman/main.conf.",
+                EXIT_CONNMAN_ROUTE,
+            )
 
 
 def route_network(line: str) -> ipaddress.IPv4Network | None:
@@ -373,6 +419,7 @@ def main() -> None:
             continue
         fail(f"{variable}={desired} se solapa con la ruta del host: {line}", EXIT_OVERLAP)
 
+    check_connman_route_contamination(lines, selected_route_line())
     check_connectivity(lines)
     check_default_bridge(networks)
     check_container_connectivity()
