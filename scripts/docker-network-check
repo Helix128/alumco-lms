@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Read-only preflight for the Docker Compose network used by Alumco LMS."""
+"""Read-only preflight for the Docker networks used by Alumco LMS.
+
+Exit status 20 is deliberately reserved for a broken default Docker bridge.
+The production wrapper may repair that one condition; every other failure is
+diagnostic only.
+"""
 
 from __future__ import annotations
 
@@ -11,20 +16,31 @@ import shlex
 import socket
 import subprocess
 import sys
+import tempfile
 import urllib.error
 import urllib.request
 
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 HTTPS_URL = os.environ.get("LMS_NETWORK_CHECK_URL", "https://www.cloudflare.com/cdn-cgi/trace")
+PROBE_IMAGE = os.environ.get("LMS_NETWORK_CHECK_IMAGE", "alpine:3.20")
+EXIT_GENERAL = 1
+EXIT_ROUTE = 10
+EXIT_HOST_DNS = 11
+EXIT_HOST_EGRESS = 12
+EXIT_NETWORK_CONFIG = 13
+EXIT_OVERLAP = 14
+EXIT_DEFAULT_BRIDGE = 20
+EXIT_CONTAINER_EGRESS = 21
+EXIT_BUILDKIT_EGRESS = 22
 RFC1918 = tuple(
     ipaddress.ip_network(value) for value in ("10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16")
 )
 
 
-def fail(message: str) -> None:
+def fail(message: str, code: int = EXIT_GENERAL) -> None:
     print(f"ERROR: {message}", file=sys.stderr)
-    raise SystemExit(1)
+    raise SystemExit(code)
 
 
 def run(command: list[str], *, required: bool = True) -> str:
@@ -56,13 +72,13 @@ def requested_network(variable: str, value: str) -> ipaddress.IPv4Network:
     try:
         network = ipaddress.ip_network(value, strict=True)
     except ValueError as error:
-        fail(f"{variable}={value!r} no es un CIDR IPv4 válido y normalizado: {error}")
+        fail(f"{variable}={value!r} no es un CIDR IPv4 válido y normalizado: {error}", EXIT_NETWORK_CONFIG)
     if not isinstance(network, ipaddress.IPv4Network):
-        fail(f"{variable} debe ser IPv4.")
+        fail(f"{variable} debe ser IPv4.", EXIT_NETWORK_CONFIG)
     if not any(network.subnet_of(private_range) for private_range in RFC1918):
-        fail(f"{variable} debe pertenecer a un rango IPv4 privado RFC1918.")
+        fail(f"{variable} debe pertenecer a un rango IPv4 privado RFC1918.", EXIT_NETWORK_CONFIG)
     if not 24 <= network.prefixlen <= 28:
-        fail(f"{variable} debe tener un tamaño entre /24 y /28 (recibido /{network.prefixlen}).")
+        fail(f"{variable} debe tener un tamaño entre /24 y /28 (recibido /{network.prefixlen}).", EXIT_NETWORK_CONFIG)
     return network
 
 
@@ -135,6 +151,169 @@ def bridge_interface(item: dict[str, object]) -> str:
     return "br-" + str(item.get("Id", ""))[:12]
 
 
+def default_bridge(networks: list[dict[str, object]]) -> dict[str, object]:
+    for item in networks:
+        if item.get("Name") == "bridge" and item.get("Driver") == "bridge":
+            return item
+    fail(
+        "la red Docker predeterminada 'bridge' no existe; docker0 puede regenerarse reiniciando Docker.",
+        EXIT_DEFAULT_BRIDGE,
+    )
+
+
+def interface_state(interface: str) -> dict[str, object]:
+    fixture = os.environ.get("LMS_NETWORK_CHECK_LINK_FIXTURE")
+    if fixture:
+        records = json.loads(pathlib.Path(fixture).read_text())
+    else:
+        result = subprocess.run(
+            ["ip", "-j", "address", "show", "dev", interface],
+            cwd=ROOT,
+            text=True,
+            capture_output=True,
+        )
+        if result.returncode:
+            fail(
+                f"la interfaz {interface} de la red bridge no existe; puede regenerarse reiniciando Docker.",
+                EXIT_DEFAULT_BRIDGE,
+            )
+        try:
+            records = json.loads(result.stdout)
+        except json.JSONDecodeError as error:
+            fail(f"ip devolvió información inválida para {interface}: {error}")
+    if not records:
+        fail(
+            f"la interfaz {interface} de la red bridge no existe; puede regenerarse reiniciando Docker.",
+            EXIT_DEFAULT_BRIDGE,
+        )
+    return records[0]
+
+
+def check_default_bridge(networks: list[dict[str, object]]) -> None:
+    bridge = default_bridge(networks)
+    configs = (bridge.get("IPAM") or {}).get("Config") or []  # type: ignore[union-attr]
+    gateway = next((config.get("Gateway") for config in configs if config.get("Gateway")), None)
+    if not gateway:
+        fail(
+            "la red Docker predeterminada no tiene gateway; docker0 puede regenerarse reiniciando Docker.",
+            EXIT_DEFAULT_BRIDGE,
+        )
+
+    interface = str(
+        (bridge.get("Options") or {}).get("com.docker.network.bridge.name", "docker0")  # type: ignore[union-attr]
+    )
+    state = interface_state(interface)
+    flags = state.get("flags") or []
+    if "UP" not in flags:
+        fail(
+            f"la interfaz {interface} está administrativamente inactiva; puede regenerarse reiniciando Docker.",
+            EXIT_DEFAULT_BRIDGE,
+        )
+
+    addresses = state.get("addr_info") or []
+    if not any(
+        address.get("family") == "inet" and address.get("local") == gateway
+        for address in addresses
+    ):
+        fail(
+            f"la interfaz {interface} no tiene el gateway IPv4 {gateway}; puede regenerarse reiniciando Docker.",
+            EXIT_DEFAULT_BRIDGE,
+        )
+
+
+def check_container_connectivity() -> None:
+    fixture = os.environ.get("LMS_NETWORK_CHECK_CONTAINER_PROBE")
+    if fixture is not None:
+        if fixture == "ok":
+            return
+        fail(f"la prueba DNS/HTTP desde un contenedor falló: {fixture}", EXIT_CONTAINER_EGRESS)
+
+    command = docker_command() + [
+        "run", "--rm", "--network", "bridge", PROBE_IMAGE, "sh", "-ec",
+        "nslookup deb.debian.org >/dev/null && "
+        "wget -q -T 10 -O /dev/null http://deb.debian.org/debian/",
+    ]
+    try:
+        result = subprocess.run(command, cwd=ROOT, text=True, capture_output=True, timeout=30)
+    except subprocess.TimeoutExpired:
+        fail("la prueba DNS/HTTP desde un contenedor excedió 30 segundos.", EXIT_CONTAINER_EGRESS)
+    if result.returncode:
+        detail = result.stderr.strip() or result.stdout.strip() or "sin detalle"
+        fail(
+            f"la prueba DNS/HTTP desde un contenedor en la red bridge falló: {detail}",
+            EXIT_CONTAINER_EGRESS,
+        )
+
+
+def buildkit_diagnostics(detail: str) -> None:
+    inspect = subprocess.run(
+        docker_command() + ["buildx", "inspect", "--bootstrap"],
+        cwd=ROOT,
+        text=True,
+        capture_output=True,
+    )
+    print("Diagnóstico del builder activo:", file=sys.stderr)
+    print(
+        (inspect.stdout.strip() or inspect.stderr.strip() or "sin información del builder"),
+        file=sys.stderr,
+    )
+    print(
+        "Salida de la prueba BuildKit (incluye /etc/resolv.conf del sandbox):",
+        file=sys.stderr,
+    )
+    print(detail or "sin detalle", file=sys.stderr)
+
+
+def check_buildkit_connectivity() -> None:
+    fixture = os.environ.get("LMS_NETWORK_CHECK_BUILDKIT_PROBE")
+    if fixture is not None:
+        if fixture == "ok":
+            return
+        fail(f"la prueba DNS/HTTP desde BuildKit falló: {fixture}", EXIT_BUILDKIT_EGRESS)
+
+    dockerfile = """\
+FROM alpine:3.20
+RUN echo '--- /etc/resolv.conf (BuildKit) ---' \
+ && cat /etc/resolv.conf \
+ && nslookup deb.debian.org \
+ && wget -q -T 10 -O /dev/null http://deb.debian.org/debian/
+"""
+    with tempfile.TemporaryDirectory(prefix="alumco-buildkit-check-") as context:
+        command = docker_command() + [
+            "buildx",
+            "build",
+            "--file",
+            "-",
+            "--network",
+            "default",
+            "--no-cache",
+            "--progress",
+            "plain",
+            "--output",
+            "type=cacheonly",
+            context,
+        ]
+        try:
+            result = subprocess.run(
+                command,
+                cwd=ROOT,
+                text=True,
+                input=dockerfile,
+                capture_output=True,
+                timeout=90,
+            )
+        except subprocess.TimeoutExpired as error:
+            detail = (error.stderr or error.stdout or "la compilación excedió 90 segundos")
+            buildkit_diagnostics(str(detail))
+            fail("la prueba DNS/HTTP desde BuildKit excedió 90 segundos.", EXIT_BUILDKIT_EGRESS)
+    if result.returncode:
+        detail = "\n".join(
+            output for output in (result.stdout.strip(), result.stderr.strip()) if output
+        ) or "sin detalle"
+        buildkit_diagnostics(detail)
+        fail("la prueba DNS/HTTP desde un RUN de BuildKit falló.", EXIT_BUILDKIT_EGRESS)
+
+
 def route_uses_interface(line: str, interface: str) -> bool:
     fields = line.split()
     return any(fields[index:index + 2] == ["dev", interface] for index in range(len(fields) - 1))
@@ -142,18 +321,18 @@ def route_uses_interface(line: str, interface: str) -> bool:
 
 def check_connectivity(lines: list[str]) -> None:
     if not any(line.split()[:1] == ["default"] for line in lines):
-        fail("el host no tiene una ruta IPv4 por defecto.")
+        fail("el host no tiene una ruta IPv4 por defecto.", EXIT_ROUTE)
     try:
         socket.getaddrinfo("www.cloudflare.com", 443, socket.AF_INET, socket.SOCK_STREAM)
     except OSError as error:
-        fail(f"la resolución DNS del host falló: {error}")
+        fail(f"la resolución DNS del host falló: {error}", EXIT_HOST_DNS)
     try:
         request = urllib.request.Request(HTTPS_URL, headers={"User-Agent": "alumco-network-check/1"})
         with urllib.request.urlopen(request, timeout=10) as response:
             if response.status >= 400:
-                fail(f"la salida HTTPS del host respondió HTTP {response.status}.")
+                fail(f"la salida HTTPS del host respondió HTTP {response.status}.", EXIT_HOST_EGRESS)
     except (OSError, urllib.error.URLError) as error:
-        fail(f"la salida HTTPS del host falló ({HTTPS_URL}): {error}")
+        fail(f"la salida HTTPS del host falló ({HTTPS_URL}): {error}", EXIT_HOST_EGRESS)
 
 
 def main() -> None:
@@ -180,7 +359,10 @@ def main() -> None:
                 own_network = item
                 continue
             kind = "la red del proyecto con un CIDR diferente" if is_own else "una red Docker ajena"
-            fail(f"{variable}={desired} se solapa con {kind}: {item.get('Name')} ({existing}).")
+            fail(
+                f"{variable}={desired} se solapa con {kind}: {item.get('Name')} ({existing}).",
+                EXIT_OVERLAP,
+            )
 
     lines = route_lines()
     for line in lines:
@@ -189,10 +371,16 @@ def main() -> None:
             continue
         if own_network and existing == desired and route_uses_interface(line, bridge_interface(own_network)):
             continue
-        fail(f"{variable}={desired} se solapa con la ruta del host: {line}")
+        fail(f"{variable}={desired} se solapa con la ruta del host: {line}", EXIT_OVERLAP)
 
     check_connectivity(lines)
-    print(f"OK: {environment} usará {desired}; rutas, redes Docker, DNS y salida HTTPS sin conflictos.")
+    check_default_bridge(networks)
+    check_container_connectivity()
+    check_buildkit_connectivity()
+    print(
+        f"OK: {environment} usará {desired}; bridge predeterminado, rutas, redes Docker, "
+        "DNS y salida desde host, contenedor y BuildKit sin conflictos."
+    )
 
 
 if __name__ == "__main__":

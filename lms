@@ -4,6 +4,7 @@ set -euo pipefail
 SAIL="./vendor/bin/sail"
 DOCKER_PROD=(sudo docker compose -f compose.prod.yaml)
 NETWORK_CHECK="./scripts/docker-network-check"
+NETWORK_REPAIR_EXIT=20
 
 cmd="${1:-help}"
 if [ "$#" -gt 0 ]; then
@@ -38,7 +39,7 @@ prod_preflight() {
     "${DOCKER_PROD[@]}" config >/dev/null
 }
 
-network_check() {
+network_check_raw() {
     local environment="${1:-}"
 
     if [ ! -x "$NETWORK_CHECK" ]; then
@@ -51,6 +52,98 @@ network_check() {
     else
         "$NETWORK_CHECK" "$environment"
     fi
+}
+
+restore_running_containers() {
+    local container_id
+    local restore_status=0
+
+    for container_id in "$@"; do
+        if ! sudo docker inspect "$container_id" >/dev/null 2>&1; then
+            echo "ADVERTENCIA: el contenedor $container_id ya no existe y no se puede restaurar."
+            continue
+        fi
+        if [ "$(sudo docker inspect --format '{{.State.Running}}' "$container_id")" != "true" ]; then
+            echo "Restaurando contenedor $container_id..."
+            sudo docker start "$container_id" >/dev/null || restore_status=$?
+        fi
+    done
+    return "$restore_status"
+}
+
+confirm_container_interruption() {
+    local answer=""
+
+    if [ ! -t 0 ]; then
+        echo "ERROR: no se repara docker0 sin confirmación en una sesión no interactiva."
+        return 1
+    fi
+    read -r -p "¿Continuar y restaurar esos contenedores después? [s/N] " answer
+    case "$answer" in
+        s | S | si | SI | sí | Sí) return 0 ;;
+        *)
+            echo "Reparación cancelada."
+            return 1
+            ;;
+    esac
+}
+
+repair_default_bridge() {
+    local running_ids=("$@")
+    local repair_status=0
+
+    echo "Recreando exclusivamente la interfaz efímera docker0..."
+    sudo systemctl stop docker.service docker.socket || repair_status=$?
+    if [ "$repair_status" -eq 0 ] && ip link show dev docker0 >/dev/null 2>&1; then
+        sudo ip link delete docker0 || repair_status=$?
+    fi
+    sudo systemctl start docker.socket docker.service || repair_status=$?
+    restore_running_containers "${running_ids[@]}" || repair_status=$?
+    return "$repair_status"
+}
+
+network_check() {
+    local environment="${1:-}"
+    local status
+    local -a running_ids=()
+    local running_output=""
+    local running_names=""
+
+    if network_check_raw "$environment"; then
+        return 0
+    else
+        status=$?
+    fi
+
+    if [ "$environment" != "prod" ] || [ "$status" -ne "$NETWORK_REPAIR_EXIT" ]; then
+        return "$status"
+    fi
+
+    if ! running_output=$(sudo docker ps -q); then
+        echo "ERROR: no se pudo determinar qué contenedores están activos; no se reparará docker0."
+        return "$NETWORK_REPAIR_EXIT"
+    fi
+    if [ -n "$running_output" ]; then
+        mapfile -t running_ids <<< "$running_output"
+    fi
+    if [ "${#running_ids[@]}" -gt 0 ]; then
+        if ! running_names=$(sudo docker ps --format '{{.Names}}' | paste -sd ',' -); then
+            echo "ERROR: no se pudieron identificar los contenedores afectados; no se reparará docker0."
+            return "$NETWORK_REPAIR_EXIT"
+        fi
+        echo "ADVERTENCIA: reiniciar Docker interrumpirá estos contenedores: $running_names"
+        confirm_container_interruption || return "$NETWORK_REPAIR_EXIT"
+    else
+        echo "No hay contenedores activos; la reparación no interrumpirá cargas en ejecución."
+    fi
+
+    if ! repair_default_bridge "${running_ids[@]}"; then
+        echo "ERROR: no se pudo recrear docker0."
+        return "$NETWORK_REPAIR_EXIT"
+    fi
+
+    echo "Repitiendo el chequeo de red una única vez..."
+    network_check_raw prod
 }
 
 default_route_snapshot() {
@@ -113,6 +206,7 @@ prod_effective_subnet() {
 }
 
 prod_build() {
+    network_check prod
     echo "Compilando imagenes de produccion..."
     "${DOCKER_PROD[@]}" build "$@" app web
 }
@@ -255,7 +349,7 @@ show_help() {
     printf "  %-15s %s\n" "dev-start" "inicia sail"
     printf "  %-15s %s\n" "dev-rebuild" "reconstruye sail sin cache"
     printf "  %-15s %s\n" "dev-stop" "apaga sail"
-    printf "  %-15s %s\n" "network-check" "valida red, rutas, DNS y HTTPS (dev|prod)"
+    printf "  %-15s %s\n" "network-check" "valida bridge, rutas, DNS y salida desde contenedor/BuildKit (dev|prod)"
     printf "\n%-15s %s\n" "PROD:" ""
     printf "  %-15s %s\n" "prod-deploy" "pull, build, up, queue restart y health check"
     printf "  %-15s %s\n" "prod-build" "compila imagenes app/web; acepta --no-cache"
