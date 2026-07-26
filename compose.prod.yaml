@@ -129,7 +129,7 @@ services:
         restart: unless-stopped
         ports:
             # Exponemos la app en el puerto 8080
-            - '${APP_PORT:-8080}:80'
+            - '${DOCKER_HOST_BIND:-127.0.0.1}:${APP_PORT:-8080}:80'
         networks:
             - alumco-prod
         depends_on:
@@ -171,6 +171,9 @@ services:
 networks:
     alumco-prod:
         driver: bridge
+        ipam:
+            config:
+                - subnet: '${DOCKER_PROD_SUBNET:-172.30.250.0/27}'
 
 volumes:
     # Volúmenes persistentes para que tus datos no se borren si el server reinicia

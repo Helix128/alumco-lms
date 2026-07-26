@@ -1,0 +1,18 @@
+[
+  {
+    "Name": "alumco-lms_sail",
+    "Id": "1234567890abcdef",
+    "Labels": {
+      "com.docker.compose.project": "alumco-lms",
+      "com.docker.compose.network": "sail"
+    },
+    "IPAM": {
+      "Config": [
+        {
+          "Subnet": "172.30.250.32/27"
+        }
+      ]
+    },
+    "Options": {}
+  }
+]

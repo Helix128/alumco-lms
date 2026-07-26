@@ -1,0 +1,2 @@
+default via 192.168.1.1 dev eth0
+172.30.250.32/27 dev br-1234567890ab proto kernel scope link

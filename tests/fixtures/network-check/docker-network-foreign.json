@@ -1,0 +1,18 @@
+[
+  {
+    "Name": "unrelated_default",
+    "Id": "abcdef1234567890",
+    "Labels": {
+      "com.docker.compose.project": "unrelated",
+      "com.docker.compose.network": "default"
+    },
+    "IPAM": {
+      "Config": [
+        {
+          "Subnet": "172.30.250.0/24"
+        }
+      ]
+    },
+    "Options": {}
+  }
+]

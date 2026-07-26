@@ -3,6 +3,7 @@ set -euo pipefail
 
 SAIL="./vendor/bin/sail"
 DOCKER_PROD=(sudo docker compose -f compose.prod.yaml)
+NETWORK_CHECK="./scripts/docker-network-check"
 
 cmd="${1:-help}"
 if [ "$#" -gt 0 ]; then
@@ -23,7 +24,7 @@ prod_preflight() {
         fi
     done
 
-    for binary in curl docker git sudo; do
+    for binary in curl docker git ip python3 sudo; do
         if ! command -v "$binary" >/dev/null 2>&1; then
             echo "$binary no esta disponible en PATH."
             missing=1
@@ -37,14 +38,97 @@ prod_preflight() {
     "${DOCKER_PROD[@]}" config >/dev/null
 }
 
+network_check() {
+    local environment="${1:-}"
+
+    if [ ! -x "$NETWORK_CHECK" ]; then
+        echo "Falta el ejecutable $NETWORK_CHECK"
+        exit 1
+    fi
+
+    if [ "$environment" = "prod" ]; then
+        LMS_DOCKER_SUDO=1 "$NETWORK_CHECK" prod
+    else
+        "$NETWORK_CHECK" "$environment"
+    fi
+}
+
+default_route_snapshot() {
+    ip -4 route show default
+}
+
+network_diagnostics() {
+    echo "Diagnóstico de rutas IPv4:"
+    ip -4 route show || true
+    echo "Diagnóstico de redes Docker:"
+    sudo docker network ls || true
+    echo "Diagnóstico DNS:"
+    getent ahostsv4 www.cloudflare.com || true
+}
+
+verify_default_route() {
+    local before="$1"
+    local after
+    after=$(default_route_snapshot)
+
+    if [ -z "$after" ] || [ "$after" != "$before" ]; then
+        echo "ERROR: la ruta por defecto cambió."
+        echo "Antes: ${before:-<sin ruta>}"
+        echo "Después: ${after:-<sin ruta>}"
+        network_diagnostics
+        return 1
+    fi
+}
+
+prod_external_health() {
+    echo "Verificando salida HTTPS desde el contenedor app..."
+    "${DOCKER_PROD[@]}" exec -T app curl --fail --silent --show-error \
+        --connect-timeout 5 --max-time 10 \
+        https://www.cloudflare.com/cdn-cgi/trace >/dev/null
+}
+
+prod_effective_subnet() {
+    local expected actual container_id network_id
+    expected=$("${DOCKER_PROD[@]}" config --format json | python3 -c \
+        'import json,sys; print(json.load(sys.stdin)["networks"]["alumco-prod"]["ipam"]["config"][0]["subnet"])')
+    container_id=$("${DOCKER_PROD[@]}" ps -q app)
+    if [ -z "$container_id" ]; then
+        echo "ERROR: no se encontró el contenedor app."
+        return 1
+    fi
+    network_id=$(sudo docker inspect \
+        --format '{{range $name, $network := .NetworkSettings.Networks}}{{$network.NetworkID}}{{"\n"}}{{end}}' \
+        "$container_id" | head -n 1)
+    if [ -z "$network_id" ]; then
+        echo "ERROR: no se pudo identificar la red del contenedor app."
+        return 1
+    fi
+    actual=$(sudo docker network inspect "$network_id" \
+        --format '{{(index .IPAM.Config 0).Subnet}}')
+    if [ "$actual" != "$expected" ]; then
+        echo "ERROR: la subred efectiva es $actual, pero Compose requiere $expected."
+        return 1
+    fi
+    echo "Subred efectiva confirmada: $actual"
+}
+
 prod_build() {
     echo "Compilando imagenes de produccion..."
     "${DOCKER_PROD[@]}" build "$@" app web
 }
 
 prod_up() {
+    local route_before
+
+    network_check prod
+    route_before=$(default_route_snapshot)
     echo "Iniciando contenedores de produccion..."
     "${DOCKER_PROD[@]}" up -d
+    verify_default_route "$route_before" || return 1
+    network_check prod || {
+        network_diagnostics
+        return 1
+    }
 }
 
 prod_down() {
@@ -98,11 +182,14 @@ prod_health() {
 
 prod_deploy() {
     prod_preflight
+    network_check prod
 
     echo ">>> Iniciando despliegue de producción..."
 
     echo ">>> [1/7] Actualizando código fuente..."
     git pull origin main
+    prod_preflight
+    network_check prod
 
     echo ">>> [2/7] Compilando imágenes..."
     prod_build "$@"
@@ -120,9 +207,41 @@ prod_deploy() {
     prod_artisan up || true
 
     echo ">>> [7/7] Verificando salud del sistema..."
+    prod_external_health || {
+        network_diagnostics
+        return 1
+    }
     prod_health
 
     echo ">>> DESPLIEGUE FINALIZADO CORRECTAMENTE."
+}
+
+prod_network_migrate() {
+    local route_before
+
+    prod_preflight
+    network_check prod
+    route_before=$(default_route_snapshot)
+
+    echo "Recreando la red de producción sin eliminar volúmenes..."
+    "${DOCKER_PROD[@]}" down --remove-orphans
+    "${DOCKER_PROD[@]}" up -d
+
+    verify_default_route "$route_before" || return 1
+    network_check prod || {
+        network_diagnostics
+        return 1
+    }
+    prod_effective_subnet || {
+        network_diagnostics
+        return 1
+    }
+    prod_external_health || {
+        network_diagnostics
+        return 1
+    }
+    prod_health
+    echo "Migración de red finalizada; los volúmenes prod-mysql y prod-redis se conservaron."
 }
 
 prod_clean() {
@@ -136,12 +255,14 @@ show_help() {
     printf "  %-15s %s\n" "dev-start" "inicia sail"
     printf "  %-15s %s\n" "dev-rebuild" "reconstruye sail sin cache"
     printf "  %-15s %s\n" "dev-stop" "apaga sail"
+    printf "  %-15s %s\n" "network-check" "valida red, rutas, DNS y HTTPS (dev|prod)"
     printf "\n%-15s %s\n" "PROD:" ""
     printf "  %-15s %s\n" "prod-deploy" "pull, build, up, queue restart y health check"
     printf "  %-15s %s\n" "prod-build" "compila imagenes app/web; acepta --no-cache"
     printf "  %-15s %s\n" "prod-up" "levanta contenedores"
     printf "  %-15s %s\n" "prod-down" "baja contenedores"
     printf "  %-15s %s\n" "prod-health" "valida /up"
+    printf "  %-15s %s\n" "prod-network-migrate" "recrea red/contenedores sin borrar volúmenes"
     printf "  %-15s %s\n" "prod-artisan" "php artisan (ej: migrate:status)"
     printf "  %-15s %s\n" "prod-exec" "comando libre en un servicio"
     printf "  %-15s %s\n" "prod-clean" "libera imagenes huerfanas"
@@ -154,6 +275,7 @@ show_help() {
 
 case "$cmd" in
     dev-start)
+        network_check dev
         echo "Iniciando server dev..."
         $SAIL up -d
         ;;
@@ -183,6 +305,12 @@ case "$cmd" in
     prod-health)
         prod_preflight
         prod_health
+        ;;
+    prod-network-migrate)
+        prod_network_migrate
+        ;;
+    network-check)
+        network_check "${1:-}"
         ;;
     prod-clean)
         prod_clean

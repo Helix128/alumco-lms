@@ -1,0 +1,199 @@
+#!/usr/bin/env python3
+"""Read-only preflight for the Docker Compose network used by Alumco LMS."""
+
+from __future__ import annotations
+
+import ipaddress
+import json
+import os
+import pathlib
+import shlex
+import socket
+import subprocess
+import sys
+import urllib.error
+import urllib.request
+
+
+ROOT = pathlib.Path(__file__).resolve().parent.parent
+HTTPS_URL = os.environ.get("LMS_NETWORK_CHECK_URL", "https://www.cloudflare.com/cdn-cgi/trace")
+RFC1918 = tuple(
+    ipaddress.ip_network(value) for value in ("10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16")
+)
+
+
+def fail(message: str) -> None:
+    print(f"ERROR: {message}", file=sys.stderr)
+    raise SystemExit(1)
+
+
+def run(command: list[str], *, required: bool = True) -> str:
+    result = subprocess.run(command, cwd=ROOT, text=True, capture_output=True)
+    if result.returncode and required:
+        detail = result.stderr.strip() or result.stdout.strip()
+        fail(f"falló {shlex.join(command)}" + (f": {detail}" if detail else ""))
+    return result.stdout
+
+
+def docker_command() -> list[str]:
+    configured = os.environ.get("LMS_DOCKER_COMMAND")
+    if configured:
+        return shlex.split(configured)
+    if os.environ.get("LMS_DOCKER_SUDO") == "1":
+        return ["sudo", "docker"]
+    return ["docker"]
+
+
+def configuration(environment: str) -> tuple[pathlib.Path, str, str, str]:
+    if environment == "dev":
+        return ROOT / "compose.yaml", "sail", "DOCKER_DEV_SUBNET", "172.30.250.32/27"
+    if environment == "prod":
+        return ROOT / "compose.prod.yaml", "alumco-prod", "DOCKER_PROD_SUBNET", "172.30.250.0/27"
+    fail("el entorno debe ser 'dev' o 'prod'.")
+
+
+def requested_network(variable: str, value: str) -> ipaddress.IPv4Network:
+    try:
+        network = ipaddress.ip_network(value, strict=True)
+    except ValueError as error:
+        fail(f"{variable}={value!r} no es un CIDR IPv4 válido y normalizado: {error}")
+    if not isinstance(network, ipaddress.IPv4Network):
+        fail(f"{variable} debe ser IPv4.")
+    if not any(network.subnet_of(private_range) for private_range in RFC1918):
+        fail(f"{variable} debe pertenecer a un rango IPv4 privado RFC1918.")
+    if not 24 <= network.prefixlen <= 28:
+        fail(f"{variable} debe tener un tamaño entre /24 y /28 (recibido /{network.prefixlen}).")
+    return network
+
+
+def compose_identity(compose_file: pathlib.Path, logical_network: str) -> tuple[str, str, str]:
+    command = docker_command() + ["compose", "-f", str(compose_file), "config", "--format", "json"]
+    try:
+        config = json.loads(run(command))
+    except json.JSONDecodeError as error:
+        fail(f"Docker Compose devolvió configuración JSON inválida: {error}")
+    project = config.get("name")
+    network_config = config.get("networks", {}).get(logical_network, {})
+    network_name = network_config.get("name")
+    ipam_configs = (network_config.get("ipam") or {}).get("config") or []
+    subnet = ipam_configs[0].get("subnet") if ipam_configs else None
+    if not project or not network_name or not subnet:
+        fail(f"no se pudo resolver la identidad Compose de la red {logical_network}.")
+    return str(project), str(network_name), str(subnet)
+
+
+def docker_networks() -> list[dict[str, object]]:
+    fixture = os.environ.get("LMS_NETWORK_CHECK_DOCKER_FIXTURE")
+    if fixture:
+        return json.loads(pathlib.Path(fixture).read_text())
+    identifiers = run(docker_command() + ["network", "ls", "-q"]).split()
+    if not identifiers:
+        return []
+    output = run(docker_command() + ["network", "inspect", *identifiers])
+    return json.loads(output)
+
+
+def network_subnets(item: dict[str, object]) -> list[ipaddress.IPv4Network]:
+    result: list[ipaddress.IPv4Network] = []
+    ipam = item.get("IPAM") or {}
+    for config in ipam.get("Config") or []:  # type: ignore[union-attr]
+        subnet = config.get("Subnet")
+        if not subnet:
+            continue
+        try:
+            parsed = ipaddress.ip_network(subnet, strict=False)
+        except ValueError:
+            continue
+        if isinstance(parsed, ipaddress.IPv4Network):
+            result.append(parsed)
+    return result
+
+
+def route_lines() -> list[str]:
+    fixture = os.environ.get("LMS_NETWORK_CHECK_ROUTES_FILE")
+    if fixture:
+        return pathlib.Path(fixture).read_text().splitlines()
+    return run(["ip", "-4", "route", "show"]).splitlines()
+
+
+def route_network(line: str) -> ipaddress.IPv4Network | None:
+    fields = line.split()
+    if not fields or fields[0] == "default":
+        return None
+    try:
+        parsed = ipaddress.ip_network(fields[0], strict=False)
+    except ValueError:
+        return None
+    return parsed if isinstance(parsed, ipaddress.IPv4Network) else None
+
+
+def bridge_interface(item: dict[str, object]) -> str:
+    options = item.get("Options") or {}
+    explicit = options.get("com.docker.network.bridge.name")  # type: ignore[union-attr]
+    if explicit:
+        return str(explicit)
+    return "br-" + str(item.get("Id", ""))[:12]
+
+
+def route_uses_interface(line: str, interface: str) -> bool:
+    fields = line.split()
+    return any(fields[index:index + 2] == ["dev", interface] for index in range(len(fields) - 1))
+
+
+def check_connectivity(lines: list[str]) -> None:
+    if not any(line.split()[:1] == ["default"] for line in lines):
+        fail("el host no tiene una ruta IPv4 por defecto.")
+    try:
+        socket.getaddrinfo("www.cloudflare.com", 443, socket.AF_INET, socket.SOCK_STREAM)
+    except OSError as error:
+        fail(f"la resolución DNS del host falló: {error}")
+    try:
+        request = urllib.request.Request(HTTPS_URL, headers={"User-Agent": "alumco-network-check/1"})
+        with urllib.request.urlopen(request, timeout=10) as response:
+            if response.status >= 400:
+                fail(f"la salida HTTPS del host respondió HTTP {response.status}.")
+    except (OSError, urllib.error.URLError) as error:
+        fail(f"la salida HTTPS del host falló ({HTTPS_URL}): {error}")
+
+
+def main() -> None:
+    if len(sys.argv) != 2:
+        fail("uso: ./lms network-check [dev|prod]")
+    environment = sys.argv[1]
+    compose_file, logical_network, variable, _default = configuration(environment)
+    project, expected_name, configured_subnet = compose_identity(compose_file, logical_network)
+    desired = requested_network(variable, configured_subnet)
+    networks = docker_networks()
+
+    own_network: dict[str, object] | None = None
+    for item in networks:
+        labels = item.get("Labels") or {}
+        is_own = (
+            item.get("Name") == expected_name
+            and labels.get("com.docker.compose.project") == project  # type: ignore[union-attr]
+            and labels.get("com.docker.compose.network") == logical_network  # type: ignore[union-attr]
+        )
+        for existing in network_subnets(item):
+            if not desired.overlaps(existing):
+                continue
+            if is_own and existing == desired:
+                own_network = item
+                continue
+            kind = "la red del proyecto con un CIDR diferente" if is_own else "una red Docker ajena"
+            fail(f"{variable}={desired} se solapa con {kind}: {item.get('Name')} ({existing}).")
+
+    lines = route_lines()
+    for line in lines:
+        existing = route_network(line)
+        if existing is None or not desired.overlaps(existing):
+            continue
+        if own_network and existing == desired and route_uses_interface(line, bridge_interface(own_network)):
+            continue
+        fail(f"{variable}={desired} se solapa con la ruta del host: {line}")
+
+    check_connectivity(lines)
+    print(f"OK: {environment} usará {desired}; rutas, redes Docker, DNS y salida HTTPS sin conflictos.")
+
+
+if __name__ == "__main__":
+    main()
