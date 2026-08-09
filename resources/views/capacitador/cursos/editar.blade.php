@@ -20,7 +20,7 @@
         </div>
 
         {{-- Formulario --}}
-        <form action="{{ route('capacitador.cursos.update', $curso) }}" method="POST" enctype="multipart/form-data"
+        <form action="{{ route('capacitador.cursos.update', $curso) }}" method="POST" enctype="multipart/form-data" data-media-upload-form
               class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 lg:p-10 space-y-8">
             @csrf
             @method('PUT')
@@ -52,25 +52,30 @@
                 <div class="space-y-3">
                     <label class="block text-sm font-black text-Alumco-blue/40 uppercase tracking-widest">Imagen de portada</label>
                     
-                    @if ($curso->imagen_portada)
+                    @if ($coverUrl = app(\App\Services\Media\MediaUrlResolver::class)->courseCover($curso))
                         <div class="flex items-center gap-4 p-4 bg-Alumco-cream/30 rounded-2xl border border-gray-100">
-                            <img src="{{ asset('storage/' . $curso->imagen_portada) }}"
+                            <img src="{{ $coverUrl }}"
                                  class="h-20 w-32 object-cover rounded-xl shadow-sm border border-white">
                             <div class="flex-1">
                                 <p class="text-xs font-bold text-Alumco-gray">Portada actual activa</p>
                                 <p class="text-[10px] text-Alumco-gray/40 mt-0.5">Sube una nueva imagen si deseas reemplazar la actual.</p>
                             </div>
                         </div>
+                    @elseif ($curso->imagen_portada)
+                        <div class="rounded-2xl border border-red-200 bg-red-50 p-4 text-xs font-bold text-red-700">
+                            La portada legada registrada ya no existe. Sube una nueva imagen para recuperarla.
+                        </div>
                     @endif
 
                     <div class="group relative">
-                        <input type="file" name="imagen_portada" accept="image/*"
+                        <input type="file" name="imagen_portada" accept="image/jpeg,image/png,image/webp" data-media-file data-media-purpose="cover"
                                class="w-full bg-Alumco-cream/30 border border-dashed border-gray-200 rounded-xl px-4 py-8 text-sm file:hidden cursor-pointer hover:bg-Alumco-blue/5 transition-all text-center font-bold text-Alumco-gray/40">
                         <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none gap-2">
                             <svg class="w-8 h-8 text-Alumco-blue/20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                            <span class="text-xs uppercase tracking-widest">Nueva imagen (Max 4MB)</span>
+                            <span class="text-xs uppercase tracking-widest">Nueva imagen (máx. 10 MB)</span>
                         </div>
                     </div>
+                    <input type="hidden" name="imagen_portada_asset_id" value="{{ old('imagen_portada_asset_id') }}" data-media-asset>
                 </div>
 
                 {{-- Color de la capacitación --}}

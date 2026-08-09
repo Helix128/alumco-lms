@@ -18,6 +18,9 @@ services:
             RUN_SEEDERS: '${RUN_SEEDERS:-true}'
             RUN_STORAGE_LINK: '${RUN_STORAGE_LINK:-true}'
             RUN_LARAVEL_OPTIMIZE: '${RUN_LARAVEL_OPTIMIZE:-true}'
+            MEDIA_DISK: '${MEDIA_DISK:-local_media}'
+            MEDIA_LOCAL_ROOT: /var/www/media
+            MEDIA_TEMP_ROOT: /var/www/media-temp
             DB_CONNECTION: mysql
             DB_HOST: mysql
             DB_PORT: 3306
@@ -30,6 +33,8 @@ services:
         volumes:
             # Cargamos el .env de producción para que Laravel tenga la configuración correcta
             - ./.env:/var/www/html/.env
+            - prod-media:/var/www/media
+            - prod-media-temp:/var/www/media-temp
         networks:
             - alumco-prod
         depends_on:
@@ -57,6 +62,8 @@ services:
             RUN_SEEDERS: 'false'
             RUN_STORAGE_LINK: 'false'
             RUN_LARAVEL_OPTIMIZE: 'false'
+            MEDIA_DISK: '${MEDIA_DISK:-local_media}'
+            MEDIA_LOCAL_ROOT: /var/www/media
             DB_CONNECTION: mysql
             DB_HOST: mysql
             DB_PORT: 3306
@@ -68,6 +75,7 @@ services:
             REDIS_PORT: 6379
         volumes:
             - ./.env:/var/www/html/.env
+            - prod-media:/var/www/media
         networks:
             - alumco-prod
         depends_on:
@@ -100,6 +108,9 @@ services:
             RUN_SEEDERS: 'false'
             RUN_STORAGE_LINK: 'false'
             RUN_LARAVEL_OPTIMIZE: 'false'
+            MEDIA_DISK: '${MEDIA_DISK:-local_media}'
+            MEDIA_LOCAL_ROOT: /var/www/media
+            MEDIA_TEMP_ROOT: /var/www/media-temp
             DB_CONNECTION: mysql
             DB_HOST: mysql
             DB_PORT: 3306
@@ -111,6 +122,52 @@ services:
             REDIS_PORT: 6379
         volumes:
             - ./.env:/var/www/html/.env
+            - prod-media:/var/www/media
+            - prod-media-temp:/var/www/media-temp
+        networks:
+            - alumco-prod
+        depends_on:
+            mysql:
+                condition: service_healthy
+            redis:
+                condition: service_healthy
+
+    media-worker:
+        build:
+            context: .
+            dockerfile: docker/8.4-trixie/Dockerfile
+            target: media-worker
+        image: 'alumco-lms-media:8.4-trixie'
+        restart: unless-stopped
+        command: php artisan queue:work --queue=media --tries=2 --sleep=3 --timeout=3600 --max-jobs=25
+        cpus: '2.0'
+        mem_limit: 2g
+        environment:
+            APP_ENV: production
+            APP_DEBUG: false
+            APP_KEY: '${APP_KEY}'
+            QUEUE_CONNECTION: '${QUEUE_CONNECTION:-redis}'
+            CACHE_STORE: '${CACHE_STORE:-redis}'
+            RUN_MIGRATIONS: 'false'
+            RUN_SEEDERS: 'false'
+            RUN_STORAGE_LINK: 'false'
+            RUN_LARAVEL_OPTIMIZE: 'false'
+            MEDIA_DISK: '${MEDIA_DISK:-local_media}'
+            MEDIA_LOCAL_ROOT: /var/www/media
+            MEDIA_TEMP_ROOT: /var/www/media-temp
+            DB_CONNECTION: mysql
+            DB_HOST: mysql
+            DB_PORT: 3306
+            DB_DATABASE: '${DB_DATABASE}'
+            DB_USERNAME: '${DB_USERNAME}'
+            DB_PASSWORD: '${DB_PASSWORD}'
+            REDIS_HOST: redis
+            REDIS_PASSWORD: 'null'
+            REDIS_PORT: 6379
+        volumes:
+            - ./.env:/var/www/html/.env
+            - prod-media:/var/www/media
+            - prod-media-temp:/var/www/media-temp
         networks:
             - alumco-prod
         depends_on:
@@ -132,6 +189,8 @@ services:
             - '${DOCKER_HOST_BIND:-127.0.0.1}:${APP_PORT:-8080}:80'
         networks:
             - alumco-prod
+        volumes:
+            - prod-media:/var/www/media:ro
         depends_on:
             - app
 
@@ -180,4 +239,8 @@ volumes:
     prod-mysql:
         driver: local
     prod-redis:
+        driver: local
+    prod-media:
+        driver: local
+    prod-media-temp:
         driver: local

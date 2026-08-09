@@ -12,6 +12,7 @@ use App\Services\Certificados\CertificatePdfRenderer;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Throwable;
 
 class CertificadoService
 {
@@ -50,6 +51,26 @@ class CertificadoService
         $this->notifyCertificateAvailable($user, $curso, $certificado);
 
         return $certificado;
+    }
+
+    public function generarSiCursoCompletado(User $user, Curso $curso): ?Certificado
+    {
+        try {
+            $curso->load([
+                'modulos.progresos' => fn ($query) => $query->where('user_id', $user->id),
+            ]);
+
+            if ($curso->modulos->isEmpty()
+                || $curso->modulos->contains(fn ($modulo) => ! $modulo->estaCompletadoPor($user))) {
+                return null;
+            }
+
+            return $this->generarParaUsuario($user, $curso);
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return null;
+        }
     }
 
     public function output(Certificado $certificado): string

@@ -21,7 +21,7 @@
 
         {{-- Formulario --}}
         <form action="{{ route('capacitador.cursos.modulos.update', [$curso, $modulo]) }}" method="POST"
-              enctype="multipart/form-data" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 lg:p-10 space-y-8">
+              enctype="multipart/form-data" data-media-upload-form class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 lg:p-10 space-y-8">
             @csrf
             @method('PUT')
 
@@ -51,32 +51,36 @@
                     </div>
                 </div>
 
-                @if (in_array($modulo->tipo_contenido, ['video','pdf','ppt','imagen']))
+                @if (in_array($modulo->tipo_contenido, ['video','documento','pdf','ppt','imagen']))
                     {{-- Sección archivo --}}
                     <div class="space-y-4">
                         <label class="block text-sm font-black text-Alumco-blue/40 uppercase tracking-widest">Reemplazar archivo material</label>
                         
-                        @if ($modulo->ruta_archivo)
+                        @if ($modulo->contentMedia() || $modulo->ruta_archivo)
                             <div class="flex items-center gap-4 p-4 bg-Alumco-blue/5 rounded-2xl border border-Alumco-blue/10">
                                 <div class="w-12 h-12 rounded-xl bg-white flex items-center justify-center text-Alumco-blue shadow-sm">
                                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
                                 </div>
                                 <div class="flex-1 min-w-0">
                                     <p class="text-xs font-bold text-Alumco-gray truncate">Material actual cargado</p>
-                                    <a href="{{ asset('storage/' . $modulo->ruta_archivo) }}" target="_blank" 
+                                    <a href="{{ app(\App\Services\Media\MediaUrlResolver::class)->module($modulo) }}" target="_blank"
                                        class="text-[10px] font-black uppercase tracking-widest text-Alumco-blue hover:underline">Vista previa del archivo</a>
                                 </div>
                             </div>
                         @endif
 
                         <div class="group relative">
-                            <input type="file" name="ruta_archivo"
+                            <input type="file" name="ruta_archivo" data-media-file data-media-purpose="{{ match($modulo->tipo_contenido) { 'video' => 'video', 'imagen' => 'image', 'pdf' => 'pdf', default => 'document' } }}"
                                    class="w-full bg-Alumco-cream/30 border border-dashed border-gray-200 rounded-xl px-4 py-8 text-sm file:hidden cursor-pointer hover:bg-Alumco-blue/5 transition-all text-center font-bold text-Alumco-gray/40">
                             <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none gap-2">
                                 <svg class="w-8 h-8 text-Alumco-blue/20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
                                 <span class="text-xs uppercase tracking-widest font-display">Click para subir nuevo material (Video, PDF, PPT, Imagen)</span>
                             </div>
                         </div>
+                        <input type="hidden" name="media_asset_id" value="{{ old('media_asset_id') }}" data-media-asset>
+                        @if ($modulo->tipo_contenido === 'video')
+                            <input type="url" name="video_url" value="{{ old('video_url') }}" placeholder="O pega un enlace HTTPS de YouTube o Vimeo" class="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm">
+                        @endif
                         <p class="text-[10px] text-Alumco-gray/40 font-bold uppercase tracking-wider text-center italic">Formatos: MP4, PDF, PPT, PPTX, JPEG, PNG, WEBP. Máximo 100 MB.</p>
                     </div>
 

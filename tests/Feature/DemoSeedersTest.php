@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Certificado;
 use App\Models\Curso;
+use App\Models\Estamento;
 use App\Models\Evaluacion;
 use App\Models\IntentoEvaluacion;
 use App\Models\Modulo;
@@ -53,13 +54,14 @@ class DemoSeedersTest extends TestCase
         Storage::disk('public')->assertExists('documentos/checklist-iaas.pdf');
         Storage::disk('public')->assertExists('documentos/derechos-paciente.pdf');
 
-        Curso::query()->orderBy('id')->get()->each(function (Curso $curso, int $index): void {
+        Curso::query()->orderBy('id')->get()->each(function (Curso $curso): void {
             $planificacion = $curso->planificaciones()->sole();
-            $startsAt = now()->startOfWeek()->addWeeks($index);
+            $startsAt = now()->setDate(now()->year, 8, 9)->startOfDay();
 
             $this->assertNull($planificacion->sede_id);
             $this->assertSame($startsAt->toDateString(), $planificacion->fecha_inicio->toDateString());
-            $this->assertSame($startsAt->copy()->endOfWeek()->toDateString(), $planificacion->fecha_fin->toDateString());
+            $this->assertSame($startsAt->copy()->addDays(6)->toDateString(), $planificacion->fecha_fin->toDateString());
+            $this->assertSame(Estamento::query()->count(), $curso->estamentos()->count());
         });
     }
 

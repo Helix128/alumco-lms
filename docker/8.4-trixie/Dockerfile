@@ -144,6 +144,17 @@ EXPOSE 9000
 ENTRYPOINT ["entrypoint.sh"]
 CMD ["/usr/sbin/php-fpm8.4", "-F"]
 
+FROM production AS media-worker
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        fonts-dejavu-core \
+        libreoffice-core \
+        libreoffice-impress \
+        libreoffice-writer \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
 FROM nginx:alpine AS web
 
 COPY docker/nginx/default.conf /etc/nginx/conf.d/default.conf

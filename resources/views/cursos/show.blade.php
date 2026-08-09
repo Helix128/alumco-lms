@@ -84,8 +84,8 @@
                 <div class="order-1 lg:order-2">
                     <div class="relative aspect-video overflow-hidden rounded-3xl shadow-lg ring-1 ring-black/8 lg:aspect-square"
                          style="box-shadow: 0 16px 40px color-mix(in srgb, {{ $accent }} 20%, transparent);">
-                        @if ($curso->imagen_portada)
-                            <img src="{{ asset('storage/' . $curso->imagen_portada) }}"
+                        @if ($coverUrl = app(\App\Services\Media\MediaUrlResolver::class)->courseCover($curso))
+                            <img src="{{ $coverUrl }}"
                                  alt="{{ $curso->titulo }}"
                                  class="h-full w-full object-cover">
                         @else

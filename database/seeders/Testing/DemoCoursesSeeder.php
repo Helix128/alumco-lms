@@ -3,6 +3,7 @@
 namespace Database\Seeders\Testing;
 
 use App\Models\Curso;
+use App\Models\Estamento;
 use App\Models\Evaluacion;
 use App\Models\Modulo;
 use App\Models\Opcion;
@@ -111,12 +112,13 @@ class DemoCoursesSeeder extends Seeder
     {
         $adminEmail = env('SEED_ADMIN_EMAIL', 'admin@alumco.cl');
         $admin = User::query()->where('email', $adminEmail)->first();
+        $estamentoIds = Estamento::query()->pluck('id')->all();
 
-        if (! $admin) {
+        if (! $admin || $estamentoIds === []) {
             return;
         }
 
-        foreach ($this->courses() as $courseIndex => $courseData) {
+        foreach ($this->courses() as $courseData) {
             $coverPath = $this->copyCover($courseData['cover']);
 
             $curso = Curso::query()->updateOrCreate(
@@ -129,7 +131,9 @@ class DemoCoursesSeeder extends Seeder
                 ]
             );
 
-            $this->syncPlanning($curso, $courseIndex);
+            // Las capacitaciones demo quedan disponibles para todos los cargos.
+            $curso->estamentos()->sync($estamentoIds);
+            $this->syncPlanning($curso);
             $this->syncModules($curso, $courseData['modules'], $courseData['questions']);
         }
     }
@@ -189,10 +193,10 @@ class DemoCoursesSeeder extends Seeder
         return $pdf;
     }
 
-    private function syncPlanning(Curso $curso, int $courseIndex): void
+    private function syncPlanning(Curso $curso): void
     {
-        $startsAt = now()->startOfWeek()->addWeeks($courseIndex);
-        $endsAt = $startsAt->copy()->endOfWeek();
+        $startsAt = now()->setDate(now()->year, 8, 9)->startOfDay();
+        $endsAt = $startsAt->copy()->addDays(6)->endOfDay();
 
         $planificacion = PlanificacionCurso::query()->updateOrCreate(
             [
@@ -202,7 +206,7 @@ class DemoCoursesSeeder extends Seeder
             [
                 'fecha_inicio' => $startsAt->toDateString(),
                 'fecha_fin' => $endsAt->toDateString(),
-                'notas' => 'Planificación demo semanal para todas las sedes.',
+                'notas' => 'Bloque demo para todos los cargos y sedes: semana del 9 al 15 de agosto.',
             ]
         );
 

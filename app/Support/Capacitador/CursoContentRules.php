@@ -13,7 +13,8 @@ class CursoContentRules
             'titulo' => ['required', 'string', 'max:255'],
             'descripcion' => ['nullable', 'string'],
             'nota_capacitador' => ['nullable', 'string', 'max:1200'],
-            'imagen_portada' => ['nullable', 'image', 'mimes:jpeg,png,webp', 'max:4096'],
+            'imagen_portada' => ['nullable', 'image', 'mimes:jpeg,png,webp', 'max:10240'],
+            'imagen_portada_asset_id' => ['nullable', 'integer', 'exists:media_assets,id'],
             'color_promedio' => ['nullable', 'regex:/^#[0-9a-fA-F]{6}$/'],
             'auto_color' => ['nullable', 'boolean'],
         ];
@@ -27,6 +28,7 @@ class CursoContentRules
         return [
             'color_promedio.regex' => 'El color de portada debe estar en formato hexadecimal, por ejemplo #1a3a5a.',
             'imagen_portada.mimes' => 'La portada debe ser una imagen JPG, PNG o WebP.',
+            'imagen_portada.max' => 'La portada no puede superar 10 MB.',
             'nota_capacitador.max' => 'La nota del capacitador no puede superar 1200 caracteres.',
         ];
     }

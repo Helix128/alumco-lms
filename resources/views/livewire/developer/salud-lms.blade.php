@@ -47,6 +47,7 @@
         @elseif ($view === 'logs')
             @livewire('developer.salud-lms.error-logs-panel')
         @elseif ($view === 'datos')
+            @livewire('developer.salud-lms.media-stats-panel')
             <div class="grid grid-cols-1 gap-6 2xl:grid-cols-2">
                 @livewire('developer.salud-lms.database-stats-panel')
                 @livewire('developer.salud-lms.cache-stats-panel')

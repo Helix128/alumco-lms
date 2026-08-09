@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Jobs\ProcessMediaAsset;
 use App\Models\Curso;
 use App\Models\Estamento;
 use App\Models\Modulo;
@@ -11,6 +12,7 @@ use App\Models\User;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -205,9 +207,13 @@ class CursoPreviewTest extends TestCase
             ->assertSee('induccion.pptx');
     }
 
-    public function test_capacitador_can_upload_presentation_module_files(): void
+    public function test_capacitador_can_upload_office_module_files(): void
     {
-        Storage::fake('public');
+        Storage::fake('local_media');
+        Queue::fake();
+        config()->set('media.disk', 'local_media');
+        config()->set('media.capacity.minimum_free_bytes', 0);
+        config()->set('media.capacity.block_percent', 101);
 
         $capacitador = User::factory()->create();
         $capacitador->assignRole('Capacitador Interno');
@@ -219,24 +225,29 @@ class CursoPreviewTest extends TestCase
         $this
             ->actingAs($capacitador)
             ->post(route('capacitador.cursos.modulos.store', $curso), [
-                'titulo' => 'Presentación de inducción',
-                'tipo_contenido' => 'ppt',
+                'titulo' => 'Documento de inducción',
+                'tipo_contenido' => 'documento',
                 'duracion_minutos' => 10,
-                'ruta_archivo' => UploadedFile::fake()->create(
-                    'induccion.pptx',
-                    128,
-                    'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+                'ruta_archivo' => new UploadedFile(
+                    base_path('documents/Formatos/Acta de Constitución.docx'),
+                    'acta-constitucion.docx',
+                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                    null,
+                    true,
                 ),
             ])
             ->assertRedirect(route('capacitador.cursos.show', $curso));
 
         $modulo = Modulo::query()
             ->where('curso_id', $curso->id)
-            ->where('tipo_contenido', 'ppt')
+            ->where('tipo_contenido', 'documento')
             ->firstOrFail();
 
-        $this->assertSame('induccion.pptx', $modulo->nombre_archivo_original);
-        Storage::disk('public')->assertExists($modulo->ruta_archivo);
+        $asset = $modulo->pendingContentMedia();
+        $this->assertNull($modulo->ruta_archivo);
+        $this->assertSame('acta-constitucion.docx', $asset->original_name);
+        Storage::disk('local_media')->assertExists($asset->variant('original')->path);
+        Queue::assertPushed(ProcessMediaAsset::class, fn (ProcessMediaAsset $job) => $job->assetId === $asset->id);
     }
 
     public function test_worker_without_course_access_cannot_view_module_file(): void

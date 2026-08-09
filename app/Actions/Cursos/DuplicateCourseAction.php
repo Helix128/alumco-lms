@@ -3,10 +3,13 @@
 namespace App\Actions\Cursos;
 
 use App\Models\Curso;
+use App\Services\Media\MediaAttachmentService;
 use Illuminate\Support\Facades\DB;
 
 class DuplicateCourseAction
 {
+    public function __construct(private readonly MediaAttachmentService $mediaAttachments) {}
+
     /**
      * Realiza una clonación profunda de un curso para crear una nueva versión.
      */
@@ -19,11 +22,13 @@ class DuplicateCourseAction
             $nuevoCurso->titulo = $nuevoTitulo;
             $nuevoCurso->curso_original_id = $cursoOriginal->id;
             $nuevoCurso->save();
+            $this->mediaAttachments->copy($cursoOriginal, $nuevoCurso);
 
             foreach ($cursoOriginal->modulos as $moduloOriginal) {
                 $nuevoModulo = $moduloOriginal->replicate();
                 $nuevoModulo->curso_id = $nuevoCurso->id;
                 $nuevoModulo->save();
+                $this->mediaAttachments->copy($moduloOriginal, $nuevoModulo);
 
                 if ($moduloOriginal->tipo_contenido === 'evaluacion' && $moduloOriginal->evaluacion) {
                     $evaluacionOriginal = $moduloOriginal->evaluacion;

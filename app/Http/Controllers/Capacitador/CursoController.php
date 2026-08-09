@@ -8,17 +8,21 @@ use App\Http\Requests\Capacitador\StoreCursoRequest;
 use App\Http\Requests\Capacitador\UpdateCursoRequest;
 use App\Models\Curso;
 use App\Models\Evaluacion;
+use App\Models\MediaAsset;
 use App\Services\Analytics\LearningAnalyticsService;
 use App\Services\Cursos\AverageCourseCoverColor;
+use App\Services\Media\MediaAssetService;
+use App\Services\Media\MediaAttachmentService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class CursoController extends Controller
 {
     public function __construct(
-        private readonly AverageCourseCoverColor $averageCourseCoverColor
+        private readonly AverageCourseCoverColor $averageCourseCoverColor,
+        private readonly MediaAssetService $mediaAssets,
+        private readonly MediaAttachmentService $mediaAttachments,
     ) {}
 
     public function index(): View
@@ -43,19 +47,16 @@ class CursoController extends Controller
 
     public function store(StoreCursoRequest $request): RedirectResponse
     {
-        $courseAttributes = $request->validated();
+        $courseAttributes = $request->safe()->except(['imagen_portada', 'imagen_portada_asset_id', 'auto_color']);
         $courseAttributes['capacitador_id'] = auth()->id();
-
-        if ($request->hasFile('imagen_portada')) {
-            $courseAttributes['imagen_portada'] = $request->file('imagen_portada')
-                ->store('portadas', 'public');
-        }
-
+        $asset = $this->coverAsset($request);
         if ($request->boolean('auto_color')) {
-            $courseAttributes['color_promedio'] = $this->averageCourseCoverColor->fromPublicPath($courseAttributes['imagen_portada'] ?? null);
+            $courseAttributes['color_promedio'] = $this->averageCourseCoverColor->fromMediaAsset($asset);
         }
-
         $curso = Curso::create($courseAttributes);
+        if ($asset) {
+            $this->mediaAttachments->request($asset, $curso, 'cover', auth()->user());
+        }
 
         return redirect()->route('capacitador.cursos.show', $curso)
             ->with('success', 'Curso creado correctamente.');
@@ -96,23 +97,17 @@ class CursoController extends Controller
 
     public function update(UpdateCursoRequest $request, Curso $curso): RedirectResponse
     {
-        $courseAttributes = $request->validated();
-        $imagenPortadaPath = $curso->imagen_portada;
-
-        if ($request->hasFile('imagen_portada')) {
-            if ($curso->imagen_portada) {
-                Storage::disk('public')->delete($curso->imagen_portada);
-            }
-            $courseAttributes['imagen_portada'] = $request->file('imagen_portada')
-                ->store('portadas', 'public');
-            $imagenPortadaPath = $courseAttributes['imagen_portada'];
-        }
-
+        $courseAttributes = $request->safe()->except(['imagen_portada', 'imagen_portada_asset_id', 'auto_color']);
+        $asset = $this->coverAsset($request);
         if ($request->boolean('auto_color')) {
-            $courseAttributes['color_promedio'] = $this->averageCourseCoverColor->fromPublicPath($imagenPortadaPath);
+            $courseAttributes['color_promedio'] = $asset
+                ? $this->averageCourseCoverColor->fromMediaAsset($asset)
+                : $this->averageCourseCoverColor->fromPublicPath($curso->imagen_portada);
         }
-
         $curso->update($courseAttributes);
+        if ($asset) {
+            $this->mediaAttachments->request($asset, $curso, 'cover', auth()->user());
+        }
 
         return redirect()->route('capacitador.cursos.show', $curso)
             ->with('success', 'Curso actualizado correctamente.');
@@ -122,24 +117,12 @@ class CursoController extends Controller
     {
         $this->authorize('manage', $curso);
 
-        $curso->load('modulos');
-
-        $rutasArchivos = $curso->modulos
-            ->pluck('ruta_archivo')
-            ->filter()
-            ->values();
-
-        $rutaPortada = $curso->imagen_portada;
-
+        $curso->load('modulos.mediaAttachments');
+        foreach ($curso->modulos as $modulo) {
+            $this->mediaAttachments->detachAll($modulo);
+        }
+        $this->mediaAttachments->detachAll($curso);
         $curso->delete();
-
-        foreach ($rutasArchivos as $ruta) {
-            Storage::disk('public')->delete($ruta);
-        }
-
-        if ($rutaPortada) {
-            Storage::disk('public')->delete($rutaPortada);
-        }
 
         return redirect()->route('capacitador.cursos.index')
             ->with('success', 'Curso eliminado correctamente.');
@@ -157,5 +140,17 @@ class CursoController extends Controller
 
         return redirect()->route('capacitador.cursos.show', $nuevoCurso)
             ->with('success', 'Nueva versión del curso creada exitosamente. Ahora puedes editarla.');
+    }
+
+    private function coverAsset(StoreCursoRequest|UpdateCursoRequest $request): ?MediaAsset
+    {
+        if ($request->filled('imagen_portada_asset_id')) {
+            return MediaAsset::findOrFail($request->integer('imagen_portada_asset_id'));
+        }
+        if ($request->hasFile('imagen_portada')) {
+            return $this->mediaAssets->ingestUploaded($request->file('imagen_portada'), 'cover', auth()->user());
+        }
+
+        return null;
     }
 }

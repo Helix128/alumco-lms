@@ -137,16 +137,8 @@ class VerEvaluacion extends Component
                 ['completado' => true, 'fecha_completado' => now()]
             );
 
-            // Auto-generar certificado si el curso está 100% completo
-            $this->curso->load(['modulos.progresos' => fn ($q) => $q->where('user_id', auth()->id())]);
-            if ($this->curso->progresoParaUsuario(auth()->user()) === 100) {
-                try {
-                    app(CertificadoService::class)->generarParaUsuario(auth()->user(), $this->curso);
-                    $this->certificadoGenerado = true;
-                } catch (\Throwable $exception) {
-                    report($exception);
-                }
-            }
+            $this->certificadoGenerado = app(CertificadoService::class)
+                ->generarSiCursoCompletado(auth()->user(), $this->curso) !== null;
         }
 
         $this->puntaje = $puntaje;

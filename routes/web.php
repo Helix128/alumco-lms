@@ -11,6 +11,8 @@ use App\Http\Controllers\Capacitador\ModuloController as CapacitadorModulo;
 use App\Http\Controllers\Capacitador\ParticipanteController as CapacitadorParticipante;
 use App\Http\Controllers\Capacitador\SeccionCursoController;
 use App\Http\Controllers\CursoController;
+use App\Http\Controllers\MediaController;
+use App\Http\Controllers\MediaUploadController;
 use App\Http\Controllers\MisCertificadosController;
 use App\Http\Controllers\ModuloController;
 use App\Http\Controllers\PerfilController;
@@ -46,6 +48,12 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::middleware(['auth', 'throttle:120,1'])->group(function () {
+    Route::get('/media/{asset}/{variant?}', [MediaController::class, 'show'])
+        ->whereNumber('asset')->name('media.show');
+    Route::get('/media/{asset}/descargar/original', [MediaController::class, 'download'])
+        ->whereNumber('asset')->name('media.download');
+    Route::get('/media-legado/portadas/{curso}', [MediaController::class, 'legacyCover'])
+        ->name('media.legacy-cover');
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     Route::view('/soporte', 'support.index')->name('support.index');
     Route::get('/soporte/tickets/{ticket}', function (SupportTicket $ticket) {
@@ -110,6 +118,12 @@ Route::middleware(['auth', 'throttle:120,1'])->group(function () {
 
     // --- RUTAS CAPACITADOR ---
     Route::middleware(['capacitador'])->prefix('capacitador')->name('capacitador.')->group(function () {
+        Route::post('/media/uploads', [MediaUploadController::class, 'store'])->name('media.uploads.store');
+        Route::get('/media/uploads/{upload}', [MediaUploadController::class, 'show'])->name('media.uploads.show');
+        Route::put('/media/uploads/{upload}/parts/{part}', [MediaUploadController::class, 'part'])
+            ->whereNumber('part')->name('media.uploads.part');
+        Route::post('/media/uploads/{upload}/complete', [MediaUploadController::class, 'complete'])->name('media.uploads.complete');
+        Route::delete('/media/uploads/{upload}', [MediaUploadController::class, 'destroy'])->name('media.uploads.destroy');
         Route::get('/', [CapacitadorDashboard::class, 'index'])->name('dashboard');
 
         // Cursos propios

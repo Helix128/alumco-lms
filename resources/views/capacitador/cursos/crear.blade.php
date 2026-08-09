@@ -20,7 +20,7 @@
         </div>
 
         {{-- Formulario --}}
-        <form action="{{ route('capacitador.cursos.store') }}" method="POST" enctype="multipart/form-data"
+        <form action="{{ route('capacitador.cursos.store') }}" method="POST" enctype="multipart/form-data" data-media-upload-form
               class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 lg:p-10 space-y-8">
             @csrf
 
@@ -51,15 +51,16 @@
                 <div class="space-y-3">
                     <label class="block text-sm font-black text-Alumco-blue/40 uppercase tracking-widest">Imagen de portada</label>
                     <div class="group relative">
-                        <input type="file" name="imagen_portada" accept="image/*"
+                        <input type="file" name="imagen_portada" accept="image/jpeg,image/png,image/webp" data-media-file data-media-purpose="cover"
                                class="w-full bg-Alumco-cream/30 border border-dashed border-gray-200 rounded-xl px-4 py-8 text-sm file:hidden cursor-pointer hover:bg-Alumco-blue/5 transition-all text-center font-bold text-Alumco-gray/40
                                       @error('imagen_portada') border-Alumco-coral @enderror">
                         <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none gap-2">
                             <svg class="w-8 h-8 text-Alumco-blue/20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                            <span class="text-xs uppercase tracking-widest">Click para subir (Max 4MB)</span>
+                            <span class="text-xs uppercase tracking-widest">Click para subir (máx. 10 MB)</span>
                         </div>
                     </div>
                     @error('imagen_portada') <p class="text-Alumco-coral text-xs font-bold mt-1">{{ $message }}</p> @enderror
+                    <input type="hidden" name="imagen_portada_asset_id" value="{{ old('imagen_portada_asset_id') }}" data-media-asset>
                 </div>
 
                 {{-- Color de la capacitación --}}

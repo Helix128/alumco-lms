@@ -189,6 +189,148 @@ document.addEventListener('livewire:navigating', () => {
     window.AlumcoCharts?.destroyAll();
 });
 
+class ChunkedMediaUploader {
+    constructor(form) {
+        this.form = form;
+        this.fileInput = form.querySelector('[data-media-file]');
+        this.assetInput = form.querySelector('[data-media-asset]');
+        this.submitButton = form.querySelector('button[type="submit"]');
+        this.abortController = null;
+        if (! this.fileInput || ! this.assetInput) return;
+        this.createStatus();
+        form.addEventListener('submit', (event) => this.handleSubmit(event));
+    }
+
+    createStatus() {
+        this.status = document.createElement('div');
+        this.status.className = 'hidden mt-3 rounded-xl border border-Alumco-blue/10 bg-Alumco-blue/5 p-3';
+        this.status.innerHTML = '<div class="flex items-center justify-between gap-3"><span class="text-xs font-bold text-Alumco-blue" data-upload-status></span><button type="button" class="text-xs font-black uppercase text-Alumco-coral" data-upload-cancel>Cancelar</button></div><div class="mt-2 h-2 overflow-hidden rounded-full bg-white"><div class="h-full bg-Alumco-blue transition-all" data-upload-progress style="width:0%"></div></div>';
+        this.fileInput.closest('.group, div')?.after(this.status);
+        this.status.querySelector('[data-upload-cancel]').addEventListener('click', () => this.abortController?.abort());
+    }
+
+    purpose() {
+        if (this.fileInput.dataset.mediaPurpose) return this.fileInput.dataset.mediaPurpose;
+        const source = document.querySelector(this.fileInput.dataset.mediaPurposeSource);
+        return { video: 'video', documento: 'document', pdf: 'pdf', ppt: 'document', imagen: 'image' }[source?.value] || '';
+    }
+
+    async handleSubmit(event) {
+        const file = this.fileInput.files?.[0];
+        if (! file || this.assetInput.value || this.form.dataset.mediaSubmitting === 'true') return;
+        event.preventDefault();
+        const purpose = this.purpose();
+        if (! purpose) {
+            this.setStatus('Selecciona un tipo de contenido válido.', 0, true);
+            return;
+        }
+
+        this.abortController = new AbortController();
+        this.submitButton.disabled = true;
+        try {
+            const upload = await this.session(file, purpose);
+            const received = new Set(upload.received_parts || []);
+            const partEtags = { ...(upload.part_etags || {}) };
+            for (let part = 1; part <= upload.total_parts; part += 1) {
+                if (received.has(part)) continue;
+                const start = (part - 1) * upload.chunk_size;
+                const blob = file.slice(start, Math.min(start + upload.chunk_size, file.size));
+                if (upload.direct) {
+                    const response = await this.retry(() => window.axios.put(upload.part_urls[part], blob, {
+                        headers: { 'Content-Type': 'application/octet-stream' },
+                        signal: this.abortController.signal,
+                        withCredentials: false,
+                    }));
+                    const etag = response.headers.etag;
+                    if (! etag) throw new Error('El proveedor no expuso el encabezado ETag. Revisa la política CORS del bucket.');
+                    partEtags[part] = etag;
+                } else {
+                    await this.retry(() => window.axios.put(
+                        `/capacitador/media/uploads/${upload.id}/parts/${part}`,
+                        blob,
+                        { headers: { 'Content-Type': 'application/octet-stream' }, signal: this.abortController.signal },
+                    ));
+                }
+                this.setStatus(`Subiendo bloque ${part} de ${upload.total_parts}…`, Math.round((part / upload.total_parts) * 95));
+            }
+            this.setStatus('Validando y preparando el recurso…', 97);
+            const completeBody = upload.direct ? {
+                parts: Object.entries(partEtags).map(([PartNumber, ETag]) => ({ PartNumber: Number(PartNumber), ETag })),
+            } : {};
+            const completed = await window.axios.post(`/capacitador/media/uploads/${upload.id}/complete`, completeBody, { signal: this.abortController.signal });
+            this.assetInput.value = completed.data.asset_id;
+            localStorage.removeItem(this.key(file, purpose));
+            this.setStatus(completed.data.status === 'ready' ? 'Archivo listo.' : 'Archivo cargado; continuará procesándose.', 100);
+            this.fileInput.disabled = true;
+            this.form.dataset.mediaSubmitting = 'true';
+            this.form.requestSubmit();
+        } catch (error) {
+            if (error.name === 'CanceledError' || error.code === 'ERR_CANCELED') {
+                this.setStatus('Carga cancelada. Puedes reintentarlo.', 0, true);
+                const id = localStorage.getItem(this.key(file, purpose));
+                if (id) window.axios.delete(`/capacitador/media/uploads/${id}`).catch(() => {});
+                localStorage.removeItem(this.key(file, purpose));
+            } else {
+                const message = error.response?.data?.message || Object.values(error.response?.data?.errors || {})?.flat()?.[0] || 'No se pudo cargar el archivo.';
+                this.setStatus(message, 0, true);
+            }
+            this.submitButton.disabled = false;
+        }
+    }
+
+    async session(file, purpose) {
+        const key = this.key(file, purpose);
+        const previous = localStorage.getItem(key);
+        if (previous) {
+            try {
+                const response = await window.axios.get(`/capacitador/media/uploads/${previous}`);
+                if (response.data.status === 'uploading') return response.data;
+            } catch (_) {
+                localStorage.removeItem(key);
+            }
+        }
+        const response = await window.axios.post('/capacitador/media/uploads', {
+            purpose, name: file.name, mime_type: file.type, size: file.size,
+        });
+        localStorage.setItem(key, response.data.id);
+        return response.data;
+    }
+
+    async retry(callback) {
+        let lastError;
+        for (let attempt = 1; attempt <= 3; attempt += 1) {
+            try { return await callback(); } catch (error) {
+                lastError = error;
+                if (error.code === 'ERR_CANCELED') throw error;
+                await new Promise((resolve) => window.setTimeout(resolve, attempt * 500));
+            }
+        }
+        throw lastError;
+    }
+
+    key(file, purpose) {
+        return `alumco-media:${purpose}:${file.name}:${file.size}:${file.lastModified}`;
+    }
+
+    setStatus(message, percent, error = false) {
+        this.status.classList.remove('hidden');
+        const label = this.status.querySelector('[data-upload-status]');
+        label.textContent = message;
+        label.classList.toggle('text-Alumco-coral', error);
+        this.status.querySelector('[data-upload-progress]').style.width = `${percent}%`;
+    }
+}
+
+const initializeMediaUploaders = () => document
+    .querySelectorAll('[data-media-upload-form]:not([data-media-ready])')
+    .forEach((form) => {
+        form.dataset.mediaReady = 'true';
+        new ChunkedMediaUploader(form);
+    });
+
+document.addEventListener('DOMContentLoaded', initializeMediaUploaders);
+document.addEventListener('livewire:navigated', initializeMediaUploaders);
+
 const setupNavigationProgress = () => {
     const bar = document.querySelector('[data-nav-progress]');
 

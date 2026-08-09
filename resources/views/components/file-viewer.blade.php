@@ -1,7 +1,7 @@
-@props(['rutaArchivo', 'archivoUrl' => null, 'descargarUrl' => null, 'nombreOriginal' => null])
+@props(['rutaArchivo', 'archivoUrl' => null, 'descargarUrl' => null, 'nombreOriginal' => null, 'displayExtension' => null])
 
 @php
-    $extension = $rutaArchivo ? strtolower(pathinfo($rutaArchivo, PATHINFO_EXTENSION)) : null;
+    $extension = $displayExtension ?: ($rutaArchivo ? strtolower(pathinfo($rutaArchivo, PATHINFO_EXTENSION)) : null);
     $url = $archivoUrl ?? ($rutaArchivo ? Storage::url($rutaArchivo) : null);
     $finalDownloadUrl = $descargarUrl ?? $url;
 

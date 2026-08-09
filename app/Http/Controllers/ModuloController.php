@@ -6,6 +6,7 @@ use App\Models\Curso;
 use App\Models\Modulo;
 use App\Models\ProgresoModulo;
 use App\Models\User;
+use App\Services\CertificadoService;
 use App\Services\Cursos\ModuleAccessService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Storage;
@@ -30,11 +31,17 @@ class ModuloController extends Controller
         'webp' => 'image/webp',
     ];
 
-    public function __construct(private readonly ModuleAccessService $moduleAccessService) {}
+    public function __construct(
+        private readonly ModuleAccessService $moduleAccessService,
+        private readonly CertificadoService $certificadoService,
+    ) {}
 
-    public function verArchivo(Curso $curso, Modulo $modulo): StreamedResponse
+    public function verArchivo(Curso $curso, Modulo $modulo): StreamedResponse|RedirectResponse
     {
         $this->moduleAccessService->authorizeAccess($curso, $modulo, $this->authenticatedUser());
+        if ($asset = $modulo->contentMedia()) {
+            return redirect()->route('media.show', [$asset, 'display']);
+        }
         $this->ensureFileExists($modulo);
 
         return Storage::disk('public')->response(
@@ -44,9 +51,12 @@ class ModuloController extends Controller
         );
     }
 
-    public function descargarArchivo(Curso $curso, Modulo $modulo): StreamedResponse
+    public function descargarArchivo(Curso $curso, Modulo $modulo): StreamedResponse|RedirectResponse
     {
         $this->moduleAccessService->authorizeAccess($curso, $modulo, $this->authenticatedUser());
+        if ($asset = $modulo->contentMedia()) {
+            return redirect()->route('media.download', $asset);
+        }
         $this->ensureFileExists($modulo);
 
         $nombreDownload = $modulo->nombre_archivo_original ?? basename($modulo->ruta_archivo);
@@ -128,11 +138,14 @@ class ModuloController extends Controller
     public function completar(Curso $curso, Modulo $modulo): RedirectResponse
     {
         $modulo = $this->authorizeModuloAccess($curso, $modulo);
+        $user = $this->authenticatedUser();
 
         ProgresoModulo::updateOrCreate(
-            ['user_id' => auth()->id(), 'modulo_id' => $modulo->id],
+            ['user_id' => $user->id, 'modulo_id' => $modulo->id],
             ['completado' => true, 'fecha_completado' => now()]
         );
+
+        $this->certificadoService->generarSiCursoCompletado($user, $curso);
 
         $action = request()->input('action', 'next');
 

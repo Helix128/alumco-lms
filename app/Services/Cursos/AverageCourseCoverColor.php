@@ -2,6 +2,9 @@
 
 namespace App\Services\Cursos;
 
+use App\Models\MediaAsset;
+use Illuminate\Support\Facades\Storage;
+
 class AverageCourseCoverColor
 {
     private const SAMPLE_SIZE = 20;
@@ -28,7 +31,36 @@ class AverageCourseCoverColor
             return null;
         }
 
-        $path = storage_path('app/public/'.$relativePath);
+        return $this->fromAbsolutePath(storage_path('app/public/'.$relativePath));
+    }
+
+    public function fromMediaAsset(?MediaAsset $asset): ?string
+    {
+        $variant = $asset?->variant('original');
+        if (! $variant) {
+            return null;
+        }
+
+        $root = config("filesystems.disks.{$variant->disk}.root");
+        if (is_string($root)) {
+            return $this->fromAbsolutePath(rtrim($root, '/').'/'.$variant->path);
+        }
+
+        $temporary = tempnam(sys_get_temp_dir(), 'cover-color-');
+        $input = Storage::disk($variant->disk)->readStream($variant->path);
+        $output = fopen($temporary, 'wb');
+        stream_copy_to_stream($input, $output);
+        fclose($input);
+        fclose($output);
+        try {
+            return $this->fromAbsolutePath($temporary);
+        } finally {
+            @unlink($temporary);
+        }
+    }
+
+    private function fromAbsolutePath(string $path): ?string
+    {
 
         if (! file_exists($path)) {
             return null;

@@ -28,6 +28,8 @@ class UpdateModuloRequest extends FormRequest
             'duracion_minutos' => ['nullable', 'integer', 'min:1'],
             'contenido' => ['nullable', 'string'],
             'ruta_archivo' => ModuloContentFileRules::forType($modulo?->tipo_contenido),
+            'media_asset_id' => ['nullable', 'integer', 'exists:media_assets,id'],
+            'video_url' => ['nullable', 'string', 'max:500'],
         ];
     }
 

@@ -4,17 +4,21 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Modulo extends Model
 {
     use HasFactory;
 
-    const TIPOS = ['video', 'pdf', 'ppt', 'texto', 'imagen', 'evaluacion'];
+    const TIPOS = ['video', 'documento', 'pdf', 'ppt', 'texto', 'imagen', 'evaluacion'];
+
+    const CREATABLE_TIPOS = ['video', 'documento', 'texto', 'imagen', 'evaluacion'];
 
     const TIPO_LABELS = [
         'video' => 'video',
         'pdf' => 'documento',
         'ppt' => 'presentación',
+        'documento' => 'documento',
         'texto' => 'texto',
         'imagen' => 'imagen',
         'evaluacion' => 'evaluación',
@@ -57,6 +61,31 @@ class Modulo extends Model
     public function feedbacks()
     {
         return $this->hasMany(Feedback::class);
+    }
+
+    public function mediaAttachments(): MorphMany
+    {
+        return $this->morphMany(MediaAttachment::class, 'attachable');
+    }
+
+    public function contentMedia(): ?MediaAsset
+    {
+        return $this->mediaAttachments()
+            ->where('collection', 'content')
+            ->where('active', true)
+            ->with('asset.variants')
+            ->latest('activated_at')
+            ->first()?->asset;
+    }
+
+    public function pendingContentMedia(): ?MediaAsset
+    {
+        return $this->mediaAttachments()
+            ->where('collection', 'content')
+            ->where('active', false)
+            ->with('asset.variants')
+            ->latest()
+            ->first()?->asset;
     }
 
     // --- MÉTODOS HELPER ---

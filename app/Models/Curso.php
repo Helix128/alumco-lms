@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Curso extends Model
 {
@@ -63,6 +64,31 @@ class Curso extends Model
     public function feedbacks(): HasMany
     {
         return $this->hasMany(Feedback::class);
+    }
+
+    public function mediaAttachments(): MorphMany
+    {
+        return $this->morphMany(MediaAttachment::class, 'attachable');
+    }
+
+    public function coverMedia(): ?MediaAsset
+    {
+        return $this->mediaAttachments()
+            ->where('collection', 'cover')
+            ->where('active', true)
+            ->with('asset.variants')
+            ->latest('activated_at')
+            ->first()?->asset;
+    }
+
+    public function pendingCoverMedia(): ?MediaAsset
+    {
+        return $this->mediaAttachments()
+            ->where('collection', 'cover')
+            ->where('active', false)
+            ->with('asset')
+            ->latest()
+            ->first()?->asset;
     }
 
     // --- LÓGICA DE NEGOCIO ---

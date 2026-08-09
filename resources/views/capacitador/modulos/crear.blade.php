@@ -21,7 +21,7 @@
 
         {{-- Formulario --}}
         <form action="{{ route('capacitador.cursos.modulos.store', $curso) }}" method="POST"
-              enctype="multipart/form-data" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 lg:p-10 space-y-8">
+              enctype="multipart/form-data" data-media-upload-form class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 lg:p-10 space-y-8">
             @csrf
 
             <div class="grid grid-cols-1 gap-8">
@@ -60,14 +60,19 @@
                 <div id="campo-archivo" class="hidden space-y-4">
                     <label class="block text-sm font-black text-Alumco-blue/40 uppercase tracking-widest">Archivo del módulo</label>
                     <div class="group relative">
-                        <input type="file" name="ruta_archivo"
+                        <input type="file" name="ruta_archivo" data-media-file data-media-purpose-source="#tipo_contenido"
                                class="w-full bg-Alumco-cream/30 border border-dashed border-gray-200 rounded-xl px-4 py-8 text-sm file:hidden cursor-pointer hover:bg-Alumco-blue/5 transition-all text-center font-bold text-Alumco-gray/40">
                         <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none gap-2">
                             <svg class="w-8 h-8 text-Alumco-blue/20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
                             <span class="text-xs uppercase tracking-widest font-display">Subir material (Video, PDF, PPT, Imagen)</span>
                         </div>
                     </div>
-                    <p class="text-[10px] text-Alumco-gray/40 font-bold uppercase tracking-wider text-center">Formatos soportados: MP4, PDF, PPT, PPTX, JPEG, PNG, WEBP. Máximo 100 MB.</p>
+                    <input type="hidden" name="media_asset_id" value="{{ old('media_asset_id') }}" data-media-asset>
+                    <p class="text-[10px] text-Alumco-gray/40 font-bold uppercase tracking-wider text-center">Imágenes 20 MB · PDF 50 MB · Office 100 MB · MP4 250 MB.</p>
+                    <div id="campo-video-url" class="hidden mt-4 space-y-2">
+                        <label class="block text-xs font-black uppercase tracking-widest text-Alumco-blue/50">O usa un enlace HTTPS de YouTube o Vimeo</label>
+                        <input type="url" name="video_url" value="{{ old('video_url') }}" placeholder="https://www.youtube.com/watch?v=…" class="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm">
+                    </div>
                 </div>
 
                 {{-- Sección dinámica: texto --}}
@@ -118,7 +123,8 @@
 
     function actualizarCampos() {
         const tipo = select.value;
-        campoArchivo.classList.toggle('hidden', !['video','pdf','ppt','imagen'].includes(tipo));
+        campoArchivo.classList.toggle('hidden', !['video','documento','pdf','ppt','imagen'].includes(tipo));
+        document.getElementById('campo-video-url').classList.toggle('hidden', tipo !== 'video');
         campoTexto.classList.toggle('hidden', tipo !== 'texto');
         campoEval.classList.toggle('hidden', tipo !== 'evaluacion');
     }

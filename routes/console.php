@@ -31,3 +31,6 @@ Schedule::call(function (): void {
         'captured_at' => now(),
     ]);
 })->everyFiveMinutes();
+
+Schedule::command('media:cleanup')->dailyAt('03:30')->withoutOverlapping();
+Schedule::command('media:audit')->dailyAt('04:00')->withoutOverlapping();

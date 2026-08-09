@@ -39,16 +39,17 @@ class SessionEnvironmentTemplateTest extends TestCase
         $this->assertSame('default', $variables['REDIS_QUEUE_CONNECTION'] ?? null);
     }
 
-    public function test_filesystem_defaults_to_local_without_aws_environment_variables(): void
+    public function test_filesystem_defaults_to_local_media_with_opt_in_s3_variables(): void
     {
         $variables = $this->environmentTemplateVariables();
 
         $this->assertSame('local', $variables['FILESYSTEM_DISK'] ?? null);
-        $this->assertArrayNotHasKey('AWS_ACCESS_KEY_ID', $variables);
-        $this->assertArrayNotHasKey('AWS_SECRET_ACCESS_KEY', $variables);
-        $this->assertArrayNotHasKey('AWS_DEFAULT_REGION', $variables);
-        $this->assertArrayNotHasKey('AWS_BUCKET', $variables);
-        $this->assertArrayNotHasKey('AWS_USE_PATH_STYLE_ENDPOINT', $variables);
+        $this->assertSame('local_media', $variables['MEDIA_DISK'] ?? null);
+        $this->assertSame('', $variables['AWS_ACCESS_KEY_ID'] ?? null);
+        $this->assertSame('', $variables['AWS_SECRET_ACCESS_KEY'] ?? null);
+        $this->assertSame('auto', $variables['AWS_DEFAULT_REGION'] ?? null);
+        $this->assertSame('', $variables['AWS_BUCKET'] ?? null);
+        $this->assertSame('false', $variables['AWS_USE_PATH_STYLE_ENDPOINT'] ?? null);
     }
 
     public function test_sail_user_defaults_match_local_permissions(): void

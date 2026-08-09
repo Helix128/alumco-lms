@@ -61,8 +61,8 @@
                 {{-- Imagen de la capacitación --}}
                 <div class="relative aspect-video overflow-hidden"
                      style="--course-accent: {{ $accent }}; background: linear-gradient(135deg, {{ $accent }}, color-mix(in srgb, {{ $accent }} 55%, white))">
-                    @if ($cert->curso->imagen_portada)
-                        <img src="{{ asset('storage/' . $cert->curso->imagen_portada) }}"
+                    @if ($coverUrl = app(\App\Services\Media\MediaUrlResolver::class)->courseCover($cert->curso))
+                        <img src="{{ $coverUrl }}"
                              alt="{{ $cert->curso->titulo }}"
                              class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]">
                     @endif

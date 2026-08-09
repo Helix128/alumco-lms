@@ -74,27 +74,46 @@
     </div>
 
     <section>
-        @if ($modulo->tipo_contenido === 'video')
-            @php
-                $url = $modulo->ruta_archivo ?? '';
-                $esYoutube = str_contains($url, 'youtube.com') || str_contains($url, 'youtu.be');
+        @php
+            $mediaAsset = $modulo->contentMedia();
+            $pendingMedia = $modulo->pendingContentMedia();
+            $mediaResolver = app(\App\Services\Media\MediaUrlResolver::class);
+            $archivoUrl = $mediaResolver->module($modulo);
+            $descargarUrl = $mediaResolver->module($modulo, true);
+            $displayName = $mediaAsset?->original_name ?? $modulo->nombre_archivo_original;
+            $displayPath = $mediaAsset?->original_name ?? $modulo->ruta_archivo;
+            $displayExtension = $mediaAsset?->kind === 'document' && $mediaAsset->variant('preview_pdf') ? 'pdf' : null;
+            $legacyMissing = ! $mediaAsset
+                && $modulo->ruta_archivo
+                && ! filter_var($modulo->ruta_archivo, FILTER_VALIDATE_URL)
+                && ! Storage::disk('public')->exists($modulo->ruta_archivo);
+        @endphp
 
-                if ($esYoutube) {
-                    if (str_contains($url, 'watch?v=')) {
-                        $videoId = explode('v=', $url)[1];
-                        $videoId = explode('&', $videoId)[0];
-                        $embedUrl = 'https://www.youtube-nocookie.com/embed/' . $videoId;
-                    } elseif (str_contains($url, 'youtu.be/')) {
-                        $videoId = explode('youtu.be/', $url)[1];
-                        $videoId = explode('?', $videoId)[0];
-                        $embedUrl = 'https://www.youtube-nocookie.com/embed/' . $videoId;
-                    } else {
-                        $embedUrl = $url;
-                    }
+        @if ($pendingMedia)
+            <div class="mb-4 rounded-2xl border px-5 py-4 text-sm font-bold {{ $pendingMedia->status === 'failed' ? 'border-red-200 bg-red-50 text-red-700' : 'border-amber-200 bg-amber-50 text-amber-800' }}">
+                {{ $pendingMedia->status === 'failed'
+                    ? 'El archivo nuevo falló al procesarse. El material anterior se mantiene activo.'
+                    : 'El archivo nuevo se está procesando. El material anterior seguirá disponible hasta que termine.' }}
+            </div>
+        @endif
+
+        @if ($legacyMissing)
+            <div class="worker-card border border-red-200 bg-red-50 p-6 text-center text-red-700">
+                <p class="font-black">Archivo legado no encontrado</p>
+                <p class="mt-1 text-sm font-bold">El archivo registrado ya no existe en el almacenamiento. Solicita al capacitador que vuelva a cargarlo.</p>
+            </div>
+        @elseif ($modulo->tipo_contenido === 'video')
+            @php
+                $legacyUrl = $modulo->ruta_archivo ?? '';
+                $embedUrl = $mediaAsset?->external_url;
+                $esExterno = (bool) $embedUrl;
+                $esYoutubeLegacy = str_contains($legacyUrl, 'youtube.com') || str_contains($legacyUrl, 'youtu.be');
+                if (! $esExterno && $esYoutubeLegacy) {
+                    try { $embedUrl = app(\App\Services\Media\ExternalVideoService::class)->normalize($legacyUrl); $esExterno = true; } catch (\Throwable) {}
                 }
             @endphp
 
-            @if ($esYoutube)
+            @if ($esExterno)
                 <div class="worker-card relative w-full overflow-hidden" style="aspect-ratio: 16/9">
                     <iframe src="{{ $embedUrl }}"
                             title="{{ $modulo->titulo }}"
@@ -104,16 +123,14 @@
                             allowfullscreen></iframe>
                 </div>
             @else
-                <x-file-viewer :rutaArchivo="$modulo->ruta_archivo"
-                               :archivoUrl="route('modulos.archivo', [$curso, $modulo], false)"
-                               :descargarUrl="route('modulos.descargar', [$curso, $modulo], false)"
-                               :nombreOriginal="$modulo->nombre_archivo_original" />
+                <x-file-viewer :rutaArchivo="$displayPath" :archivoUrl="$archivoUrl"
+                               :descargarUrl="$descargarUrl" :nombreOriginal="$displayName"
+                               :displayExtension="$displayExtension" />
             @endif
-        @elseif (in_array($modulo->tipo_contenido, ['pdf', 'ppt', 'imagen', 'descargable']))
-            <x-file-viewer :rutaArchivo="$modulo->ruta_archivo"
-                           :archivoUrl="route('modulos.archivo', [$curso, $modulo], false)"
-                           :descargarUrl="route('modulos.descargar', [$curso, $modulo], false)"
-                           :nombreOriginal="$modulo->nombre_archivo_original" />
+        @elseif (in_array($modulo->tipo_contenido, ['documento', 'pdf', 'ppt', 'imagen', 'descargable']))
+            <x-file-viewer :rutaArchivo="$displayPath" :archivoUrl="$archivoUrl"
+                           :descargarUrl="$descargarUrl" :nombreOriginal="$displayName"
+                           :displayExtension="$displayExtension" />
         @elseif ($modulo->tipo_contenido === 'texto')
             <div class="worker-card p-5 text-Alumco-gray prose prose-base max-w-none
                         prose-headings:text-Alumco-gray prose-a:text-Alumco-blue lg:p-7">
