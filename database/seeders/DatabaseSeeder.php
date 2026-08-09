@@ -25,8 +25,11 @@ class DatabaseSeeder extends Seeder
             $this->call([
                 DemoCoursesSeeder::class,
                 DemoUsersSeeder::class,
-                DemoProgressSeeder::class,
             ]);
+
+            if (config('demo.seed_progress', false)) {
+                $this->call(DemoProgressSeeder::class);
+            }
         }
     }
 }

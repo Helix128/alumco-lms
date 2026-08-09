@@ -25,7 +25,7 @@ class DemoProgressSeeder extends Seeder
             ->get();
 
         $cursos = Curso::query()
-            ->with(['modulos.evaluacion.preguntas.opciones'])
+            ->with(['estamentos:id', 'modulos.evaluacion.preguntas.opciones'])
             ->orderBy('id')
             ->get();
 
@@ -34,7 +34,7 @@ class DemoProgressSeeder extends Seeder
         }
 
         foreach ($users as $userIndex => $user) {
-            $cursosAsignados = $this->coursesForUser($cursos, $userIndex);
+            $cursosAsignados = $this->coursesForUser($cursos, $user);
 
             foreach ($cursosAsignados as $courseIndex => $curso) {
                 $modulos = $curso->modulos->sortBy('orden')->values();
@@ -62,15 +62,10 @@ class DemoProgressSeeder extends Seeder
      * @param  Collection<int, Curso>  $cursos
      * @return Collection<int, Curso>
      */
-    private function coursesForUser(Collection $cursos, int $userIndex): Collection
+    private function coursesForUser(Collection $cursos, User $user): Collection
     {
-        $count = min(3, $cursos->count());
-        $offset = $userIndex % $cursos->count();
-
         return $cursos
-            ->slice($offset)
-            ->concat($cursos->slice(0, $offset))
-            ->take($count)
+            ->filter(fn (Curso $curso): bool => $curso->estamentos->contains('id', $user->estamento_id))
             ->values();
     }
 

@@ -10,19 +10,25 @@ use Illuminate\Support\Facades\Hash;
 
 class DemoUsersSeeder extends Seeder
 {
+    private const USER_COUNT = 10;
+
     public function run(): void
     {
         $sedes = Sede::query()->get();
         $estamentos = Estamento::query()
             ->whereNotIn('nombre', ['Desarrollador', 'Administrador'])
+            ->orderBy('id')
             ->get();
 
         if ($sedes->isEmpty() || $estamentos->isEmpty()) {
             return;
         }
 
-        for ($i = 1; $i <= 64; $i++) {
+        $demoEmails = [];
+
+        for ($i = 1; $i <= self::USER_COUNT; $i++) {
             $email = sprintf('trabajador.demo.%03d@alumco.local', $i);
+            $demoEmails[] = $email;
             $attributes = [
                 'email' => $email,
                 'name' => sprintf('Trabajador Demo %03d', $i),
@@ -42,6 +48,12 @@ class DemoUsersSeeder extends Seeder
 
             $user->assignRole('Trabajador');
         }
+
+        User::withTrashed()
+            ->where('email', 'like', 'trabajador.demo.%@alumco.local')
+            ->whereNotIn('email', $demoEmails)
+            ->get()
+            ->each(fn (User $user) => $user->forceDelete());
     }
 
     private function rutFor(int $base): string
