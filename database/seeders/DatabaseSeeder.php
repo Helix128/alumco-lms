@@ -6,7 +6,6 @@ use Database\Seeders\Common\AdminUserSeeder;
 use Database\Seeders\Common\EstamentoSeeder;
 use Database\Seeders\Common\SedeSeeder;
 use Database\Seeders\Testing\DemoCoursesSeeder;
-use Database\Seeders\Testing\DemoProgressSeeder;
 use Database\Seeders\Testing\DemoUsersSeeder;
 use Illuminate\Database\Seeder;
 
@@ -26,10 +25,6 @@ class DatabaseSeeder extends Seeder
                 DemoCoursesSeeder::class,
                 DemoUsersSeeder::class,
             ]);
-
-            if (config('demo.seed_progress', false)) {
-                $this->call(DemoProgressSeeder::class);
-            }
         }
     }
 }

@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Models\Certificado;
 use App\Models\Curso;
 use App\Models\Estamento;
 use App\Models\Evaluacion;
@@ -14,7 +13,6 @@ use App\Models\Modulo;
 use App\Models\Opcion;
 use App\Models\PlanificacionCurso;
 use App\Models\Pregunta;
-use App\Models\ProgresoModulo;
 use App\Models\User;
 use Database\Seeders\Common\AdminUserSeeder;
 use Database\Seeders\Common\EstamentoSeeder;
@@ -22,7 +20,6 @@ use Database\Seeders\Common\SedeSeeder;
 use Database\Seeders\DatabaseSeeder;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Database\Seeders\Testing\DemoCoursesSeeder;
-use Database\Seeders\Testing\DemoProgressSeeder;
 use Database\Seeders\Testing\DemoUsersSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
@@ -99,46 +96,16 @@ class DemoSeedersTest extends TestCase
         }
     }
 
-    public function test_demo_progress_creates_partial_progress_attempts_and_lightweight_certificates(): void
+    public function test_database_seeder_creates_no_demo_progress_attempts_or_certificates(): void
     {
         Storage::fake('local_media');
-        $this->seedBaseData();
-        $this->seed([DemoCoursesSeeder::class, DemoUsersSeeder::class]);
-
-        $this->seed(DemoProgressSeeder::class);
-
-        $this->assertGreaterThan(0, ProgresoModulo::query()->count());
-        $this->assertGreaterThan(0, IntentoEvaluacion::query()->where('aprobado', true)->count());
-        $this->assertGreaterThan(0, Certificado::query()->where('ruta_pdf', '')->count());
-
-        $attempt = IntentoEvaluacion::query()->where('aprobado', true)->firstOrFail();
-        $this->assertEquals($attempt->total_preguntas, $attempt->puntaje);
-        $this->assertEquals($attempt->total_preguntas, $attempt->respuestas()->count());
-    }
-
-    public function test_database_seeder_keeps_demo_progress_disabled_by_default(): void
-    {
-        Storage::fake('local_media');
-        config()->set('demo.seed_progress', false);
 
         $this->seed(DatabaseSeeder::class);
 
         $this->assertSame(10, User::query()->where('email', 'like', 'trabajador.demo.%@alumco.local')->count());
-        $this->assertSame(0, ProgresoModulo::query()->count());
+        $this->assertSame(0, \App\Models\ProgresoModulo::query()->count());
         $this->assertSame(0, IntentoEvaluacion::query()->count());
-        $this->assertSame(0, Certificado::query()->count());
-    }
-
-    public function test_database_seeder_can_enable_demo_progress_with_toggle(): void
-    {
-        Storage::fake('local_media');
-        config()->set('demo.seed_progress', true);
-
-        $this->seed(DatabaseSeeder::class);
-
-        $this->assertGreaterThan(0, ProgresoModulo::query()->count());
-        $this->assertGreaterThan(0, IntentoEvaluacion::query()->count());
-        $this->assertGreaterThan(0, Certificado::query()->count());
+        $this->assertSame(0, \App\Models\Certificado::query()->count());
     }
 
     private function seedBaseData(): void
