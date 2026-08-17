@@ -70,6 +70,16 @@ class Modulo extends Model
 
     public function contentMedia(): ?MediaAsset
     {
+        if ($this->relationLoaded('mediaAttachments')) {
+            $attachment = $this->mediaAttachments
+                ->where('collection', 'content')
+                ->where('active', true)
+                ->sortByDesc(fn ($a) => $a->activated_at ?? $a->created_at)
+                ->first();
+
+            return $attachment?->asset;
+        }
+
         return $this->mediaAttachments()
             ->where('collection', 'content')
             ->where('active', true)
@@ -80,6 +90,16 @@ class Modulo extends Model
 
     public function pendingContentMedia(): ?MediaAsset
     {
+        if ($this->relationLoaded('mediaAttachments')) {
+            $attachment = $this->mediaAttachments
+                ->where('collection', 'content')
+                ->where('active', false)
+                ->sortByDesc('created_at')
+                ->first();
+
+            return $attachment?->asset;
+        }
+
         return $this->mediaAttachments()
             ->where('collection', 'content')
             ->where('active', false)

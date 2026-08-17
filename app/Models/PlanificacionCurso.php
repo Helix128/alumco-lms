@@ -18,9 +18,19 @@ class PlanificacionCurso extends Model
     ];
 
     protected $casts = [
-        'fecha_inicio' => 'date',
-        'fecha_fin' => 'date',
+        'fecha_inicio' => 'date:Y-m-d',
+        'fecha_fin' => 'date:Y-m-d',
     ];
+
+    public function setFechaInicioAttribute($value): void
+    {
+        $this->attributes['fecha_inicio'] = $value ? \Carbon\Carbon::parse($value)->format('Y-m-d') : null;
+    }
+
+    public function setFechaFinAttribute($value): void
+    {
+        $this->attributes['fecha_fin'] = $value ? \Carbon\Carbon::parse($value)->format('Y-m-d') : null;
+    }
 
     // --- RELACIONES ---
 

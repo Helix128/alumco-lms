@@ -32,7 +32,7 @@ class CursoController extends Controller
             : auth()->user()->cursosImpartidos();
 
         $cursos = $query
-            ->with('capacitador')
+            ->with(['capacitador', 'mediaAttachments.asset.variants'])
             ->withCount(['modulos', 'estamentos', 'planificaciones'])
             ->orderByDesc('created_at')
             ->paginate(15);

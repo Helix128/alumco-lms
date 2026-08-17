@@ -132,6 +132,12 @@
 
             {{-- Signature Section (Livewire) --}}
             @livewire('profile.digital-signature')
+
+            @if (auth()->user()->hasAdminAccess())
+                <div id="firma-institucional" class="pt-2">
+                    @livewire('admin.institutional-signature')
+                </div>
+            @endif
         </div>
     </div>
 </div>

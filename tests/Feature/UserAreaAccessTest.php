@@ -89,6 +89,11 @@ class UserAreaAccessTest extends TestCase
         $this
             ->actingAs($user)
             ->get(route('admin.acreditacion.index'))
+            ->assertRedirect(route('admin.perfil.index'));
+
+        $this
+            ->actingAs($user)
+            ->get(route('admin.perfil.index'))
             ->assertOk()
             ->assertSee('Firma Institucional');
     }

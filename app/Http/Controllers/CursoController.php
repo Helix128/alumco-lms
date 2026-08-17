@@ -138,6 +138,7 @@ class CursoController extends Controller
     {
         return [
             'planificaciones',
+            'mediaAttachments.asset.variants',
             'modulos' => fn ($q) => $q->orderBy('orden')
                 ->with(['progresos' => fn ($q) => $q->where('user_id', $user->id)]),
         ];

@@ -181,7 +181,7 @@ Route::middleware(['auth', 'throttle:120,1'])->group(function () {
     })->name('admin.perfil.index');
 
     // --- ADMIN / DEV COMPARTIDO ---
-    Route::view('/admin/acreditacion', 'admin.acreditacion.index')
+    Route::get('/admin/acreditacion', fn () => redirect()->route('admin.perfil.index'))
         ->middleware('admin.or.developer')
         ->name('admin.acreditacion.index');
 

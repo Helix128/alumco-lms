@@ -24,12 +24,21 @@ class MediaController extends Controller
         private readonly CourseAccessService $courseAccess,
     ) {}
 
-    public function show(MediaAsset $asset, string $variant = 'display'): Response|StreamedResponse|RedirectResponse
+    public function show(MediaAsset $asset, string $variant = 'display'): Response|StreamedResponse|RedirectResponse|\Symfony\Component\HttpFoundation\BinaryFileResponse
     {
         $this->authorizeAsset($asset);
         abort_unless($asset->status === MediaAsset::STATUS_READY, 409, 'El recurso aún se está procesando.');
         $media = $this->resolveVariant($asset->loadMissing('variants'), $variant);
         abort_unless($media && Storage::disk($media->disk)->exists($media->path), 404, 'Archivo no encontrado.');
+
+        $etag = '"'.($media->checksum ?: hash('sha256', $media->path)).'"';
+        $ifNoneMatch = request()->header('If-None-Match');
+        if ($ifNoneMatch && (trim($ifNoneMatch) === $etag || trim($ifNoneMatch, '"') === trim($etag, '"'))) {
+            return response('', 304, [
+                'ETag' => $etag,
+                'Cache-Control' => 'private, max-age=86400, stale-while-revalidate=604800',
+            ]);
+        }
 
         $download = $variant === 'original-download';
         $name = $download ? $asset->original_name : $this->displayName($asset, $media->mime_type);
@@ -38,7 +47,9 @@ class MediaController extends Controller
             'Content-Type' => $media->mime_type,
             'Content-Disposition' => $disposition,
             'X-Content-Type-Options' => 'nosniff',
-            'Cache-Control' => 'private, max-age=3600, immutable',
+            'Cache-Control' => 'private, max-age=86400, stale-while-revalidate=604800',
+            'ETag' => $etag,
+            'Accept-Ranges' => 'bytes',
         ];
 
         if ($media->disk === 'local_media' && app()->environment('production')) {
@@ -55,22 +66,52 @@ class MediaController extends Controller
             return redirect()->away($url);
         }
 
+        // Fallback local/dev con soporte nativo de streaming y Byte-Ranges (HTTP 206)
+        $root = config("filesystems.disks.{$media->disk}.root");
+        if (is_string($root)) {
+            $fullPath = rtrim($root, '/').'/'.ltrim($media->path, '/');
+            if (file_exists($fullPath)) {
+                return response()->file($fullPath, $headers);
+            }
+        }
+
         return Storage::disk($media->disk)->response($media->path, $name, $headers);
     }
 
-    public function download(MediaAsset $asset): Response|StreamedResponse|RedirectResponse
+    public function download(MediaAsset $asset): Response|StreamedResponse|RedirectResponse|\Symfony\Component\HttpFoundation\BinaryFileResponse
     {
         return $this->show($asset, 'original-download');
     }
 
-    public function legacyCover(Curso $curso): StreamedResponse
+    public function legacyCover(Curso $curso): Response|StreamedResponse|\Symfony\Component\HttpFoundation\BinaryFileResponse
     {
         abort_unless($this->canViewCourseCover($curso), 403);
         abort_unless($curso->imagen_portada && Storage::disk('public')->exists($curso->imagen_portada), 404, 'Portada legada no encontrada.');
 
-        return Storage::disk('public')->response($curso->imagen_portada, basename($curso->imagen_portada), [
-            'Cache-Control' => 'private, max-age=300', 'X-Content-Type-Options' => 'nosniff',
-        ]);
+        $path = storage_path('app/public/'.$curso->imagen_portada);
+        $etag = file_exists($path) ? '"'.hash_file('sha256', $path).'"' : null;
+        $ifNoneMatch = request()->header('If-None-Match');
+        if ($etag && $ifNoneMatch && (trim($ifNoneMatch) === $etag || trim($ifNoneMatch, '"') === trim($etag, '"'))) {
+            return response('', 304, [
+                'ETag' => $etag,
+                'Cache-Control' => 'private, max-age=86400',
+            ]);
+        }
+
+        $headers = [
+            'Cache-Control' => 'private, max-age=86400',
+            'X-Content-Type-Options' => 'nosniff',
+            'Accept-Ranges' => 'bytes',
+        ];
+        if ($etag) {
+            $headers['ETag'] = $etag;
+        }
+
+        if (file_exists($path)) {
+            return response()->file($path, $headers);
+        }
+
+        return Storage::disk('public')->response($curso->imagen_portada, basename($curso->imagen_portada), $headers);
     }
 
     private function authorizeAsset(MediaAsset $asset): void
@@ -103,6 +144,18 @@ class MediaController extends Controller
     {
         if (in_array($requested, ['original', 'original-download'], true)) {
             return $asset->variant('original');
+        }
+
+        if ($requested === 'thumbnail') {
+            return $asset->variant('thumbnail') ?? $asset->variant('optimized') ?? $asset->variant('original');
+        }
+
+        if ($requested === 'poster') {
+            return $asset->variant('poster') ?? $asset->variant('optimized') ?? $asset->variant('original');
+        }
+
+        if ($requested === 'hero') {
+            return $asset->variant('optimized') ?? $asset->variant('original');
         }
 
         return match ($asset->kind) {

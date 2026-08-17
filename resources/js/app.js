@@ -72,6 +72,7 @@ class ModulePdfViewer {
             return;
         }
 
+        this.bindKeyboard();
         this.bindControls();
         this.load();
     }
@@ -82,6 +83,19 @@ class ModulePdfViewer {
         this.zoomOutButton?.addEventListener('click', () => this.setScale(this.scale - 0.15));
         this.zoomInButton?.addEventListener('click', () => this.setScale(this.scale + 0.15));
         window.addEventListener('resize', () => this.renderPage(), { passive: true });
+    }
+
+    bindKeyboard() {
+        this.element.setAttribute('tabindex', '0');
+        this.element.addEventListener('keydown', (event) => {
+            if (event.key === 'ArrowLeft' || event.key === 'PageUp') {
+                event.preventDefault();
+                this.goToPage(this.pageNumber - 1);
+            } else if (event.key === 'ArrowRight' || event.key === 'PageDown') {
+                event.preventDefault();
+                this.goToPage(this.pageNumber + 1);
+            }
+        });
     }
 
     async load() {
@@ -99,7 +113,7 @@ class ModulePdfViewer {
             await this.renderPage();
         } catch (error) {
             console.error('No se pudo cargar el PDF del módulo.', error);
-            this.setStatus('No se pudo mostrar el PDF en el visor.');
+            this.setStatus('No se pudo mostrar el PDF en el visor. Usa el botón de descarga.');
             this.element.dataset.pdfState = 'error';
         }
     }
@@ -163,6 +177,77 @@ class ModulePdfViewer {
     }
 }
 
+class ModuleVideoPlayer {
+    constructor(video) {
+        this.video = video;
+        this.moduleId = video.dataset.moduleId;
+        this.container = video.closest('[data-video-container]') || video.parentElement;
+        this.speedButtons = this.container.querySelectorAll('[data-speed]');
+        this.storageKey = this.moduleId ? `alumco-video-pos:${this.moduleId}` : null;
+
+        this.initProgressResume();
+        this.initSpeedControls();
+        this.initKeyboard();
+    }
+
+    initProgressResume() {
+        if (! this.storageKey) return;
+        const saved = parseFloat(localStorage.getItem(this.storageKey) || '0');
+        if (saved > 5) {
+            this.video.addEventListener('loadedmetadata', () => {
+                if (saved < this.video.duration - 5) {
+                    this.video.currentTime = saved;
+                }
+            }, { once: true });
+        }
+
+        let throttleTimer = null;
+        this.video.addEventListener('timeupdate', () => {
+            if (throttleTimer) return;
+            throttleTimer = setTimeout(() => {
+                throttleTimer = null;
+                if (this.video.currentTime > 0 && ! this.video.ended) {
+                    localStorage.setItem(this.storageKey, String(Math.floor(this.video.currentTime)));
+                } else if (this.video.ended) {
+                    localStorage.removeItem(this.storageKey);
+                }
+            }, 2000);
+        });
+    }
+
+    initSpeedControls() {
+        this.speedButtons.forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const speed = parseFloat(btn.dataset.speed || '1');
+                this.video.playbackRate = speed;
+                this.speedButtons.forEach((b) => {
+                    b.classList.toggle('bg-Alumco-blue/10', b === btn);
+                    b.classList.toggle('text-Alumco-blue', b === btn);
+                    b.classList.toggle('font-black', b === btn);
+                    b.classList.toggle('font-bold', b !== btn);
+                    b.classList.toggle('text-Alumco-gray', b !== btn);
+                });
+            });
+        });
+    }
+
+    initKeyboard() {
+        this.container.addEventListener('keydown', (event) => {
+            if (['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) return;
+            if (event.key === 'ArrowLeft') {
+                event.preventDefault();
+                this.video.currentTime = Math.max(0, this.video.currentTime - 5);
+            } else if (event.key === 'ArrowRight') {
+                event.preventDefault();
+                this.video.currentTime = Math.min(this.video.duration || 0, this.video.currentTime + 5);
+            } else if (event.key === ' ' && event.target === this.container) {
+                event.preventDefault();
+                if (this.video.paused) this.video.play(); else this.video.pause();
+            }
+        });
+    }
+}
+
 const initializeModulePdfViewers = async () => {
     const viewers = document.querySelectorAll('[data-module-pdf-viewer]:not([data-pdf-ready])');
 
@@ -183,8 +268,21 @@ const initializeModulePdfViewers = async () => {
     });
 };
 
-document.addEventListener('DOMContentLoaded', initializeModulePdfViewers);
-document.addEventListener('livewire:navigated', initializeModulePdfViewers);
+const initializeModuleVideoPlayers = () => {
+    document.querySelectorAll('[data-player-video]:not([data-player-ready])').forEach((video) => {
+        video.dataset.playerReady = 'true';
+        new ModuleVideoPlayer(video);
+    });
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    initializeModulePdfViewers();
+    initializeModuleVideoPlayers();
+});
+document.addEventListener('livewire:navigated', () => {
+    initializeModulePdfViewers();
+    initializeModuleVideoPlayers();
+});
 document.addEventListener('livewire:navigating', () => {
     window.AlumcoCharts?.destroyAll();
 });

@@ -41,8 +41,11 @@
                     <tr class="hover:bg-Alumco-cream/30 transition-colors group">
                         <td class="px-8 py-5">
                             <div class="flex items-center gap-4">
-                                @if ($coverUrl = app(\App\Services\Media\MediaUrlResolver::class)->courseCover($curso))
+                                @if ($coverUrl = app(\App\Services\Media\MediaUrlResolver::class)->courseCoverThumbnail($curso))
                                     <img src="{{ $coverUrl }}"
+                                         alt="{{ $curso->titulo }}"
+                                         loading="lazy"
+                                         decoding="async"
                                          class="w-14 h-10 object-cover rounded-xl shadow-sm border border-gray-100">
                                 @else
                                     <div class="w-14 h-10 bg-Alumco-blue/5 rounded-xl border border-Alumco-blue/10 flex items-center justify-center text-Alumco-blue/30">

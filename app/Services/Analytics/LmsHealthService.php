@@ -222,6 +222,18 @@ class LmsHealthService
     public function databaseStats(): array
     {
         return Cache::remember('lms-health:database-stats', now()->addMinutes(2), function (): array {
+            if (! in_array(DB::getDriverName(), ['mysql', 'mariadb'], true)) {
+                return [
+                    'connection' => config('database.default'),
+                    'driver' => config('database.connections.'.config('database.default').'.driver'),
+                    'database' => config('database.connections.'.config('database.default').'.database'),
+                    'tables' => [],
+                    'total_size_mb' => 0,
+                    'total_rows' => 0,
+                    'table_count' => 0,
+                ];
+            }
+
             $tables = collect(DB::select('SHOW TABLE STATUS'))
                 ->map(fn (object $table): array => [
                     'name' => $table->Name,

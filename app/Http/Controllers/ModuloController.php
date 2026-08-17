@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Services\CertificadoService;
 use App\Services\Cursos\ModuleAccessService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
@@ -36,7 +37,7 @@ class ModuloController extends Controller
         private readonly CertificadoService $certificadoService,
     ) {}
 
-    public function verArchivo(Curso $curso, Modulo $modulo): StreamedResponse|RedirectResponse
+    public function verArchivo(Curso $curso, Modulo $modulo): Response|StreamedResponse|RedirectResponse|\Symfony\Component\HttpFoundation\BinaryFileResponse
     {
         $this->moduleAccessService->authorizeAccess($curso, $modulo, $this->authenticatedUser());
         if ($asset = $modulo->contentMedia()) {
@@ -44,10 +45,29 @@ class ModuloController extends Controller
         }
         $this->ensureFileExists($modulo);
 
+        $path = storage_path('app/public/'.$modulo->ruta_archivo);
+        $headers = $this->inlineHeadersFor($modulo);
+
+        if (file_exists($path)) {
+            $etag = '"'.hash_file('sha256', $path).'"';
+            $ifNoneMatch = request()->header('If-None-Match');
+            if ($ifNoneMatch && (trim($ifNoneMatch) === $etag || trim($ifNoneMatch, '"') === trim($etag, '"'))) {
+                return response('', 304, [
+                    'ETag' => $etag,
+                    'Cache-Control' => 'private, max-age=86400',
+                ]);
+            }
+            $headers['ETag'] = $etag;
+            $headers['Accept-Ranges'] = 'bytes';
+            $headers['Cache-Control'] = 'private, max-age=86400';
+
+            return response()->file($path, $headers);
+        }
+
         return Storage::disk('public')->response(
             $modulo->ruta_archivo,
             $this->displayFileName($modulo),
-            $this->inlineHeadersFor($modulo)
+            $headers
         );
     }
 

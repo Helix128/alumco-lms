@@ -148,14 +148,18 @@ class BusinessIntelligenceDashboard extends Component
     private function loadFilterOptions(): void
     {
         $currentYear = now()->year;
+        $isSqlite = DB::getDriverName() === 'sqlite';
+        $yearCertExpr = $isSqlite ? "strftime('%Y', fecha_emision) as year" : 'YEAR(fecha_emision) as year';
+        $yearPlanExpr = $isSqlite ? "strftime('%Y', fecha_inicio) as year" : 'YEAR(fecha_inicio) as year';
+
         $certificateYears = DB::table('certificados')
             ->whereNotNull('fecha_emision')
-            ->selectRaw('YEAR(fecha_emision) as year')
+            ->selectRaw($yearCertExpr)
             ->distinct()
             ->pluck('year');
         $planningYears = DB::table('planificaciones_cursos')
             ->whereNotNull('fecha_inicio')
-            ->selectRaw('YEAR(fecha_inicio) as year')
+            ->selectRaw($yearPlanExpr)
             ->distinct()
             ->pluck('year');
 
@@ -567,9 +571,12 @@ class BusinessIntelligenceDashboard extends Component
      */
     private function monthlyCounts(Builder $query, string $dateColumn): array
     {
+        $isSqlite = DB::getDriverName() === 'sqlite';
+        $monthExpr = $isSqlite ? "CAST(strftime('%m', {$dateColumn}) AS INTEGER)" : "MONTH({$dateColumn})";
+
         $counts = $query
-            ->selectRaw("MONTH({$dateColumn}) as month, COUNT(*) as total")
-            ->groupByRaw("MONTH({$dateColumn})")
+            ->selectRaw("{$monthExpr} as month, COUNT(*) as total")
+            ->groupByRaw($monthExpr)
             ->pluck('total', 'month');
 
         return collect(range(1, 12))
@@ -583,9 +590,12 @@ class BusinessIntelligenceDashboard extends Component
      */
     private function monthlyDistinctCounts(Builder $query, string $dateExpression, string $distinctColumn): array
     {
+        $isSqlite = DB::getDriverName() === 'sqlite';
+        $monthExpr = $isSqlite ? "CAST(strftime('%m', {$dateExpression}) AS INTEGER)" : "MONTH({$dateExpression})";
+
         $counts = $query
-            ->selectRaw("MONTH({$dateExpression}) as month, COUNT(DISTINCT {$distinctColumn}) as total")
-            ->groupByRaw("MONTH({$dateExpression})")
+            ->selectRaw("{$monthExpr} as month, COUNT(DISTINCT {$distinctColumn}) as total")
+            ->groupByRaw($monthExpr)
             ->pluck('total', 'month');
 
         return collect(range(1, 12))

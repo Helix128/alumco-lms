@@ -10,8 +10,10 @@ return new class extends Migration
     public function up(): void
     {
         // Ampliar el ENUM para soportar todos los tipos de cápsula
-        DB::statement("ALTER TABLE modulos MODIFY COLUMN tipo_contenido
-            ENUM('video','pdf','ppt','texto','imagen','evaluacion') NOT NULL");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE modulos MODIFY COLUMN tipo_contenido
+                ENUM('video','pdf','ppt','texto','imagen','evaluacion') NOT NULL");
+        }
 
         Schema::table('modulos', function (Blueprint $table) {
             $table->longText('contenido')->nullable()->after('ruta_archivo');
@@ -25,7 +27,9 @@ return new class extends Migration
             $table->dropColumn(['contenido', 'duracion_minutos']);
         });
 
-        DB::statement("ALTER TABLE modulos MODIFY COLUMN tipo_contenido
-            ENUM('video','pdf','ppt') NOT NULL");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE modulos MODIFY COLUMN tipo_contenido
+                ENUM('video','pdf','ppt') NOT NULL");
+        }
     }
 };

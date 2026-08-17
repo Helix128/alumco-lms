@@ -52,21 +52,25 @@ class DistribucionEtaria extends Component
 
     private function queryChartData(): array
     {
+        $isSqlite = DB::getDriverName() === 'sqlite';
+        $ageExpr = $isSqlite
+            ? "(CAST(strftime('%Y', 'now') AS INTEGER) - CAST(strftime('%Y', fecha_nacimiento) AS INTEGER))"
+            : 'TIMESTAMPDIFF(YEAR, fecha_nacimiento, CURDATE())';
+
         $rows = DB::table('users')
             ->where('activo', true)
             ->whereNotNull('fecha_nacimiento')
             ->selectRaw(
                 "CASE
-                    WHEN TIMESTAMPDIFF(YEAR, fecha_nacimiento, CURDATE()) BETWEEN 18 AND 25 THEN '18-25'
-                    WHEN TIMESTAMPDIFF(YEAR, fecha_nacimiento, CURDATE()) BETWEEN 26 AND 35 THEN '26-35'
-                    WHEN TIMESTAMPDIFF(YEAR, fecha_nacimiento, CURDATE()) BETWEEN 36 AND 45 THEN '36-45'
-                    WHEN TIMESTAMPDIFF(YEAR, fecha_nacimiento, CURDATE()) BETWEEN 46 AND 55 THEN '46-55'
+                    WHEN {$ageExpr} BETWEEN 18 AND 25 THEN '18-25'
+                    WHEN {$ageExpr} BETWEEN 26 AND 35 THEN '26-35'
+                    WHEN {$ageExpr} BETWEEN 36 AND 45 THEN '36-45'
+                    WHEN {$ageExpr} BETWEEN 46 AND 55 THEN '46-55'
                     ELSE '56+'
                 END as rango,
                 COUNT(*) as total",
             )
             ->groupBy('rango')
-            ->orderByRaw("FIELD(rango, '18-25', '26-35', '36-45', '46-55', '56+')")
             ->get();
 
         $labels = ['18-25', '26-35', '36-45', '46-55', '56+'];

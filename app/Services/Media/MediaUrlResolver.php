@@ -8,16 +8,31 @@ use Illuminate\Support\Facades\Storage;
 
 class MediaUrlResolver
 {
-    public function courseCover(Curso $curso): ?string
+    public function courseCover(Curso $curso, string $variant = 'optimized'): ?string
     {
         $asset = $curso->coverMedia();
         if ($asset) {
-            return route('media.show', [$asset, 'display']);
+            return route('media.show', [$asset, $variant]);
         }
 
         return $curso->imagen_portada && Storage::disk('public')->exists($curso->imagen_portada)
             ? route('media.legacy-cover', $curso)
             : null;
+    }
+
+    public function courseCoverThumbnail(Curso $curso): ?string
+    {
+        return $this->courseCover($curso, 'thumbnail');
+    }
+
+    public function videoPoster(Modulo $modulo): ?string
+    {
+        $asset = $modulo->contentMedia();
+        if ($asset && $asset->variant('poster')) {
+            return route('media.show', [$asset, 'poster']);
+        }
+
+        return null;
     }
 
     public function module(Modulo $modulo, bool $download = false): ?string

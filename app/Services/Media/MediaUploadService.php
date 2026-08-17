@@ -120,6 +120,7 @@ class MediaUploadService
                 $input = $disk->readStream($path);
                 stream_copy_to_stream($input, $output);
                 fclose($input);
+                $disk->delete($path);
             }
         } finally {
             fclose($output);

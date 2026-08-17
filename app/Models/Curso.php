@@ -73,6 +73,16 @@ class Curso extends Model
 
     public function coverMedia(): ?MediaAsset
     {
+        if ($this->relationLoaded('mediaAttachments')) {
+            $attachment = $this->mediaAttachments
+                ->where('collection', 'cover')
+                ->where('active', true)
+                ->sortByDesc(fn ($a) => $a->activated_at ?? $a->created_at)
+                ->first();
+
+            return $attachment?->asset;
+        }
+
         return $this->mediaAttachments()
             ->where('collection', 'cover')
             ->where('active', true)
@@ -83,6 +93,16 @@ class Curso extends Model
 
     public function pendingCoverMedia(): ?MediaAsset
     {
+        if ($this->relationLoaded('mediaAttachments')) {
+            $attachment = $this->mediaAttachments
+                ->where('collection', 'cover')
+                ->where('active', false)
+                ->sortByDesc('created_at')
+                ->first();
+
+            return $attachment?->asset;
+        }
+
         return $this->mediaAttachments()
             ->where('collection', 'cover')
             ->where('active', false)

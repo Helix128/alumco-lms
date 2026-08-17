@@ -28,7 +28,7 @@ class MediaProcessor
         }
 
         match ($asset->kind) {
-            'cover' => $this->image($asset->refresh(), $original->refresh(), 1600, 82),
+            'cover' => $this->cover($asset->refresh(), $original->refresh()),
             'image' => $this->moduleImage($asset, $original),
             'video' => $this->video($asset, $original),
             'document' => $this->office($asset, $original),
@@ -44,15 +44,29 @@ class MediaProcessor
         ]);
     }
 
+    private function cover(MediaAsset $asset, MediaVariant $original): void
+    {
+        $heroMax = (int) config('media.variants.cover_hero_max_side', 1440);
+        $heroQuality = (int) config('media.variants.cover_hero_quality', 82);
+        $thumbMax = (int) config('media.variants.cover_thumb_max_side', 480);
+        $thumbQuality = (int) config('media.variants.cover_thumb_quality', 80);
+
+        // 1. Variante principal en alta resolución (para vista detalle y hero)
+        $this->imageWithVariant($asset, $original, 'optimized', $heroMax, $heroQuality);
+
+        // 2. Variante thumbnail ligera (para catálogos y tarjetas)
+        $this->imageWithVariant($asset, $original, 'thumbnail', $thumbMax, $thumbQuality);
+    }
+
     private function moduleImage(MediaAsset $asset, MediaVariant $original): void
     {
         if (strtolower((string) data_get($original->metadata, 'extension', pathinfo($original->path, PATHINFO_EXTENSION))) === 'gif') {
             return;
         }
-        $this->image($asset, $original, 2560, 85);
+        $this->imageWithVariant($asset, $original, 'optimized', 2560, 85);
     }
 
-    private function image(MediaAsset $asset, MediaVariant $original, int $maxSide, int $quality): void
+    private function imageWithVariant(MediaAsset $asset, MediaVariant $original, string $variantName, int $maxSide, int $quality): void
     {
         if (! class_exists(\Imagick::class)) {
             throw new RuntimeException('Imagick no está disponible para optimizar imágenes.');
@@ -72,7 +86,7 @@ class MediaProcessor
             $image->writeImage($output);
             $image->clear();
 
-            $this->storeVariant($asset, 'optimized', $output, 'webp', 'image/webp', [
+            $this->storeVariant($asset, $variantName, $output, 'webp', 'image/webp', [
                 'max_side' => $maxSide, 'quality' => $quality,
             ]);
         } finally {
@@ -113,11 +127,39 @@ class MediaProcessor
                 'passthrough' => $compatible,
                 'duration' => (float) data_get($verified, 'format.duration'),
             ]);
+
+            // Extraer fotograma poster del video
+            $this->extractVideoPoster($asset, $output);
         } finally {
             @unlink($output);
             if ($cleanupInput) {
                 @unlink($input);
             }
+        }
+    }
+
+    private function extractVideoPoster(MediaAsset $asset, string $videoPath): void
+    {
+        $posterPath = $this->temporaryPath('media-poster-', 'webp');
+        try {
+            $this->run([
+                'ffmpeg', '-y', '-v', 'error',
+                '-ss', '00:00:01',
+                '-i', $videoPath,
+                '-vframes', '1',
+                '-vf', "scale='min(1280,iw)':'min(720,ih)':force_original_aspect_ratio=decrease",
+                $posterPath,
+            ], 60);
+
+            if (file_exists($posterPath) && filesize($posterPath) > 0) {
+                $this->storeVariant($asset, 'poster', $posterPath, 'webp', 'image/webp', [
+                    'type' => 'video_poster',
+                ]);
+            }
+        } catch (\Throwable $e) {
+            report($e);
+        } finally {
+            @unlink($posterPath);
         }
     }
 

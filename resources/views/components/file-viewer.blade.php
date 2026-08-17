@@ -1,4 +1,4 @@
-@props(['rutaArchivo', 'archivoUrl' => null, 'descargarUrl' => null, 'nombreOriginal' => null, 'displayExtension' => null])
+@props(['rutaArchivo', 'archivoUrl' => null, 'descargarUrl' => null, 'nombreOriginal' => null, 'displayExtension' => null, 'posterUrl' => null, 'moduloId' => null])
 
 @php
     $extension = $displayExtension ?: ($rutaArchivo ? strtolower(pathinfo($rutaArchivo, PATHINFO_EXTENSION)) : null);
@@ -13,15 +13,41 @@
     @if (in_array($extension, ['jpg', 'jpeg', 'png', 'webp', 'gif']))
         <img src="{{ $url }}" 
              alt="Archivo de módulo" 
-             class="worker-card w-full object-contain max-h-96 lg:max-h-[640px]">
+             class="worker-card w-full object-contain max-h-96 lg:max-h-[640px]"
+             loading="lazy"
+             decoding="async">
 
     @elseif (in_array($extension, ['mp4', 'webm', 'ogg']))
-        <video src="{{ $url }}" 
-               controls 
-               class="worker-card w-full max-h-72 lg:max-h-[560px]"
-               preload="metadata">
-            Tu navegador no soporta la reproducción de video.
-        </video>
+        <div class="space-y-3" data-video-container>
+            <video src="{{ $url }}" 
+                   @if ($posterUrl) poster="{{ $posterUrl }}" @endif
+                   controls 
+                   class="worker-card w-full max-h-72 lg:max-h-[560px] bg-black"
+                   preload="metadata"
+                   data-player-video
+                   @if ($moduloId) data-module-id="{{ $moduloId }}" @endif>
+                Tu navegador no soporta la reproducción de video.
+            </video>
+
+            <div class="flex flex-wrap items-center justify-between gap-3 px-1 text-xs text-Alumco-gray/60 font-bold">
+                <div class="flex items-center gap-2">
+                    <span>Velocidad:</span>
+                    <div class="inline-flex rounded-lg border border-Alumco-blue/15 bg-white p-0.5 shadow-sm" data-speed-controls>
+                        <button type="button" class="rounded px-2 py-1 text-xs font-bold text-Alumco-gray hover:text-Alumco-blue" data-speed="0.75">0.75x</button>
+                        <button type="button" class="rounded bg-Alumco-blue/10 px-2 py-1 text-xs font-black text-Alumco-blue" data-speed="1">1x</button>
+                        <button type="button" class="rounded px-2 py-1 text-xs font-bold text-Alumco-gray hover:text-Alumco-blue" data-speed="1.25">1.25x</button>
+                        <button type="button" class="rounded px-2 py-1 text-xs font-bold text-Alumco-gray hover:text-Alumco-blue" data-speed="1.5">1.5x</button>
+                        <button type="button" class="rounded px-2 py-1 text-xs font-bold text-Alumco-gray hover:text-Alumco-blue" data-speed="2">2x</button>
+                    </div>
+                </div>
+                @if ($finalDownloadUrl)
+                    <a href="{{ $finalDownloadUrl }}" download class="inline-flex items-center gap-1.5 text-Alumco-blue hover:underline">
+                        <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+                        Descargar video
+                    </a>
+                @endif
+            </div>
+        </div>
 
     @elseif ($isPdf)
         <div class="worker-card overflow-hidden bg-slate-50" data-module-pdf-viewer data-pdf-url="{{ $url }}">
@@ -68,6 +94,18 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14m7-7H5"/>
                         </svg>
                     </button>
+                    @if ($finalDownloadUrl)
+                        <span class="mx-1 h-8 w-px bg-Alumco-blue/10"></span>
+                        <a href="{{ $finalDownloadUrl }}"
+                           download
+                           class="worker-focus inline-flex h-10 w-10 items-center justify-center rounded-full bg-white text-Alumco-blue ring-1 ring-Alumco-blue/10 hover:bg-Alumco-blue/5"
+                           title="Descargar PDF original"
+                           aria-label="Descargar PDF original">
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/>
+                            </svg>
+                        </a>
+                    @endif
                 </div>
             </div>
 

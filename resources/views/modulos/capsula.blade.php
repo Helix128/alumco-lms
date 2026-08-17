@@ -80,6 +80,7 @@
             $mediaResolver = app(\App\Services\Media\MediaUrlResolver::class);
             $archivoUrl = $mediaResolver->module($modulo);
             $descargarUrl = $mediaResolver->module($modulo, true);
+            $posterUrl = $mediaResolver->videoPoster($modulo);
             $displayName = $mediaAsset?->original_name ?? $modulo->nombre_archivo_original;
             $displayPath = $mediaAsset?->original_name ?? $modulo->ruta_archivo;
             $displayExtension = $mediaAsset?->kind === 'document' && $mediaAsset->variant('preview_pdf') ? 'pdf' : null;
@@ -125,12 +126,14 @@
             @else
                 <x-file-viewer :rutaArchivo="$displayPath" :archivoUrl="$archivoUrl"
                                :descargarUrl="$descargarUrl" :nombreOriginal="$displayName"
-                               :displayExtension="$displayExtension" />
+                               :displayExtension="$displayExtension" :posterUrl="$posterUrl"
+                               :moduloId="$modulo->id" />
             @endif
         @elseif (in_array($modulo->tipo_contenido, ['documento', 'pdf', 'ppt', 'imagen', 'descargable']))
             <x-file-viewer :rutaArchivo="$displayPath" :archivoUrl="$archivoUrl"
                            :descargarUrl="$descargarUrl" :nombreOriginal="$displayName"
-                           :displayExtension="$displayExtension" />
+                           :displayExtension="$displayExtension" :posterUrl="$posterUrl"
+                           :moduloId="$modulo->id" />
         @elseif ($modulo->tipo_contenido === 'texto')
             <div class="worker-card p-5 text-Alumco-gray prose prose-base max-w-none
                         prose-headings:text-Alumco-gray prose-a:text-Alumco-blue lg:p-7">

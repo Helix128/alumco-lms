@@ -48,6 +48,70 @@ class MediaDeliveryTest extends TestCase
             ->assertForbidden();
     }
 
+    public function test_conditional_request_returns_304_not_modified_with_matching_etag(): void
+    {
+        Storage::fake('local_media');
+        $owner = User::factory()->create();
+        $course = Curso::factory()->for($owner, 'capacitador')->create();
+        $asset = $this->asset($owner, 'documento.pdf');
+        app(MediaAttachmentService::class)->request($asset, $course, 'cover', $owner);
+
+        $response = $this->actingAs($owner)
+            ->get(route('media.show', [$asset, 'display']))
+            ->assertOk();
+
+        $etag = $response->headers->get('ETag');
+        $this->assertNotEmpty($etag);
+
+        $this->actingAs($owner)
+            ->withHeaders(['If-None-Match' => $etag])
+            ->get(route('media.show', [$asset, 'display']))
+            ->assertStatus(304);
+    }
+
+    public function test_thumbnail_and_poster_variant_resolution(): void
+    {
+        Storage::fake('local_media');
+        $owner = User::factory()->create();
+        $course = Curso::factory()->for($owner, 'capacitador')->create();
+        $asset = $this->asset($owner, 'portada.webp');
+        
+        // Crear variante thumbnail
+        $thumbPath = "assets/test/{$asset->id}/thumbnail.webp";
+        Storage::disk('local_media')->put($thumbPath, 'WEBP-thumb');
+        MediaVariant::create([
+            'media_asset_id' => $asset->id,
+            'type' => 'thumbnail',
+            'disk' => 'local_media',
+            'path' => $thumbPath,
+            'mime_type' => 'image/webp',
+            'size_bytes' => 10,
+            'checksum' => hash('sha256', 'WEBP-thumb'),
+        ]);
+
+        app(MediaAttachmentService::class)->request($asset, $course, 'cover', $owner);
+
+        $this->actingAs($owner)
+            ->get(route('media.show', [$asset, 'thumbnail']))
+            ->assertOk()
+            ->assertHeader('content-type', 'image/webp');
+    }
+
+    public function test_course_cover_uses_in_memory_relation_to_prevent_n_plus_one(): void
+    {
+        Storage::fake('local_media');
+        $owner = User::factory()->create();
+        $course = Curso::factory()->for($owner, 'capacitador')->create();
+        $asset = $this->asset($owner, 'cover.webp');
+        app(MediaAttachmentService::class)->request($asset, $course, 'cover', $owner);
+
+        $loadedCourse = Curso::with('mediaAttachments.asset.variants')->findOrFail($course->id);
+        $resolvedAsset = $loadedCourse->coverMedia();
+
+        $this->assertNotNull($resolvedAsset);
+        $this->assertSame($asset->id, $resolvedAsset->id);
+    }
+
     private function asset(User $owner, string $name): MediaAsset
     {
         $asset = MediaAsset::create([

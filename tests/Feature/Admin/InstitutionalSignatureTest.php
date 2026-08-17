@@ -51,9 +51,14 @@ class InstitutionalSignatureTest extends TestCase
 
         $this
             ->actingAs($developer)
-            ->get(route('admin.acreditacion.index'))
+            ->get(route('admin.perfil.index'))
             ->assertOk()
             ->assertSee('Firma Institucional');
+
+        $this
+            ->actingAs($developer)
+            ->get(route('admin.acreditacion.index'))
+            ->assertRedirect(route('admin.perfil.index'));
 
         Livewire::actingAs($developer)
             ->test(InstitutionalSignature::class)

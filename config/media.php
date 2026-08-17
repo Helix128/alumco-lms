@@ -7,7 +7,13 @@ return [
     'upload_ttl_hours' => 24,
     'unreferenced_grace_days' => 7,
     'local_internal_prefix' => env('MEDIA_INTERNAL_PREFIX', '/protected-media'),
-    'temporary_url_minutes' => 10,
+    'temporary_url_minutes' => (int) env('MEDIA_TEMPORARY_URL_MINUTES', 180),
+    'variants' => [
+        'cover_hero_max_side' => 1440,
+        'cover_hero_quality' => 82,
+        'cover_thumb_max_side' => 480,
+        'cover_thumb_quality' => 80,
+    ],
     'capacity' => [
         'warn_percent' => 80,
         'block_percent' => 90,

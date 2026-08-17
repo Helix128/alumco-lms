@@ -106,8 +106,8 @@
                                class="worker-focus worker-course-tile group flex flex-col overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-gray-100/80 transition-all hover:shadow-xl hover:shadow-Alumco-blue/5 hover:-translate-y-1">
 
                                 <div class="worker-course-cover relative h-52 overflow-hidden rounded-t-3xl bg-Alumco-blue/5">
-                                    @if ($coverUrl = app(\App\Services\Media\MediaUrlResolver::class)->courseCover($curso))
-                                        <img src="{{ $coverUrl }}" alt="{{ $curso->titulo }}" class="h-full w-full object-cover transition-transform duration-200 group-hover:scale-[1.02]">
+                                    @if ($coverUrl = app(\App\Services\Media\MediaUrlResolver::class)->courseCoverThumbnail($curso))
+                                        <img src="{{ $coverUrl }}" alt="{{ $curso->titulo }}" class="h-full w-full object-cover transition-transform duration-200 group-hover:scale-[1.02]" loading="lazy" decoding="async">
                                     @else
                                         <div class="flex h-full w-full items-center justify-center">
                                             <svg class="h-20 w-20 text-Alumco-blue/20" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -204,8 +204,8 @@
                                class="worker-focus worker-course-tile group flex flex-col overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-gray-100/80 transition-all hover:shadow-xl hover:shadow-Alumco-green-accessible/5">
                                 
                                 <div class="worker-course-cover relative h-52 overflow-hidden rounded-t-3xl bg-Alumco-green-accessible/5">
-                                    @if ($coverUrl = app(\App\Services\Media\MediaUrlResolver::class)->courseCover($curso))
-                                        <img src="{{ $coverUrl }}" alt="{{ $curso->titulo }}" class="h-full w-full object-cover opacity-90 transition-transform duration-200 group-hover:scale-[1.02] group-hover:opacity-100">
+                                    @if ($coverUrl = app(\App\Services\Media\MediaUrlResolver::class)->courseCoverThumbnail($curso))
+                                        <img src="{{ $coverUrl }}" alt="{{ $curso->titulo }}" class="h-full w-full object-cover opacity-90 transition-transform duration-200 group-hover:scale-[1.02] group-hover:opacity-100" loading="lazy" decoding="async">
                                     @else
                                         <div class="flex h-full w-full items-center justify-center">
                                             <svg class="h-20 w-20 text-Alumco-green-accessible/20" fill="currentColor" viewBox="0 0 24 24">
@@ -274,8 +274,8 @@
                             <div class="group relative flex flex-col overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-gray-100/80 opacity-90 transition-all duration-200 hover:opacity-100 worker-course-tile">
                                 {{-- Portada con Overlay de "Cerrado" --}}
                                 <div class="worker-course-cover relative h-44 overflow-hidden bg-gray-100">
-                                    @if ($coverUrl = app(\App\Services\Media\MediaUrlResolver::class)->courseCover($curso))
-                                        <img src="{{ $coverUrl }}" alt="{{ $curso->titulo }}" class="h-full w-full object-cover">
+                                    @if ($coverUrl = app(\App\Services\Media\MediaUrlResolver::class)->courseCoverThumbnail($curso))
+                                        <img src="{{ $coverUrl }}" alt="{{ $curso->titulo }}" class="h-full w-full object-cover" loading="lazy" decoding="async">
                                     @else
                                         <div class="flex h-full w-full items-center justify-center">
                                             <svg class="h-16 w-16 text-gray-200" fill="currentColor" viewBox="0 0 24 24">
