@@ -69,7 +69,7 @@ class PanelNavigationTest extends TestCase
             ->actingAs($admin)
             ->get(route('admin.usuarios.index'))
             ->assertOk()
-            ->assertSee('data-admin-header-title="Gestión de Colaboradores"', false);
+            ->assertSee('data-admin-header-title="Administración de usuarios"', false);
     }
 
     public function test_capacitador_sees_panel_groups_without_developer_or_institutional_links(): void

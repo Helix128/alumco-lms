@@ -118,7 +118,7 @@
 
     <div class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-            <h2 class="admin-page-title">Gestión de Colaboradores</h2>
+            <h2 class="admin-page-title">Directorio de usuarios</h2>
             <p class="admin-page-subtitle">Alta, edición y control de acceso de colaboradores.</p>
         </div>
 
