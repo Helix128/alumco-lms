@@ -2,7 +2,10 @@
 
 namespace App\Livewire\Admin;
 
+use App\Exceptions\EditHistoryConflict;
 use App\Models\ReportePreset;
+use App\Services\History\EditHistoryService;
+use Livewire\Attributes\Computed;
 use Livewire\Component;
 
 class ReportePresets extends Component
@@ -31,21 +34,70 @@ class ReportePresets extends Component
             'nuevoNombre.max' => 'El nombre es muy largo (máx 50 carac.).',
         ]);
 
-        ReportePreset::create([
-            'nombre' => $this->nuevoNombre,
-            'columnas' => $columnas,
-        ]);
+        app(EditHistoryService::class)->captureChange(
+            auth()->user(),
+            EditHistoryService::Reports,
+            EditHistoryService::GlobalScope,
+            'Guardar formato de reporte',
+            fn () => ReportePreset::create([
+                'nombre' => $this->nuevoNombre,
+                'columnas' => $columnas,
+            ]),
+        );
 
         $this->nuevoNombre = '';
         $this->cargarPresets();
+        unset($this->historyState);
 
         $this->dispatch('preset-guardado');
     }
 
     public function eliminarPreset(int $id)
     {
-        ReportePreset::destroy($id);
+        app(EditHistoryService::class)->captureChange(
+            auth()->user(),
+            EditHistoryService::Reports,
+            EditHistoryService::GlobalScope,
+            'Eliminar formato de reporte',
+            fn () => ReportePreset::destroy($id),
+        );
         $this->cargarPresets();
+        unset($this->historyState);
+    }
+
+    /** @return array{can_undo: bool, can_redo: bool, undo_label: ?string, redo_label: ?string} */
+    #[Computed]
+    public function historyState(): array
+    {
+        return app(EditHistoryService::class)->availability(
+            auth()->user(),
+            EditHistoryService::Reports,
+            EditHistoryService::GlobalScope,
+        );
+    }
+
+    public function deshacer(): void
+    {
+        $this->travelHistory(false);
+    }
+
+    public function rehacer(): void
+    {
+        $this->travelHistory(true);
+    }
+
+    private function travelHistory(bool $redo): void
+    {
+        try {
+            $step = $redo
+                ? app(EditHistoryService::class)->redo(auth()->user(), EditHistoryService::Reports, EditHistoryService::GlobalScope)
+                : app(EditHistoryService::class)->undo(auth()->user(), EditHistoryService::Reports, EditHistoryService::GlobalScope);
+            $this->cargarPresets();
+            unset($this->historyState);
+            $this->dispatch('alumco-alert', title: $redo ? 'Cambio rehecho' : 'Cambio deshecho', message: $step->label.'.', type: 'success');
+        } catch (EditHistoryConflict $exception) {
+            $this->dispatch('alumco-alert', title: 'No se pudo aplicar', message: $exception->getMessage(), type: 'error');
+        }
     }
 
     public function resetError($field = null)

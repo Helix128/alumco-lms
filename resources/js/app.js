@@ -1,12 +1,20 @@
 import './bootstrap';
-import Chart from 'chart.js/auto';
-
-window.Chart = Chart;
 
 const chartRegistry = new Map();
+let chartConstructorPromise = null;
+
+const loadChartConstructor = () => {
+    chartConstructorPromise ??= import('chart.js/auto').then(({ default: Chart }) => {
+        window.Chart = Chart;
+
+        return Chart;
+    });
+
+    return chartConstructorPromise;
+};
 
 window.AlumcoCharts = {
-    render(canvasId, config) {
+    async render(canvasId, config) {
         const canvas = document.getElementById(canvasId);
 
         if (! canvas) {
@@ -23,6 +31,7 @@ window.AlumcoCharts = {
             return null;
         }
 
+        const Chart = await loadChartConstructor();
         const chart = new Chart(context, config);
         chartRegistry.set(canvasId, chart);
 
@@ -519,3 +528,107 @@ const setupNavigationProgress = () => {
 };
 
 document.addEventListener('DOMContentLoaded', setupNavigationProgress);
+
+const setupInteractionStandards = () => {
+    if (document.documentElement.dataset.interactionStandardsReady === 'true') return;
+    document.documentElement.dataset.interactionStandardsReady = 'true';
+
+    let pendingForm = null;
+    let triggerElement = null;
+
+    const currentDialog = () => document.querySelector('[data-confirm-dialog]');
+    const closeDialog = () => {
+        const dialog = currentDialog();
+        if (dialog?.open) dialog.close();
+        pendingForm = null;
+        triggerElement?.focus?.();
+        triggerElement = null;
+    };
+
+    document.addEventListener('submit', (event) => {
+        const form = event.target.closest?.('form[data-confirm]');
+        if (! form || form.dataset.confirmed === 'true') return;
+
+        const dialog = currentDialog();
+        if (! dialog) return;
+
+        event.preventDefault();
+        pendingForm = form;
+        triggerElement = event.submitter || document.activeElement;
+        dialog.querySelector('[data-confirm-title]').textContent = form.dataset.confirmTitle || 'Confirmar acción';
+        dialog.querySelector('[data-confirm-description]').textContent = form.dataset.confirmMessage || 'Revisa la acción antes de continuar.';
+        dialog.querySelector('[data-confirm-accept]').textContent = form.dataset.confirmLabel || 'Confirmar';
+        dialog.showModal();
+        requestAnimationFrame(() => dialog.querySelector('[data-confirm-cancel]')?.focus());
+    });
+
+    document.addEventListener('click', (event) => {
+        if (event.target.closest('[data-confirm-cancel]')) {
+            closeDialog();
+            return;
+        }
+
+        if (event.target.closest('[data-confirm-accept]') && pendingForm) {
+            const form = pendingForm;
+            form.dataset.confirmed = 'true';
+            currentDialog()?.close();
+            pendingForm = null;
+            HTMLFormElement.prototype.submit.call(form);
+        }
+    });
+
+    document.addEventListener('cancel', (event) => {
+        if (event.target.matches?.('[data-confirm-dialog]')) {
+            event.preventDefault();
+            closeDialog();
+        }
+    }, true);
+
+    document.addEventListener('keydown', (event) => {
+        if (! (event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== 'z') return;
+        if (event.target.closest('input, textarea, [contenteditable="true"]')) return;
+
+        const selector = event.shiftKey ? '[data-history-redo]' : '[data-history-undo]';
+        const control = [...document.querySelectorAll(selector)].find((element) => ! element.disabled && element.offsetParent !== null);
+        if (! control) return;
+
+        event.preventDefault();
+        control.click();
+    });
+};
+
+const focusErrorSummary = () => {
+    const summary = document.querySelector('[data-error-summary]');
+    if (summary && ! summary.dataset.focused) {
+        summary.dataset.focused = 'true';
+        summary.focus({ preventScroll: true });
+        summary.scrollIntoView({ block: 'center', behavior: window.AlumcoAccessibility?.isReducedMotion() ? 'auto' : 'smooth' });
+    }
+};
+
+const setupPasswordToggles = () => document
+    .querySelectorAll('[data-password-toggle]:not([data-password-ready])')
+    .forEach((toggle) => {
+        const input = document.getElementById(toggle.getAttribute('aria-controls'));
+        if (! input) return;
+
+        toggle.dataset.passwordReady = 'true';
+        toggle.addEventListener('click', () => {
+            const visible = input.type === 'password';
+            input.type = visible ? 'text' : 'password';
+            toggle.setAttribute('aria-pressed', visible ? 'true' : 'false');
+            toggle.setAttribute('aria-label', visible ? 'Ocultar contraseña' : 'Mostrar contraseña');
+            toggle.querySelector('[data-password-show-icon]')?.classList.toggle('hidden', visible);
+            toggle.querySelector('[data-password-hide-icon]')?.classList.toggle('hidden', ! visible);
+        });
+    });
+
+document.addEventListener('DOMContentLoaded', () => {
+    setupInteractionStandards();
+    focusErrorSummary();
+    setupPasswordToggles();
+});
+document.addEventListener('livewire:navigated', () => {
+    focusErrorSummary();
+    setupPasswordToggles();
+});

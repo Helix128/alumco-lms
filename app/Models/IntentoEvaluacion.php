@@ -25,7 +25,7 @@ class IntentoEvaluacion extends Model
 
     public function evaluacion()
     {
-        return $this->belongsTo(Evaluacion::class);
+        return $this->belongsTo(Evaluacion::class)->withTrashed();
     }
 
     public function respuestas()

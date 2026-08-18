@@ -2,11 +2,15 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PlanificacionCurso extends Model
 {
+    use SoftDeletes;
+
     protected $table = 'planificaciones_cursos';
 
     protected $fillable = [
@@ -24,12 +28,12 @@ class PlanificacionCurso extends Model
 
     public function setFechaInicioAttribute($value): void
     {
-        $this->attributes['fecha_inicio'] = $value ? \Carbon\Carbon::parse($value)->format('Y-m-d') : null;
+        $this->attributes['fecha_inicio'] = $value ? Carbon::parse($value)->format('Y-m-d') : null;
     }
 
     public function setFechaFinAttribute($value): void
     {
-        $this->attributes['fecha_fin'] = $value ? \Carbon\Carbon::parse($value)->format('Y-m-d') : null;
+        $this->attributes['fecha_fin'] = $value ? Carbon::parse($value)->format('Y-m-d') : null;
     }
 
     // --- RELACIONES ---

@@ -2,12 +2,15 @@
 
 namespace App\Livewire\Capacitador;
 
+use App\Exceptions\EditHistoryConflict;
 use App\Models\Curso;
 use App\Models\Evaluacion;
 use App\Models\GlobalSetting;
 use App\Models\Opcion;
 use App\Models\Pregunta;
-use Illuminate\Support\Facades\DB;
+use App\Services\History\EditHistoryService;
+use Closure;
+use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
@@ -31,6 +34,8 @@ class EditarEvaluacion extends Component
 
     public function mount(Evaluacion $evaluacion, Curso $curso): void
     {
+        abort_unless($evaluacion->modulo?->curso_id === $curso->id, 404);
+        Gate::authorize('manage', $curso);
         $this->evaluacion = $evaluacion;
         $this->curso = $curso;
         $this->cargarPreguntas();
@@ -80,36 +85,42 @@ class EditarEvaluacion extends Component
     {
         $this->validate(['nuevaPreguntaEnunciado' => 'required|string|min:3']);
 
-        $pregunta = Pregunta::create([
-            'evaluacion_id' => $this->evaluacion->id,
-            'enunciado' => $this->nuevaPreguntaEnunciado,
-            'orden' => count($this->preguntas) + 1,
-        ]);
+        $this->mutate('Agregar pregunta', function (): void {
+            $pregunta = Pregunta::create([
+                'evaluacion_id' => $this->evaluacion->id,
+                'enunciado' => $this->nuevaPreguntaEnunciado,
+                'orden' => count($this->preguntas) + 1,
+            ]);
 
-        $this->preguntas[] = [
-            'id' => $pregunta->id,
-            'enunciado' => $pregunta->enunciado,
-            'orden' => $pregunta->orden,
-            'opciones' => [],
-        ];
+            $this->preguntas[] = [
+                'id' => $pregunta->id,
+                'enunciado' => $pregunta->enunciado,
+                'orden' => $pregunta->orden,
+                'opciones' => [],
+            ];
 
-        $this->nuevaPreguntaEnunciado = '';
+            $this->nuevaPreguntaEnunciado = '';
+        });
+        $this->flash('Pregunta agregada.');
     }
 
     public function eliminarPregunta(int $preguntaId): void
     {
-        Pregunta::query()
-            ->whereKey($preguntaId)
-            ->where('evaluacion_id', $this->evaluacion->id)
-            ->delete();
+        $this->mutate('Eliminar pregunta', function () use ($preguntaId): void {
+            Pregunta::query()
+                ->whereKey($preguntaId)
+                ->where('evaluacion_id', $this->evaluacion->id)
+                ->delete();
 
-        $this->preguntas = array_values(
-            array_filter($this->preguntas, fn ($p) => $p['id'] !== $preguntaId)
-        );
+            $this->preguntas = array_values(
+                array_filter($this->preguntas, fn ($question) => $question['id'] !== $preguntaId)
+            );
 
-        foreach ($this->preguntas as $i => &$p) {
-            $p['orden'] = $i + 1;
-        }
+            foreach ($this->preguntas as $index => &$question) {
+                $question['orden'] = $index + 1;
+            }
+        });
+        $this->flash('Pregunta eliminada. Puedes deshacer este cambio.');
     }
 
     public function agregarOpcion(int $preguntaId): void
@@ -127,57 +138,62 @@ class EditarEvaluacion extends Component
             }
         }
 
-        $opcion = Opcion::create([
-            'pregunta_id' => $preguntaId,
-            'texto' => '',
-            'es_correcta' => false,
-            'orden' => $newOrden,
-        ]);
+        $this->mutate('Agregar opción de respuesta', function () use ($preguntaId, $newOrden): void {
+            $opcion = Opcion::create([
+                'pregunta_id' => $preguntaId,
+                'texto' => '',
+                'es_correcta' => false,
+                'orden' => $newOrden,
+            ]);
 
-        foreach ($this->preguntas as &$p) {
-            if ($p['id'] === $preguntaId) {
-                $p['opciones'][] = [
-                    'id' => $opcion->id,
-                    'texto' => '',
-                    'es_correcta' => false,
-                    'orden' => $newOrden,
-                ];
-                break;
+            foreach ($this->preguntas as &$question) {
+                if ($question['id'] === $preguntaId) {
+                    $question['opciones'][] = [
+                        'id' => $opcion->id,
+                        'texto' => '',
+                        'es_correcta' => false,
+                        'orden' => $newOrden,
+                    ];
+                    break;
+                }
             }
-        }
+        });
 
         $this->dispatch('opcion-agregada', preguntaId: $preguntaId);
     }
 
     public function eliminarOpcion(int $opcionId): void
     {
-        Opcion::query()
-            ->whereKey($opcionId)
-            ->whereHas('pregunta', fn ($q) => $q->where('evaluacion_id', $this->evaluacion->id))
-            ->delete();
+        $this->mutate('Eliminar opción de respuesta', function () use ($opcionId): void {
+            Opcion::query()
+                ->whereKey($opcionId)
+                ->whereHas('pregunta', fn ($query) => $query->where('evaluacion_id', $this->evaluacion->id))
+                ->delete();
 
-        foreach ($this->preguntas as &$p) {
-            $p['opciones'] = array_values(
-                array_filter($p['opciones'], fn ($o) => $o['id'] !== $opcionId)
-            );
-        }
+            foreach ($this->preguntas as &$question) {
+                $question['opciones'] = array_values(
+                    array_filter($question['opciones'], fn ($option) => $option['id'] !== $opcionId)
+                );
+            }
+        });
+        $this->flash('Opción eliminada. Puedes deshacer este cambio.');
     }
 
     public function toggleCorrecta(int $opcionId): void
     {
-        foreach ($this->preguntas as &$p) {
-            foreach ($p['opciones'] as $o) {
-                if ($o['id'] === $opcionId) {
-                    DB::transaction(function () use ($opcionId, &$p) {
-                        foreach ($p['opciones'] as &$op) {
-                            $op['es_correcta'] = ($op['id'] === $opcionId);
-                            Opcion::where('id', $op['id'])->update(['es_correcta' => $op['es_correcta']]);
+        $this->mutate('Cambiar respuesta correcta', function () use ($opcionId): void {
+            foreach ($this->preguntas as &$question) {
+                foreach ($question['opciones'] as $option) {
+                    if ($option['id'] === $opcionId) {
+                        foreach ($question['opciones'] as &$candidate) {
+                            $candidate['es_correcta'] = ($candidate['id'] === $opcionId);
+                            Opcion::where('id', $candidate['id'])->update(['es_correcta' => $candidate['es_correcta']]);
                         }
-                    });
-                    break 2;
+                        break 2;
+                    }
                 }
             }
-        }
+        });
     }
 
     public function guardarEnunciado(int $preguntaId): void
@@ -185,19 +201,23 @@ class EditarEvaluacion extends Component
         $index = $this->indexFor($preguntaId);
         $this->validate(["preguntas.{$index}.enunciado" => 'required|string|min:3']);
 
-        Pregunta::where('id', $preguntaId)->update([
+        $this->mutate('Editar enunciado', fn () => Pregunta::where('id', $preguntaId)->update([
             'enunciado' => $this->preguntas[$index]['enunciado'],
-        ]);
+        ]));
 
         $this->flash('Pregunta guardada.');
     }
 
     public function guardarTextoOpcion(int $opcionId): void
     {
-        foreach ($this->preguntas as $p) {
-            foreach ($p['opciones'] as $o) {
-                if ($o['id'] === $opcionId) {
-                    Opcion::where('id', $opcionId)->update(['texto' => $o['texto']]);
+        foreach ($this->preguntas as $question) {
+            foreach ($question['opciones'] as $option) {
+                if ($option['id'] === $opcionId) {
+                    $this->mutate(
+                        'Editar opción de respuesta',
+                        fn () => Opcion::where('id', $opcionId)->update(['texto' => $option['texto']]),
+                    );
+                    $this->flash('Opción guardada.');
 
                     return;
                 }
@@ -207,23 +227,26 @@ class EditarEvaluacion extends Component
 
     public function reordenarPreguntas(array $orden): void
     {
-        foreach ($orden as $index => $preguntaId) {
-            Pregunta::where('id', $preguntaId)
-                ->where('evaluacion_id', $this->evaluacion->id)
-                ->update(['orden' => $index + 1]);
-        }
+        $this->mutate('Reordenar preguntas', function () use ($orden): void {
+            foreach ($orden as $index => $preguntaId) {
+                Pregunta::where('id', $preguntaId)
+                    ->where('evaluacion_id', $this->evaluacion->id)
+                    ->update(['orden' => $index + 1]);
+            }
 
-        $indexed = collect($this->preguntas)->keyBy('id');
-        $this->preguntas = collect($orden)
-            ->map(fn ($id) => $indexed[$id] ?? null)
-            ->filter()
-            ->values()
-            ->map(function ($p, $i) {
-                $p['orden'] = $i + 1;
+            $indexed = collect($this->preguntas)->keyBy('id');
+            $this->preguntas = collect($orden)
+                ->map(fn ($id) => $indexed[$id] ?? null)
+                ->filter()
+                ->values()
+                ->map(function ($question, $index) {
+                    $question['orden'] = $index + 1;
 
-                return $p;
-            })
-            ->toArray();
+                    return $question;
+                })
+                ->toArray();
+        });
+        $this->flash('Orden actualizado.');
     }
 
     private function indexFor(int $preguntaId): int
@@ -241,6 +264,55 @@ class EditarEvaluacion extends Component
     {
         $this->flashMensaje = $mensaje;
         $this->dispatch('flash-guardado');
+    }
+
+    /** @return array{can_undo: bool, can_redo: bool, undo_label: ?string, redo_label: ?string} */
+    #[Computed]
+    public function historyState(): array
+    {
+        return app(EditHistoryService::class)->availability(
+            auth()->user(),
+            EditHistoryService::Evaluation,
+            $this->evaluacion->id,
+        );
+    }
+
+    public function deshacer(): void
+    {
+        $this->travelHistory(false);
+    }
+
+    public function rehacer(): void
+    {
+        $this->travelHistory(true);
+    }
+
+    private function travelHistory(bool $redo): void
+    {
+        try {
+            $step = $redo
+                ? app(EditHistoryService::class)->redo(auth()->user(), EditHistoryService::Evaluation, $this->evaluacion->id)
+                : app(EditHistoryService::class)->undo(auth()->user(), EditHistoryService::Evaluation, $this->evaluacion->id);
+            $this->cargarPreguntas();
+            unset($this->historyState);
+            $this->flash(($redo ? 'Cambio rehecho: ' : 'Cambio deshecho: ').$step->label.'.');
+        } catch (EditHistoryConflict $exception) {
+            $this->flash($exception->getMessage());
+        }
+    }
+
+    private function mutate(string $label, Closure $change): mixed
+    {
+        $result = app(EditHistoryService::class)->captureChange(
+            auth()->user(),
+            EditHistoryService::Evaluation,
+            $this->evaluacion->id,
+            $label,
+            $change,
+        );
+        unset($this->historyState);
+
+        return $result;
     }
 
     public function iniciarEliminarPregunta(int $preguntaId): void

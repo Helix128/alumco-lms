@@ -694,7 +694,7 @@ class CalendarioCapacitacionesTest extends TestCase
             ->call('copiarAnio', 'replace');
 
         $this->assertSame(1, PlanificacionCurso::whereYear('fecha_inicio', 2027)->count());
-        $this->assertDatabaseMissing('planificaciones_cursos', [
+        $this->assertSoftDeleted('planificaciones_cursos', [
             'notas' => 'Debe borrarse',
         ]);
         $this->assertDatabaseHas('planificaciones_cursos', [

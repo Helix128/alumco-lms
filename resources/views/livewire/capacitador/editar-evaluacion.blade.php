@@ -1,4 +1,13 @@
 <div class="space-y-6">
+    <div class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-gray-100 bg-white p-3 shadow-sm">
+        <p class="text-xs font-bold text-gray-500">Los cambios se guardan al editar y pueden revertirse durante 30 minutos.</p>
+        <x-history-controls
+            :context="\App\Services\History\EditHistoryService::Evaluation"
+            :scope-id="$evaluacion->id"
+            :state="$this->historyState"
+            livewire />
+    </div>
+
     {{-- Flash --}}
     @if ($flashMensaje)
         <div class="px-4 py-3 bg-green-50 border border-green-100 text-green-700 rounded-xl text-sm font-medium flex items-center gap-3">

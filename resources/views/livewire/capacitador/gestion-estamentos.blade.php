@@ -63,7 +63,7 @@
                     wire:loading.attr="disabled"
                     class="bg-Alumco-blue hover:bg-Alumco-blue/90 text-white font-display font-bold py-3 px-8 rounded-xl shadow-lg shadow-Alumco-blue/20 transition-all active:scale-95 disabled:opacity-50">
                 <span wire:loading.remove wire:target="guardar">Guardar cambios en asignación</span>
-                <span wire:loading wire:target="guardar">Guardando...</span>
+                <span wire:loading wire:target="guardar">Guardando asignación</span>
             </button>
         </div>
     </div>

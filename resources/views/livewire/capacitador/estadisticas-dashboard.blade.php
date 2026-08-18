@@ -15,7 +15,7 @@
                 const values = data.map(d => d.value);
                 const isReducedMotion = window.AlumcoAccessibility?.isReducedMotion();
 
-                new Chart(document.getElementById('estadisticasChart'), {
+                window.AlumcoCharts.render('estadisticasChart', {
                     type: 'bar',
                     data: {
                         labels,

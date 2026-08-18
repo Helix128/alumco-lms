@@ -229,8 +229,13 @@ class LmsHealthService
                     'database' => config('database.connections.'.config('database.default').'.database'),
                     'tables' => [],
                     'total_size_mb' => 0,
+                    'data_size_mb' => 0,
+                    'index_size_mb' => 0,
                     'total_rows' => 0,
                     'table_count' => 0,
+                    'largest_table' => 'N/D',
+                    'pending_jobs' => DB::table('jobs')->count(),
+                    'failed_jobs' => DB::table('failed_jobs')->count(),
                 ];
             }
 

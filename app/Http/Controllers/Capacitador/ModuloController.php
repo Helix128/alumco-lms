@@ -9,13 +9,13 @@ use App\Models\Curso;
 use App\Models\Evaluacion;
 use App\Models\MediaAsset;
 use App\Models\Modulo;
+use App\Services\History\EditHistoryService;
 use App\Services\Media\ExternalVideoService;
 use App\Services\Media\MediaAssetService;
 use App\Services\Media\MediaAttachmentService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
@@ -25,6 +25,7 @@ class ModuloController extends Controller
         private readonly MediaAssetService $mediaAssets,
         private readonly MediaAttachmentService $mediaAttachments,
         private readonly ExternalVideoService $externalVideos,
+        private readonly EditHistoryService $history,
     ) {}
 
     public function create(Curso $curso): View
@@ -49,15 +50,21 @@ class ModuloController extends Controller
 
         $asset = $this->requestedAsset($request, $moduleAttributes['tipo_contenido']);
 
-        $modulo = DB::transaction(function () use ($moduleAttributes) {
-            $modulo = Modulo::create($moduleAttributes);
+        $modulo = $this->history->captureChange(
+            $request->user(),
+            EditHistoryService::CourseStructure,
+            $curso->id,
+            'Crear módulo',
+            function () use ($moduleAttributes) {
+                $modulo = Modulo::create($moduleAttributes);
 
-            if ($modulo->tipo_contenido === 'evaluacion') {
-                Evaluacion::create(['modulo_id' => $modulo->id]);
-            }
+                if ($modulo->tipo_contenido === 'evaluacion') {
+                    Evaluacion::create(['modulo_id' => $modulo->id]);
+                }
 
-            return $modulo;
-        });
+                return $modulo;
+            },
+        );
         if ($asset) {
             $this->mediaAttachments->request($asset, $modulo, 'content', auth()->user());
         }
@@ -89,7 +96,13 @@ class ModuloController extends Controller
         }
 
         $asset = $this->requestedAsset($request, $modulo->tipo_contenido);
-        $modulo->update($moduleAttributes);
+        $this->history->captureChange(
+            $request->user(),
+            EditHistoryService::CourseStructure,
+            $curso->id,
+            'Editar módulo',
+            fn () => $modulo->update($moduleAttributes),
+        );
         if ($asset) {
             $this->mediaAttachments->request($asset, $modulo, 'content', auth()->user());
         }
@@ -104,19 +117,22 @@ class ModuloController extends Controller
         abort_unless($modulo->curso_id === $curso->id, 404);
 
         $orden = $modulo->orden;
+        $this->history->captureChange(
+            auth()->user(),
+            EditHistoryService::CourseStructure,
+            $curso->id,
+            'Eliminar módulo',
+            function () use ($curso, $modulo, $orden): void {
+                $modulo->delete();
 
-        $this->mediaAttachments->detachAll($modulo);
-
-        DB::transaction(function () use ($curso, $modulo, $orden) {
-            $modulo->delete();
-
-            $curso->modulos()
-                ->where('orden', '>', $orden)
-                ->orderBy('orden')
-                ->each(function (Modulo $m, int $i) use ($orden) {
-                    $m->update(['orden' => $orden + $i]);
-                });
-        });
+                $curso->modulos()
+                    ->where('orden', '>', $orden)
+                    ->orderBy('orden')
+                    ->each(function (Modulo $item, int $index) use ($orden): void {
+                        $item->update(['orden' => $orden + $index]);
+                    });
+            },
+        );
 
         return redirect()->route('capacitador.cursos.show', $curso)
             ->with('success', 'Módulo eliminado correctamente.');
@@ -143,9 +159,17 @@ class ModuloController extends Controller
 
         $request->validate(['orden' => 'required|array']);
 
-        foreach ($request->input('orden') as $index => $moduloId) {
-            $curso->modulos()->where('id', $moduloId)->update(['orden' => $index + 1]);
-        }
+        $this->history->captureChange(
+            $request->user(),
+            EditHistoryService::CourseStructure,
+            $curso->id,
+            'Reordenar módulos',
+            function () use ($request, $curso): void {
+                foreach ($request->input('orden') as $index => $moduloId) {
+                    $curso->modulos()->where('id', $moduloId)->update(['orden' => $index + 1]);
+                }
+            },
+        );
 
         return response()->json(['ok' => true]);
     }

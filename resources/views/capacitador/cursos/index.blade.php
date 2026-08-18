@@ -123,7 +123,11 @@
                                 </button>
 
                                 <form action="{{ route('capacitador.cursos.destroy', $curso) }}" method="POST"
-                                      onsubmit="return confirm('¿Eliminar esta capacitación? Esta acción no se puede deshacer.')" class="inline">
+                                      data-confirm
+                                      data-confirm-title="Eliminar capacitación"
+                                      data-confirm-message="La capacitación dejará de aparecer para los usuarios. Podrás deshacer la eliminación durante 30 días."
+                                      data-confirm-label="Eliminar capacitación"
+                                      class="inline">
                                     @csrf @method('DELETE')
                                     <button type="submit" class="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-50 text-Alumco-gray hover:bg-Alumco-coral hover:text-white transition-all shadow-sm" title="Eliminar capacitación">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

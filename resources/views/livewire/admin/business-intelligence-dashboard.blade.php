@@ -26,7 +26,7 @@
     {{-- Título y Encabezado --}}
     <div class="flex flex-col gap-2">
         <div class="max-w-3xl">
-            <p class="text-[11px] font-black uppercase tracking-[0.25em] text-Alumco-blue/60">Monitoreo y Métricas</p>
+            <p class="text-[11px] font-black uppercase tracking-[0.25em] text-Alumco-blue">Monitoreo y Métricas</p>
             <h1 class="font-display text-3xl font-black text-Alumco-blue">Dashboard analítico</h1>
         </div>
     </div>
@@ -36,7 +36,7 @@
         <div class="flex flex-col border-b border-slate-100 bg-white lg:flex-row lg:items-stretch">
             {{-- Resumen de Filtros Activos --}}
             <div class="flex flex-1 flex-col justify-center border-b border-slate-100 p-6 lg:border-b-0 lg:border-r">
-                <p class="text-[10px] font-black uppercase tracking-[0.2em] text-Alumco-blue/60">Filtros activos</p>
+                <p class="text-[10px] font-black uppercase tracking-[0.2em] text-Alumco-blue">Filtros activos</p>
                 <div class="mt-3 flex flex-wrap gap-2">
                     @foreach ($activeFilterLabels as $filterLabel)
                         <span wire:key="active-filter-{{ $loop->index }}" class="inline-flex items-center rounded-md bg-Alumco-blue/5 px-2.5 py-1 text-[11px] font-bold text-Alumco-blue ring-1 ring-inset ring-Alumco-blue/10">
@@ -51,7 +51,7 @@
                 <div class="flex items-center gap-3 sm:justify-end">
                     <div class="hidden h-10 w-px bg-slate-200 sm:block"></div>
                     <div class="text-left sm:text-right">
-                        <p class="text-[9px] font-black uppercase tracking-[0.18em] text-Alumco-gray/40 leading-none">Última actualización</p>
+                        <p class="text-[9px] font-black uppercase tracking-[0.18em] text-Alumco-gray/80 leading-none">Última actualización</p>
                         <p class="mt-1.5 text-xs font-bold text-Alumco-blue leading-none">{{ $kpis['updated_at'] }}</p>
                     </div>
                 </div>
@@ -157,7 +157,7 @@
                         <span @class([
                             'mt-0.5 block text-[10px] font-bold leading-tight',
                             'text-white/70' => $activeView === $viewId,
-                            'text-Alumco-gray/50' => $activeView !== $viewId,
+                            'text-Alumco-gray/80' => $activeView !== $viewId,
                         ])>{{ $view['description'] }}</span>
                     </div>
                 </button>

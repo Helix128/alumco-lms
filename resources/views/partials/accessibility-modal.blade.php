@@ -21,6 +21,7 @@
             x-on:click="open()"
             class="{{ $buttonClass }}"
             aria-haspopup="dialog"
+            aria-label="Abrir opciones de accesibilidad"
             :aria-expanded="accessibilityOpen.toString()">
         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.4" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9M10.5 6a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0ZM4.5 12h9m0 0a2.25 2.25 0 1 0 4.5 0 2.25 2.25 0 0 0-4.5 0Zm-9 6h9m0 0a2.25 2.25 0 1 0 4.5 0 2.25 2.25 0 0 0-4.5 0Z" />

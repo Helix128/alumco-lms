@@ -25,6 +25,6 @@ class Certificado extends Model
 
     public function curso()
     {
-        return $this->belongsTo(Curso::class);
+        return $this->belongsTo(Curso::class)->withTrashed();
     }
 }

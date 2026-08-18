@@ -11,6 +11,8 @@ use App\Http\Controllers\Capacitador\ModuloController as CapacitadorModulo;
 use App\Http\Controllers\Capacitador\ParticipanteController as CapacitadorParticipante;
 use App\Http\Controllers\Capacitador\SeccionCursoController;
 use App\Http\Controllers\CursoController;
+use App\Http\Controllers\EditHistoryController;
+use App\Http\Controllers\HelpController;
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\MediaUploadController;
 use App\Http\Controllers\MisCertificadosController;
@@ -23,8 +25,14 @@ use App\Livewire\CalendarioUsuario;
 use App\Livewire\Capacitador\CalendarioCapacitaciones;
 use App\Livewire\Developer\SaludLms;
 use App\Models\SupportTicket;
+use App\Services\History\EditHistoryService;
 use App\Support\UserAreaRedirector;
 use Illuminate\Support\Facades\Route;
+
+Route::get('/ayuda', [HelpController::class, 'index'])->name('help.index');
+Route::get('/ayuda/{tema}', [HelpController::class, 'show'])
+    ->where('tema', '[a-z0-9-]+')
+    ->name('help.show');
 
 Route::middleware('throttle:30,1')->group(function () {
     Route::get('/certificados/verificar', [VerificarCertificadoController::class, 'index'])->name('certificados.verificar.index');
@@ -34,9 +42,7 @@ Route::middleware('throttle:30,1')->group(function () {
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:login');
-    Route::view('/soporte/contacto', 'support.public-create')
-        ->middleware('throttle:6,1')
-        ->name('support.public.create');
+    Route::view('/soporte/contacto', 'support.public-create')->name('support.public.create');
 
     Route::redirect('/soporte-publico', '/soporte/contacto', 301);
 
@@ -48,6 +54,12 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::middleware(['auth', 'throttle:120,1'])->group(function () {
+    Route::post('/historial/{context}/deshacer', [EditHistoryController::class, 'undo'])
+        ->whereIn('context', EditHistoryService::contexts())
+        ->name('history.undo');
+    Route::post('/historial/{context}/rehacer', [EditHistoryController::class, 'redo'])
+        ->whereIn('context', EditHistoryService::contexts())
+        ->name('history.redo');
     Route::get('/media/{asset}/{variant?}', [MediaController::class, 'show'])
         ->whereNumber('asset')->name('media.show');
     Route::get('/media/{asset}/descargar/original', [MediaController::class, 'download'])

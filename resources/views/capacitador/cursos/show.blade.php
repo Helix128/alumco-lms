@@ -113,6 +113,9 @@
             </div>
 
             <div class="flex items-center gap-3">
+                <x-history-controls
+                    :context="\App\Services\History\EditHistoryService::CourseStructure"
+                    :scope-id="$curso->id" />
                 <button type="button" 
                         onclick="openDuplicateModal('{{ route('capacitador.cursos.duplicar', $curso) }}', '{{ addslashes($curso->titulo) }}')" 
                         class="flex-1 lg:flex-none inline-flex items-center justify-center gap-2 bg-white border border-gray-100 text-Alumco-gray font-display font-black text-[11px] uppercase tracking-widest py-4 px-6 rounded-2xl shadow-sm hover:shadow-md hover:border-Alumco-blue/20 transition-all active:scale-95">
@@ -174,7 +177,11 @@
                                     <button onclick="openSeccionModal({{ $seccion->id }}, '{{ addslashes($seccion->titulo) }}')" class="p-2 text-gray-400 hover:text-Alumco-blue transition-colors">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                                     </button>
-                                    <form action="{{ route('capacitador.cursos.secciones.destroy', [$curso, $seccion]) }}" method="POST" onsubmit="return confirm('¿Eliminar esta sección? Los módulos no se borrarán.')">
+                                    <form action="{{ route('capacitador.cursos.secciones.destroy', [$curso, $seccion]) }}" method="POST"
+                                          data-confirm
+                                          data-confirm-title="Eliminar sección"
+                                          data-confirm-message="La sección se ocultará. Sus módulos quedarán sin sección y podrás deshacer el cambio durante 30 minutos."
+                                          data-confirm-label="Eliminar sección">
                                         @csrf @method('DELETE')
                                         <button type="submit" class="p-2 text-gray-400 hover:text-Alumco-coral transition-colors">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>

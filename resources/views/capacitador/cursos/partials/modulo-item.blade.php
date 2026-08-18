@@ -53,7 +53,10 @@
             </a>
         @endif
         <form action="{{ route('capacitador.cursos.modulos.destroy', [$curso, $modulo]) }}" method="POST"
-              onsubmit="return confirm('¿Eliminar este módulo?')">
+              data-confirm
+              data-confirm-title="Eliminar módulo"
+              data-confirm-message="El módulo dejará de estar disponible, pero su progreso y archivos se conservarán. Podrás deshacer durante 30 minutos."
+              data-confirm-label="Eliminar módulo">
             @csrf
             @method('DELETE')
             <button type="submit" class="p-2 text-Alumco-gray/65 hover:text-Alumco-coral hover:bg-Alumco-coral/5 rounded-lg transition-all" title="Eliminar">

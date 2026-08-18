@@ -9,6 +9,12 @@
      }"
      @preset-guardado.window="creating = false"
 >
+    <x-history-controls
+        :context="\App\Services\History\EditHistoryService::Reports"
+        :scope-id="\App\Services\History\EditHistoryService::GlobalScope"
+        :state="$this->historyState"
+        livewire />
+
     {{-- Contenedor Dropdown --}}
     <div class="relative" @click.away="open = false; deletingId = null">
         <button 

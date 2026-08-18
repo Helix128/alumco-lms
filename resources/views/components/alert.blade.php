@@ -1,6 +1,7 @@
 @props([
     'type' => 'success',
     'message' => null,
+    'action' => null,
 ])
 
 @php
@@ -27,11 +28,25 @@
     $iconColor = $iconColors[$type] ?? $iconColors['success'];
 @endphp
 
-<div {{ $attributes->merge(['class' => "p-4 rounded-2xl flex items-start gap-3 backdrop-blur-sm transition-all animate-page-entry $classes"]) }} role="alert">
+<div {{ $attributes->merge(['class' => "p-4 rounded-2xl flex items-start gap-3 backdrop-blur-sm transition-all animate-page-entry $classes"]) }}
+     role="{{ in_array($type, ['error', 'warning'], true) ? 'alert' : 'status' }}"
+     aria-live="{{ $type === 'error' ? 'assertive' : 'polite' }}"
+     aria-atomic="true">
     <svg class="w-5 h-5 shrink-0 {{ $iconColor }}" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
         {!! $icon !!}
     </svg>
-    <div class="text-sm font-bold leading-tight">
-        {{ $message ?? $slot }}
+    <div class="min-w-0 flex-1 text-sm font-bold leading-tight">
+        <p>{{ $message ?? $slot }}</p>
+        @if(is_array($action) && filled($action['url'] ?? null))
+            <form method="POST" action="{{ $action['url'] }}" class="mt-3 inline-flex">
+                @csrf
+                @if(filled($action['scope_id'] ?? null))
+                    <input type="hidden" name="scope_id" value="{{ $action['scope_id'] }}">
+                @endif
+                <button type="submit" class="min-h-11 rounded-xl border border-current px-4 font-black underline-offset-4 hover:underline">
+                    {{ $action['label'] ?? 'Continuar' }}
+                </button>
+            </form>
+        @endif
     </div>
 </div>

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Alumco')</title>
     <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @vite(['resources/css/public.css', 'resources/js/app.js'])
     <style>
         html, body {
             height: 100%;
@@ -43,11 +43,14 @@
 
                 <section class="mx-auto flex w-full max-w-2xl flex-col justify-center lg:mx-0">
                     <div class="mb-8 flex justify-center lg:mb-10 lg:justify-start">
-                        <img
-                            src="{{ asset('images/logo/alumco-full.svg') }}"
-                            alt="Logo Alumco"
-                            class="h-auto w-[14rem] sm:w-[16rem] lg:w-[20rem]"
-                        >
+                        <a href="{{ route('login') }}" class="worker-focus rounded-xl" aria-label="Ir al inicio de sesión">
+                            <x-logo-alumco
+                                class="h-auto w-[14rem] text-Alumco-blue sm:w-[16rem] lg:w-[20rem]"
+                                width="320"
+                                height="115"
+                                aria-hidden="true"
+                            />
+                        </a>
                     </div>
 
                     <div class="animate-page-entry">
@@ -70,6 +73,8 @@
 
         <footer class="relative z-10 py-6 text-center text-xs font-bold uppercase tracking-widest text-Alumco-gray/40">
             &copy; {{ date('Y') }} Alumco
+            <span aria-hidden="true"> · </span>
+            <a href="{{ route('help.index') }}" class="text-Alumco-blue underline underline-offset-4">Centro de ayuda</a>
         </footer>
     </div>
 </body>

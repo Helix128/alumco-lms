@@ -3,6 +3,7 @@
 namespace App\Livewire\Admin;
 
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Database\Query\JoinClause;
@@ -737,22 +738,20 @@ class BusinessIntelligenceDashboard extends Component
             return [0, 0, 0, 0, 0, 0];
         }
 
-        $rows = DB::table('users')
+        $ages = DB::table('users')
             ->whereIn('id', $userIds->all())
             ->whereNotNull('fecha_nacimiento')
-            ->selectRaw('
-                CASE
-                    WHEN TIMESTAMPDIFF(YEAR, fecha_nacimiento, CURDATE()) BETWEEN 18 AND 25 THEN "18-25"
-                    WHEN TIMESTAMPDIFF(YEAR, fecha_nacimiento, CURDATE()) BETWEEN 26 AND 35 THEN "26-35"
-                    WHEN TIMESTAMPDIFF(YEAR, fecha_nacimiento, CURDATE()) BETWEEN 36 AND 45 THEN "36-45"
-                    WHEN TIMESTAMPDIFF(YEAR, fecha_nacimiento, CURDATE()) BETWEEN 46 AND 55 THEN "46-55"
-                    WHEN TIMESTAMPDIFF(YEAR, fecha_nacimiento, CURDATE()) BETWEEN 56 AND 65 THEN "56-65"
-                    ELSE "66+"
-                END as range_label,
-                COUNT(*) as total
-            ')
-            ->groupBy('range_label')
-            ->pluck('total', 'range_label');
+            ->pluck('fecha_nacimiento')
+            ->map(fn (string $birthDate): int => Carbon::parse($birthDate)->age);
+
+        $rows = $ages->countBy(fn (int $age): string => match (true) {
+            $age <= 25 => '18-25',
+            $age <= 35 => '26-35',
+            $age <= 45 => '36-45',
+            $age <= 55 => '46-55',
+            $age <= 65 => '56-65',
+            default => '66+',
+        });
 
         return collect(['18-25', '26-35', '36-45', '46-55', '56-65', '66+'])
             ->map(fn (string $range): int => (int) ($rows[$range] ?? 0))

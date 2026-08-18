@@ -19,7 +19,7 @@
                         {{ $service['status'] === 'ok' ? 'OK' : 'Falla' }}
                     </span>
                 </div>
-                <p class="mt-4 text-[11px] font-bold uppercase tracking-widest text-gray-400">Revisado {{ $service['checked_at'] }}</p>
+                <p class="mt-4 text-[11px] font-bold uppercase tracking-widest text-gray-700">Revisado {{ $service['checked_at'] }}</p>
             </article>
         @endforeach
     </div>

@@ -11,6 +11,7 @@
 @if ($show)
     <template x-teleport="body">
         <div x-data="{ open: true }"
+             x-init="$nextTick(() => $refs.cancelButton?.focus())"
              x-show="open"
              x-trap.noscroll="open"
              x-on:keydown.escape.window="$wire.call('{{ $cancelAction }}')"
@@ -38,6 +39,7 @@
                         </h3>
                     </div>
                     <button type="button" 
+                            x-ref="cancelButton"
                             wire:click="{{ $cancelAction }}" 
                             class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-50 text-gray-400 transition hover:bg-red-50 hover:text-red-500" 
                             aria-label="Cerrar modal">

@@ -466,7 +466,7 @@
                         <button type="button" @click="$wire.showDrawer = false" class="flex-1 h-12 rounded-2xl border border-gray-200 bg-white text-Alumco-gray font-display font-bold text-sm hover:bg-gray-50 transition-colors">Cancelar</button>
                         <button type="submit" class="flex-1 h-12 rounded-2xl bg-Alumco-blue text-white font-display font-bold text-sm shadow-lg shadow-Alumco-blue/20 hover:opacity-90 transition-all active:scale-95">
                             <span wire:loading.remove wire:target="save, firma_digital">Guardar Cambios</span>
-                            <span wire:loading wire:target="save, firma_digital">Procesando...</span>
+                            <span wire:loading wire:target="save, firma_digital">Guardando usuario</span>
                         </button>
                     </div>
                 </form>

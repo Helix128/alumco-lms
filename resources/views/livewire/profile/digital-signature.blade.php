@@ -1,5 +1,5 @@
 <section class="worker-card overflow-hidden border-none shadow-lg shadow-Alumco-blue/5 animate-page-entry">
-    <div class="border-b border-slate-50 bg-slate-50/20 px-6 py-4 flex items-center justify-between">
+    <div class="border-b border-slate-50 px-6 py-4 bg-slate-50/20 flex items-center justify-between">
         <div class="flex items-center gap-2">
             <div class="h-2 w-2 rounded-full bg-Alumco-yellow"></div>
             <h3 class="font-display text-[18px] font-black text-Alumco-blue uppercase tracking-tight">Firma para Certificados</h3>
@@ -92,7 +92,7 @@
         </div>
     </div>
 
-    <div class="flex items-center justify-between border-t border-slate-50 bg-slate-50/20 px-6 py-4">
+    <div class="flex items-center justify-between border-t border-slate-50 px-6 py-4 bg-slate-50/20">
         <p class="text-[10px] font-bold text-Alumco-gray/30 max-w-[240px] italic leading-tight uppercase tracking-tighter">
             Se vincula a tu identidad administrativa para certificados oficiales.
         </p>
@@ -100,7 +100,7 @@
         <button wire:click="guardar" wire:loading.attr="disabled" @disabled(!$firma_digital)
                 class="rounded-2xl bg-Alumco-blue px-6 py-3 font-display text-[11px] font-black uppercase tracking-widest text-white shadow-lg shadow-Alumco-blue/10 transition-all hover:bg-Alumco-blue/90 active:scale-95 disabled:opacity-30 disabled:pointer-events-none">
             <span wire:loading.remove wire:target="guardar">{{ $firma_actual ? 'Actualizar' : 'Guardar' }}</span>
-            <span wire:loading wire:target="guardar">...</span>
+            <span wire:loading wire:target="guardar">Guardando firma</span>
         </button>
     </div>
 </section>

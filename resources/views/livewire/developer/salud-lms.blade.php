@@ -1,7 +1,7 @@
 @section('title', 'Salud LMS')
 @section('header_title', 'Salud LMS')
 
-<div wire:poll.30s="refresh" class="min-h-screen bg-gray-50">
+<div wire:poll.30s="refresh" class="developer-health-surface min-h-screen bg-gray-50">
     @livewire('developer.salud-lms.status-bar')
 
     <div class="mx-auto max-w-screen-2xl space-y-6 px-4 py-6 sm:px-6">

@@ -19,8 +19,10 @@ class ExampleTest extends TestCase
             ->assertSeeInOrder([
                 'id="password"',
                 'type="password"',
-                'x-bind:type="showPassword ? \'text\' : \'password\'"',
+                'data-password-input',
                 'name="password"',
-            ], false);
+            ], false)
+            ->assertSee('data-password-toggle', false)
+            ->assertSee('aria-pressed="false"', false);
     }
 }

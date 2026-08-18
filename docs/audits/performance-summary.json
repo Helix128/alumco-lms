@@ -1,0 +1,247 @@
+{
+  "generatedAt": "2026-08-18T19:56:36.721Z",
+  "medians": [
+    {
+      "route": "/login",
+      "profile": "mobile",
+      "performance": 0.99,
+      "accessibility": 1,
+      "lcpMs": 1954.9632,
+      "cls": 0,
+      "tbtMs": 0,
+      "passed": true
+    },
+    {
+      "route": "/login",
+      "profile": "desktop",
+      "performance": 1,
+      "accessibility": 1,
+      "lcpMs": 421.2996,
+      "cls": 0,
+      "tbtMs": 0,
+      "passed": true
+    },
+    {
+      "route": "/ayuda",
+      "profile": "mobile",
+      "performance": 1,
+      "accessibility": 1,
+      "lcpMs": 1504.5155,
+      "cls": 0,
+      "tbtMs": 0,
+      "passed": true
+    },
+    {
+      "route": "/ayuda",
+      "profile": "desktop",
+      "performance": 1,
+      "accessibility": 1,
+      "lcpMs": 364.5331,
+      "cls": 0,
+      "tbtMs": 0,
+      "passed": true
+    },
+    {
+      "route": "/certificados/verificar",
+      "profile": "mobile",
+      "performance": 0.99,
+      "accessibility": 1,
+      "lcpMs": 1803.3103,
+      "cls": 0,
+      "tbtMs": 0,
+      "passed": true
+    },
+    {
+      "route": "/certificados/verificar",
+      "profile": "desktop",
+      "performance": 1,
+      "accessibility": 1,
+      "lcpMs": 404.1277,
+      "cls": 0,
+      "tbtMs": 0,
+      "passed": true
+    }
+  ],
+  "runs": [
+    {
+      "route": "/login",
+      "profile": "mobile",
+      "run": 1,
+      "performance": 0.99,
+      "accessibility": 1,
+      "lcpMs": 1955.4597,
+      "cls": 0,
+      "tbtMs": 0
+    },
+    {
+      "route": "/login",
+      "profile": "mobile",
+      "run": 2,
+      "performance": 0.99,
+      "accessibility": 1,
+      "lcpMs": 1954.9632,
+      "cls": 0,
+      "tbtMs": 0
+    },
+    {
+      "route": "/login",
+      "profile": "mobile",
+      "run": 3,
+      "performance": 0.99,
+      "accessibility": 1,
+      "lcpMs": 1954.5597,
+      "cls": 0,
+      "tbtMs": 0
+    },
+    {
+      "route": "/login",
+      "profile": "desktop",
+      "run": 1,
+      "performance": 1,
+      "accessibility": 1,
+      "lcpMs": 421.2996,
+      "cls": 0.02287752563309113,
+      "tbtMs": 0
+    },
+    {
+      "route": "/login",
+      "profile": "desktop",
+      "run": 2,
+      "performance": 1,
+      "accessibility": 1,
+      "lcpMs": 414.9747,
+      "cls": 0,
+      "tbtMs": 0
+    },
+    {
+      "route": "/login",
+      "profile": "desktop",
+      "run": 3,
+      "performance": 1,
+      "accessibility": 1,
+      "lcpMs": 444.7182,
+      "cls": 0,
+      "tbtMs": 0
+    },
+    {
+      "route": "/ayuda",
+      "profile": "mobile",
+      "run": 1,
+      "performance": 1,
+      "accessibility": 1,
+      "lcpMs": 1503.1732,
+      "cls": 0,
+      "tbtMs": 0
+    },
+    {
+      "route": "/ayuda",
+      "profile": "mobile",
+      "run": 2,
+      "performance": 1,
+      "accessibility": 1,
+      "lcpMs": 1504.5155,
+      "cls": 0,
+      "tbtMs": 0
+    },
+    {
+      "route": "/ayuda",
+      "profile": "mobile",
+      "run": 3,
+      "performance": 1,
+      "accessibility": 1,
+      "lcpMs": 1656.912,
+      "cls": 0,
+      "tbtMs": 0
+    },
+    {
+      "route": "/ayuda",
+      "profile": "desktop",
+      "run": 1,
+      "performance": 1,
+      "accessibility": 1,
+      "lcpMs": 364.1642,
+      "cls": 0,
+      "tbtMs": 0
+    },
+    {
+      "route": "/ayuda",
+      "profile": "desktop",
+      "run": 2,
+      "performance": 1,
+      "accessibility": 1,
+      "lcpMs": 364.5331,
+      "cls": 0,
+      "tbtMs": 0
+    },
+    {
+      "route": "/ayuda",
+      "profile": "desktop",
+      "run": 3,
+      "performance": 1,
+      "accessibility": 1,
+      "lcpMs": 364.6068,
+      "cls": 0,
+      "tbtMs": 0
+    },
+    {
+      "route": "/certificados/verificar",
+      "profile": "mobile",
+      "run": 1,
+      "performance": 1,
+      "accessibility": 1,
+      "lcpMs": 1656.1764,
+      "cls": 0,
+      "tbtMs": 0
+    },
+    {
+      "route": "/certificados/verificar",
+      "profile": "mobile",
+      "run": 2,
+      "performance": 0.99,
+      "accessibility": 1,
+      "lcpMs": 1804.1451,
+      "cls": 0,
+      "tbtMs": 0
+    },
+    {
+      "route": "/certificados/verificar",
+      "profile": "mobile",
+      "run": 3,
+      "performance": 0.99,
+      "accessibility": 1,
+      "lcpMs": 1803.3103,
+      "cls": 0,
+      "tbtMs": 0
+    },
+    {
+      "route": "/certificados/verificar",
+      "profile": "desktop",
+      "run": 1,
+      "performance": 1,
+      "accessibility": 1,
+      "lcpMs": 404.7485,
+      "cls": 0,
+      "tbtMs": 0
+    },
+    {
+      "route": "/certificados/verificar",
+      "profile": "desktop",
+      "run": 2,
+      "performance": 1,
+      "accessibility": 1,
+      "lcpMs": 363.8951,
+      "cls": 0,
+      "tbtMs": 0
+    },
+    {
+      "route": "/certificados/verificar",
+      "profile": "desktop",
+      "run": 3,
+      "performance": 1,
+      "accessibility": 1,
+      "lcpMs": 404.1277,
+      "cls": 0,
+      "tbtMs": 0
+    }
+  ]
+}

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Verificar certificado - Alumco</title>
     <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @vite(['resources/css/public.css', 'resources/js/app.js'])
 </head>
 <body class="auth-shell min-h-screen font-sans text-Alumco-gray antialiased">
     <div class="relative flex min-h-screen w-full flex-col overflow-x-hidden isolate bg-gradient-to-br from-Alumco-cream via-Alumco-cream to-Alumco-cyan/20">

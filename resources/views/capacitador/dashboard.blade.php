@@ -26,7 +26,7 @@
             </div>
             <div>
                 <p class="text-3xl font-display font-black text-Alumco-blue">{{ $stats['cursos'] }}</p>
-                <p class="text-[11px] font-display font-black text-gray-400 uppercase tracking-widest">Mis capacitaciones</p>
+                <p class="text-[11px] font-display font-black text-gray-600 uppercase tracking-widest">Mis capacitaciones</p>
             </div>
         </div>
 
@@ -38,7 +38,7 @@
             </div>
             <div>
                 <p class="text-3xl font-display font-black text-Alumco-green-vivid">{{ $stats['participantes'] }}</p>
-                <p class="text-[11px] font-display font-black text-gray-400 uppercase tracking-widest">Participantes</p>
+                <p class="text-[11px] font-display font-black text-gray-600 uppercase tracking-widest">Participantes</p>
             </div>
         </div>
 
@@ -50,22 +50,22 @@
             </div>
             <div>
                 <p class="text-3xl font-display font-black text-Alumco-yellow">{{ $stats['certificados'] }}</p>
-                <p class="text-[11px] font-display font-black text-gray-400 uppercase tracking-widest">Certificados</p>
+                <p class="text-[11px] font-display font-black text-gray-600 uppercase tracking-widest">Certificados</p>
             </div>
         </div>
     </div>
 
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
         <div class="bg-white p-5 rounded-2xl border border-gray-200">
-            <p class="text-[10px] font-display font-black text-gray-400 uppercase tracking-widest">Iniciaron</p>
+            <p class="text-[10px] font-display font-black text-gray-600 uppercase tracking-widest">Iniciaron</p>
             <p class="mt-2 text-2xl font-display font-black text-Alumco-blue">{{ $learningStats['iniciados'] }}</p>
         </div>
         <div class="bg-white p-5 rounded-2xl border border-gray-200">
-            <p class="text-[10px] font-display font-black text-gray-400 uppercase tracking-widest">Completaron</p>
+            <p class="text-[10px] font-display font-black text-gray-600 uppercase tracking-widest">Completaron</p>
             <p class="mt-2 text-2xl font-display font-black text-Alumco-green-accessible">{{ $learningStats['completados'] }}</p>
         </div>
         <div class="bg-white p-5 rounded-2xl border border-gray-200">
-            <p class="text-[10px] font-display font-black text-gray-400 uppercase tracking-widest">En riesgo</p>
+            <p class="text-[10px] font-display font-black text-gray-600 uppercase tracking-widest">En riesgo</p>
             <p class="mt-2 text-2xl font-display font-black text-Alumco-coral-accessible">{{ $learningStats['en_riesgo'] }}</p>
         </div>
     </div>
@@ -81,8 +81,8 @@
                 <table class="w-full text-left border-collapse">
                     <thead>
                         <tr class="border-b border-gray-50">
-                            <th class="pb-3 text-[10px] font-display font-black uppercase tracking-widest text-gray-400">Título</th>
-                            <th class="pb-3 text-[10px] font-display font-black uppercase tracking-widest text-gray-400 text-right">Estado</th>
+                            <th class="pb-3 text-[10px] font-display font-black uppercase tracking-widest text-gray-600">Título</th>
+                            <th class="pb-3 text-[10px] font-display font-black uppercase tracking-widest text-gray-600 text-right">Estado</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-50">
@@ -90,14 +90,14 @@
                             @php
                                 $tienePlanActiva = $curso['planificaciones_count'] > 0;
                                 $estado = $tienePlanActiva ? 'Programado' : 'Sin Programar';
-                                $badgeColor = $tienePlanActiva ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400';
+                                $badgeColor = $tienePlanActiva ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700';
                             @endphp
                             <tr class="group">
                                 <td class="py-4 pr-4">
                                     <a href="{{ route('capacitador.cursos.show', $curso['id']) }}" class="font-display font-bold text-Alumco-gray group-hover:text-Alumco-blue transition-colors leading-tight block">
                                         {{ $curso['titulo'] }}
                                     </a>
-                                    <span class="text-[10px] text-Alumco-gray/40 font-bold uppercase">{{ $curso['modulos_count'] }} módulos</span>
+                                    <span class="text-[10px] text-Alumco-gray/80 font-bold uppercase">{{ $curso['modulos_count'] }} módulos</span>
                                 </td>
                                 <td class="py-4 text-right">
                                     <span class="inline-block px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-tighter {{ $badgeColor }}">

@@ -99,7 +99,8 @@
                      get isCursos() { return this.path.startsWith('/cursos') || this.path.startsWith('/modulos'); },
                      get isCalendario() { return this.path.startsWith('/calendario-cursos'); },
                      get isCertificados() { return this.path.startsWith('/mis-certificados'); },
-                     get isSoporte() { return this.path.startsWith('/soporte'); }
+                     get isSoporte() { return this.path.startsWith('/soporte'); },
+                     get isAyuda() { return this.path.startsWith('/ayuda'); }
                  }"
                  x-on:livewire:navigated.document="path = window.location.pathname"
                  class="hidden lg:flex items-center gap-1"
@@ -147,6 +148,16 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M18 10c0 3.866-3.582 7-8 7a8.84 8.84 0 0 1-4-.9L2 17l1.1-3.3A6.3 6.3 0 0 1 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7Z" />
                     </svg>
                     Soporte
+                </a>
+
+                <a href="{{ route('help.index') }}"
+                   :class="isAyuda ? 'bg-Alumco-blue/10 text-Alumco-blue' : 'text-Alumco-gray/60 hover:bg-Alumco-blue/5 hover:text-Alumco-gray'"
+                   class="worker-focus inline-flex items-center gap-2.5 rounded-2xl px-4 py-2.5 text-sm font-bold transition-all"
+                   :aria-current="isAyuda ? 'page' : 'false'">
+                    <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 9.879a3 3 0 1 1 4.242 4.242c-.83.83-2.121 1.379-2.121 2.629M12 20.25h.008v.008H12v-.008ZM21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                    </svg>
+                    Ayuda
                 </a>
             </nav>
 
@@ -222,6 +233,7 @@
 
                 <div class="px-4 py-6 lg:pt-8 lg:px-0">
                     <x-flash-messages class="mb-6" />
+                    <x-form-errors class="mb-6" />
                     @yield('content')
                 </div>
             </div>
@@ -310,6 +322,7 @@
         </div>
     </div>
 
+    <x-confirmation-dialog />
     @livewireScripts
     @stack('scripts')
     @include('partials.accessibility-scripts')

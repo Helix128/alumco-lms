@@ -183,8 +183,8 @@ class CalendarioUsuario extends Component
         $hasta = $desde->copy()->addDays(60)->endOfDay();
 
         $planificaciones = PlanificacionCurso::with('curso:id,titulo', 'sede:id,nombre')
-            ->where('fecha_inicio', '>=', $desde)
-            ->where('fecha_inicio', '<=', $hasta)
+            ->where('fecha_inicio', '>=', $desde->toDateString())
+            ->where('fecha_inicio', '<=', $hasta->toDateString())
             ->tap(fn (Builder $query) => $this->applyVisibility($query, $user))
             ->orderBy('fecha_inicio')
             ->get();

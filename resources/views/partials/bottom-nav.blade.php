@@ -3,6 +3,7 @@
     $navCursos       = request()->routeIs('cursos.*') || request()->routeIs('modulos.*');
     $navCertificados = request()->routeIs('mis-certificados.*');
     $navSoporte      = request()->routeIs('support.*');
+    $navAyuda        = request()->routeIs('help.*');
 @endphp
 
 <nav id="app-bottom-nav"
@@ -10,7 +11,7 @@
      class="fixed bottom-0 inset-x-0 z-50 h-16 border-t border-white/10 bg-Alumco-blue px-2
             lg:hidden">
 
-    <div class="grid h-full grid-cols-4 items-center gap-1">
+    <div class="grid h-full grid-cols-5 items-center gap-1">
         <a href="{{ route('cursos.index') }}"
            wire:navigate.hover
            class="worker-focus sidebar-cozy-btn group relative flex h-16 flex-col items-center justify-center gap-1 px-2 text-center
@@ -61,6 +62,18 @@
                 </svg>
             </span>
             <span class="text-[11px] font-black">Soporte</span>
+        </a>
+
+        <a href="{{ route('help.index') }}"
+           class="worker-focus sidebar-cozy-btn group relative flex h-16 flex-col items-center justify-center gap-1 px-1 text-center
+                  {{ $navAyuda ? 'sidebar-cozy-btn-active' : 'sidebar-cozy-btn-inactive' }}"
+           aria-current="{{ $navAyuda ? 'page' : 'false' }}">
+            <span class="flex h-6 w-6 items-center justify-center">
+                <svg class="h-full w-full" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 9.879a3 3 0 1 1 4.242 4.242c-.83.83-2.121 1.379-2.121 2.629M12 20.25h.008v.008H12v-.008ZM21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                </svg>
+            </span>
+            <span class="text-[11px] font-black">Ayuda</span>
         </a>
     </div>
 </nav>

@@ -135,7 +135,7 @@
                                     
                                     <div class="mt-5">
                                         <div class="mb-2 flex items-center justify-between gap-3">
-                                            <span class="text-xs font-bold text-Alumco-gray/60 uppercase">Tu progreso</span>
+                                            <span class="text-xs font-bold text-Alumco-gray/80 uppercase">Tu progreso</span>
                                             <span class="text-sm font-black text-Alumco-blue">{{ $progreso }}%</span>
                                         </div>
                                         <div class="h-2.5 overflow-hidden rounded-full bg-gray-100"

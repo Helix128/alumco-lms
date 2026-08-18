@@ -1,0 +1,90 @@
+@import 'tailwindcss' source(none);
+
+@source '../views/layouts/auth.blade.php';
+@source '../views/layouts/error.blade.php';
+@source '../views/layouts/help.blade.php';
+@source '../views/auth/**/*.blade.php';
+@source '../views/help/**/*.blade.php';
+@source '../views/certificados/verificar.blade.php';
+@source '../views/support/public-create.blade.php';
+@source '../views/livewire/support/create-ticket.blade.php';
+@source '../views/components/alert.blade.php';
+@source '../views/components/form-errors.blade.php';
+@source '../views/components/logo-alumco.blade.php';
+@source '../js/app.js';
+
+@theme {
+    --color-Alumco-blue: #205099;
+    --color-Alumco-green: #AFDD83;
+    --color-Alumco-coral: #FF6364;
+    --color-Alumco-yellow: #F8B606;
+    --color-Alumco-cyan: #A5B6F5;
+    --color-Alumco-gray: #4A4A4A;
+    --color-Alumco-cream: #FDF9F3;
+    --color-Alumco-green-vivid: #4CAF50;
+    --color-Alumco-green-accessible: #2E7D32;
+    --color-Alumco-gold-accessible: #7A5200;
+    --color-Alumco-coral-accessible: #B3261E;
+    --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --font-display: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+html {
+    font-size: 16px;
+}
+
+[x-cloak] {
+    display: none !important;
+}
+
+.worker-focus {
+    outline: 2px solid transparent;
+    outline-offset: 3px;
+}
+
+.worker-focus:focus-visible,
+:where(button, a, input, select, textarea, summary):focus-visible {
+    outline: 3px solid var(--color-Alumco-yellow);
+    outline-offset: 3px;
+    box-shadow: 0 0 0 5px rgba(248, 182, 6, 0.25);
+}
+
+button[aria-label],
+a[aria-label] {
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+}
+
+[aria-invalid="true"] {
+    border-color: var(--color-Alumco-coral-accessible) !important;
+    box-shadow: 0 0 0 3px rgba(179, 38, 30, 0.12);
+}
+
+.auth-shell .animate-page-entry {
+    animation: none;
+}
+
+@media (pointer: coarse), (max-width: 1024px) {
+    .auth-shell :where(a, button, input:not([type="checkbox"]), label:has(input[type="checkbox"])) {
+        min-height: 2.75rem;
+    }
+
+    .auth-shell a {
+        display: inline-flex;
+        align-items: center;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+    }
+
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+        animation: none !important;
+    }
+}

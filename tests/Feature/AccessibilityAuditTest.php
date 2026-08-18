@@ -54,6 +54,9 @@ class AccessibilityAuditTest extends TestCase
      */
     protected function assertBasicA11yRequirements(string $html): void
     {
+        $this->assertNotSame('', trim($html), 'The audited page must render HTML.');
+        $this->assertMatchesRegularExpression('/<main(?:\s|>)/i', $html, 'The audited page must expose a main landmark.');
+
         // 1. Every image MUST have an alt attribute (even if empty for decorative)
         // This is a loose check but ensures the attribute exists.
         if (preg_match_all('/<img[^>]+>/i', $html, $matches)) {

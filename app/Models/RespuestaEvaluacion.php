@@ -19,11 +19,11 @@ class RespuestaEvaluacion extends Model
 
     public function pregunta()
     {
-        return $this->belongsTo(Pregunta::class);
+        return $this->belongsTo(Pregunta::class)->withTrashed();
     }
 
     public function opcion()
     {
-        return $this->belongsTo(Opcion::class);
+        return $this->belongsTo(Opcion::class)->withTrashed();
     }
 }

@@ -12,7 +12,7 @@
 
         <section class="grid gap-5 md:grid-cols-2 xl:grid-cols-5">
             <article class="admin-surface p-6">
-                <p class="text-[10px] font-black uppercase tracking-[0.24em] text-Alumco-blue/55">Jobs fallidos</p>
+                <p class="text-[10px] font-black uppercase tracking-[0.24em] text-Alumco-blue">Jobs fallidos</p>
                 <p class="mt-2 font-display text-3xl font-black text-Alumco-coral-accessible">{{ $health['jobs_fallidos'] }}</p>
             </article>
             <article class="admin-surface p-6">

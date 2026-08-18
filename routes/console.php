@@ -34,3 +34,4 @@ Schedule::call(function (): void {
 
 Schedule::command('media:cleanup')->dailyAt('03:30')->withoutOverlapping();
 Schedule::command('media:audit')->dailyAt('04:00')->withoutOverlapping();
+Schedule::command('lms:purge-deleted-content')->dailyAt('04:30')->withoutOverlapping();

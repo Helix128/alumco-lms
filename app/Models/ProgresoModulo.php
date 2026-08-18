@@ -17,6 +17,6 @@ class ProgresoModulo extends Model
 
     public function modulo()
     {
-        return $this->belongsTo(Modulo::class);
+        return $this->belongsTo(Modulo::class)->withTrashed();
     }
 }

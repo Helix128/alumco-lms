@@ -1,6 +1,6 @@
 <div {{ $attributes->merge(['class' => 'space-y-4']) }}>
     @if (session('success'))
-        <x-alert type="success" :message="session('success')" />
+        <x-alert type="success" :message="session('success')" :action="session('flash_action')" />
     @endif
 
     @if (session('error'))

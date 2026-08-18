@@ -13,7 +13,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Error') — Alumco</title>
     <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @vite(['resources/css/public.css', 'resources/js/app.js'])
 </head>
 <body class="auth-shell font-sans text-Alumco-gray antialiased">
     <div class="relative flex min-h-screen w-full flex-col overflow-x-hidden isolate bg-gradient-to-br from-Alumco-cream via-Alumco-cream to-Alumco-cyan/20 px-6 py-12 lg:px-20">
@@ -25,7 +25,7 @@
 
         <!-- Logo -->
         <div class="relative z-10 flex justify-center mb-10">
-            <a href="{{ route('login') }}" class="transition-transform hover:scale-105 active:scale-95">
+            <a href="{{ auth()->check() ? route(\App\Support\UserAreaRedirector::canonicalRouteName(auth()->user())) : route('login') }}" class="transition-transform hover:scale-105 active:scale-95" aria-label="Ir al inicio">
                 <img
                     src="{{ asset('images/logo/alumco-full.svg') }}"
                     alt="Alumco"
@@ -70,6 +70,7 @@
         <!-- Footer -->
         <footer class="relative z-10 mt-auto pt-10 text-center text-xs font-bold uppercase tracking-widest text-Alumco-gray/40">
             &copy; {{ date('Y') }} Alumco &bull; Sistema de Gestión de Capacitación
+            &bull; <a href="{{ route('help.index') }}" class="text-Alumco-blue underline underline-offset-4">Centro de ayuda</a>
         </footer>
     </div>
 </body>

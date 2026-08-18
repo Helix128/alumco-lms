@@ -160,7 +160,7 @@ class CalendarioAuditGapsTest extends TestCase
             ->set('anioDestino', 2027)
             ->call('copiarAnio', 'replace');
 
-        $this->assertDatabaseMissing('planificaciones_cursos', ['notas' => 'Plan Basura']);
+        $this->assertSoftDeleted('planificaciones_cursos', ['notas' => 'Plan Basura']);
         $this->assertDatabaseHas('planificaciones_cursos', ['notas' => 'Plan Origen', 'fecha_inicio' => '2027-05-03']);
         $this->assertSame(1, PlanificacionCurso::whereYear('fecha_inicio', 2027)->count());
     }

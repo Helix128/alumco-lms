@@ -11,19 +11,19 @@
 
         <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
             <div class="rounded-xl border border-gray-100 bg-gray-50 px-4 py-2.5">
-                <p class="text-[10px] font-black uppercase tracking-widest text-gray-400">Jobs fallidos</p>
+                <p class="text-[10px] font-black uppercase tracking-widest text-gray-700">Jobs fallidos</p>
                 <p class="text-xl font-black text-Alumco-coral-accessible">{{ $status['failed_jobs'] }}</p>
             </div>
             <div class="rounded-xl border border-gray-100 bg-gray-50 px-4 py-2.5">
-                <p class="text-[10px] font-black uppercase tracking-widest text-gray-400">Jobs pendientes</p>
+                <p class="text-[10px] font-black uppercase tracking-widest text-gray-700">Jobs pendientes</p>
                 <p class="text-xl font-black text-Alumco-blue">{{ $status['pending_jobs'] }}</p>
             </div>
             <div class="rounded-xl border border-gray-100 bg-gray-50 px-4 py-2.5">
-                <p class="text-[10px] font-black uppercase tracking-widest text-gray-400">Errores 1h</p>
+                <p class="text-[10px] font-black uppercase tracking-widest text-gray-700">Errores 1h</p>
                 <p class="text-xl font-black text-Alumco-gray">{{ $status['errors_last_hour'] }}</p>
             </div>
             <div class="rounded-xl border border-gray-100 bg-gray-50 px-4 py-2.5">
-                <p class="text-[10px] font-black uppercase tracking-widest text-gray-400">Alertas críticas</p>
+                <p class="text-[10px] font-black uppercase tracking-widest text-gray-700">Alertas críticas</p>
                 <p class="text-xl font-black text-Alumco-coral-accessible">{{ $status['critical_alerts'] }}</p>
             </div>
         </div>

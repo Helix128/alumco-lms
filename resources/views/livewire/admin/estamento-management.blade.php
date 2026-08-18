@@ -4,7 +4,7 @@
         <div class="space-y-1">
             <h2 class="admin-page-title">Gestión de Estamentos</h2>
             <p class="admin-page-subtitle max-w-2xl">
-                Segmentación laboral de colaboradoras y colaboradores para la asignación estratégica de capacitaciones y contenidos.
+                Catálogo de estamentos para segmentar colaboradoras y colaboradores y asignar capacitaciones y contenidos.
             </p>
         </div>
 
@@ -124,7 +124,7 @@
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                             </svg>
-                            Procesando...
+                            Guardando estamento
                         </span>
                     </button>
                 </div>
@@ -145,7 +145,7 @@
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                <span>Actualizando...</span>
+                <span>Actualizando estamentos</span>
             </div>
         </div>
 

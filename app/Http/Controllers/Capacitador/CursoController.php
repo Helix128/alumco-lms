@@ -11,6 +11,7 @@ use App\Models\Evaluacion;
 use App\Models\MediaAsset;
 use App\Services\Analytics\LearningAnalyticsService;
 use App\Services\Cursos\AverageCourseCoverColor;
+use App\Services\History\EditHistoryService;
 use App\Services\Media\MediaAssetService;
 use App\Services\Media\MediaAttachmentService;
 use Illuminate\Http\RedirectResponse;
@@ -23,6 +24,7 @@ class CursoController extends Controller
         private readonly AverageCourseCoverColor $averageCourseCoverColor,
         private readonly MediaAssetService $mediaAssets,
         private readonly MediaAttachmentService $mediaAttachments,
+        private readonly EditHistoryService $history,
     ) {}
 
     public function index(): View
@@ -104,7 +106,13 @@ class CursoController extends Controller
                 ? $this->averageCourseCoverColor->fromMediaAsset($asset)
                 : $this->averageCourseCoverColor->fromPublicPath($curso->imagen_portada);
         }
-        $curso->update($courseAttributes);
+        $this->history->captureChange(
+            $request->user(),
+            EditHistoryService::CourseStructure,
+            $curso->id,
+            'Editar datos de la capacitación',
+            fn () => $curso->update($courseAttributes),
+        );
         if ($asset) {
             $this->mediaAttachments->request($asset, $curso, 'cover', auth()->user());
         }
@@ -117,15 +125,22 @@ class CursoController extends Controller
     {
         $this->authorize('manage', $curso);
 
-        $curso->load('modulos.mediaAttachments');
-        foreach ($curso->modulos as $modulo) {
-            $this->mediaAttachments->detachAll($modulo);
-        }
-        $this->mediaAttachments->detachAll($curso);
-        $curso->delete();
+        $courseId = $curso->id;
+        $this->history->captureChange(
+            auth()->user(),
+            EditHistoryService::CourseStructure,
+            $courseId,
+            'Eliminar capacitación',
+            fn () => $curso->delete(),
+        );
 
         return redirect()->route('capacitador.cursos.index')
-            ->with('success', 'Curso eliminado correctamente.');
+            ->with('success', 'Capacitación movida a elementos eliminados. Puedes recuperarla durante 30 días.')
+            ->with('flash_action', [
+                'label' => 'Deshacer',
+                'url' => route('history.undo', EditHistoryService::CourseStructure),
+                'scope_id' => (string) $courseId,
+            ]);
     }
 
     public function duplicar(Request $request, Curso $curso, DuplicateCourseAction $action): RedirectResponse

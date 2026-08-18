@@ -11,8 +11,10 @@
             <p class="mt-1 text-sm font-medium text-Alumco-cyan">Ingresa tus credenciales para acceder</p>
         </div>
 
-        <form method="POST" action="{{ route('login') }}" class="space-y-6 px-8 py-8 lg:px-12 lg:py-10" novalidate x-data="{ showPassword: false }">
+        <form method="POST" action="{{ route('login') }}" class="space-y-6 px-8 py-8 lg:px-12 lg:py-10" novalidate>
             @csrf
+
+            <x-form-errors />
 
             @if (session('status'))
                 <x-alert type="success" :message="session('status')" class="mb-6" />
@@ -21,7 +23,7 @@
             <!-- Correo -->
             <div class="group space-y-2">
                 <div class="flex items-center justify-between">
-                    <label for="email" class="text-lg font-extrabold text-Alumco-gray transition-colors group-focus-within:text-Alumco-blue">Correo electrónico</label>
+                    <label for="email" class="text-lg font-extrabold text-Alumco-gray transition-colors group-focus-within:text-Alumco-blue">Correo electrónico <span class="text-Alumco-coral-accessible" aria-hidden="true">*</span><span class="sr-only">(obligatorio)</span></label>
                 </div>
 
                 <div class="relative">
@@ -41,17 +43,19 @@
                         autocomplete="username"
                         placeholder="ejemplo@correo.com"
                         class="h-14 w-full rounded-2xl border-2 border-slate-200/60 bg-white/50 pl-14 pr-4 text-lg font-bold text-Alumco-gray transition-all placeholder:text-slate-400 focus:border-Alumco-blue focus:bg-white focus:ring-4 focus:ring-Alumco-blue/10 @error('email') border-red-500 @enderror"
+                        aria-invalid="{{ $errors->has('email') ? 'true' : 'false' }}"
+                        @error('email') aria-describedby="email-error" @enderror
                     >
                 </div>
                 @error('email')
-                    <p class="text-sm font-bold text-red-600">{{ $message }}</p>
+                    <p id="email-error" class="text-sm font-bold text-red-700">{{ $message }}</p>
                 @enderror
             </div>
 
             <!-- Contraseña -->
             <div class="group space-y-2">
                 <div class="flex items-center justify-between">
-                    <label for="password" class="text-lg font-extrabold text-Alumco-gray transition-colors group-focus-within:text-Alumco-blue">Contraseña</label>
+                    <label for="password" class="text-lg font-extrabold text-Alumco-gray transition-colors group-focus-within:text-Alumco-blue">Contraseña <span class="text-Alumco-coral-accessible" aria-hidden="true">*</span><span class="sr-only">(obligatorio)</span></label>
                     @if (Route::has('password.request'))
                         <a href="{{ route('password.request') }}" class="text-sm font-bold text-Alumco-blue transition hover:text-Alumco-coral">
                             ¿Olvidaste tu contraseña?
@@ -68,29 +72,34 @@
                     <input
                         id="password"
                         type="password"
-                        x-bind:type="showPassword ? 'text' : 'password'"
+                        data-password-input
                         name="password"
                         required
                         autocomplete="current-password"
                         placeholder="••••••••"
                         class="h-14 w-full rounded-2xl border-2 border-slate-200/60 bg-white/50 pl-14 pr-14 text-lg font-bold text-Alumco-gray transition-all placeholder:text-slate-400 focus:border-Alumco-blue focus:bg-white focus:ring-4 focus:ring-Alumco-blue/10 @error('password') border-red-500 @enderror"
+                        aria-invalid="{{ $errors->has('password') ? 'true' : 'false' }}"
+                        @error('password') aria-describedby="password-error" @enderror
                     >
                     <button
                         type="button"
-                        @click="showPassword = !showPassword"
+                        data-password-toggle
+                        aria-controls="password"
+                        aria-pressed="false"
+                        aria-label="Mostrar contraseña"
                         class="absolute inset-y-0 right-0 flex items-center pr-5 text-Alumco-gray/30 hover:text-Alumco-blue focus:outline-none"
                     >
-                        <svg x-show="!showPassword" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-6 w-6">
+                        <svg data-password-show-icon xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-6 w-6" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
                         </svg>
-                        <svg x-show="showPassword" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-6 w-6" x-cloak>
+                        <svg data-password-hide-icon xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="hidden h-6 w-6" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 17.772 17.772m0 0a10.446 10.446 0 0 1-2.909 1.557m0 0A10.473 10.473 0 0 1 12 19.5c-4.756 0-8.773-3.162-10.065-7.498a10.522 10.522 0 0 1 4.293-5.774M6.228 6.228 1 1m16.772 16.772 5.228 5.228" />
                         </svg>
                     </button>
                 </div>
                 @error('password')
-                    <p class="text-sm font-bold text-red-600">{{ $message }}</p>
+                    <p id="password-error" class="text-sm font-bold text-red-700">{{ $message }}</p>
                 @enderror
             </div>
 
@@ -108,7 +117,8 @@
                 
                 <p class="text-sm font-bold text-Alumco-gray/40">
                     ¿Tienes problemas para ingresar? 
-                    <a href="{{ route('support.public.create') }}" class="text-Alumco-blue hover:text-Alumco-coral underline decoration-Alumco-blue/30 underline-offset-4">Contacta a soporte</a>
+                    <a href="{{ route('help.show', 'iniciar-sesion') }}" class="text-Alumco-blue hover:text-Alumco-coral underline decoration-Alumco-blue/30 underline-offset-4">Revisa la guía de acceso</a>
+                    o <a href="{{ route('support.public.create') }}" class="text-Alumco-blue hover:text-Alumco-coral underline decoration-Alumco-blue/30 underline-offset-4">contacta a soporte</a>
                 </p>
             </div>
         </form>

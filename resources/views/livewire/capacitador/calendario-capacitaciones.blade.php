@@ -78,6 +78,14 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
+            @if($esAdmin)
+                <x-history-controls
+                    :context="\App\Services\History\EditHistoryService::Calendar"
+                    :scope-id="\App\Services\History\EditHistoryService::GlobalScope"
+                    :state="$this->historyState"
+                    livewire />
+            @endif
+
             <div class="flex items-center rounded-xl bg-white p-1 shadow-sm ring-1 ring-gray-100">
                 <button wire:click="cambiarVista('anual')" @mouseenter="preheat('actual')" @focus="preheat('actual')" @class([
                     'planning-action rounded-lg px-3 py-2 text-xs font-black uppercase tracking-widest data-loading:pointer-events-none data-loading:opacity-55 motion-reduce:transition-none',
@@ -115,7 +123,7 @@
                 <div class="flex flex-wrap items-center gap-2">
                     <button wire:click="irAnioAnterior" wire:loading.attr="disabled" @mouseenter="preheat('anterior')" @focus="preheat('anterior')" class="planning-action rounded-xl bg-gray-50 px-3 py-2 text-sm font-black text-gray-500 hover:bg-gray-100 motion-reduce:transition-none disabled:opacity-50">
                         <span wire:loading.remove wire:target="irAnioAnterior">Anterior</span>
-                        <span wire:loading wire:target="irAnioAnterior">...</span>
+                        <span wire:loading wire:target="irAnioAnterior">Cargando año anterior</span>
                     </button>
                     <div class="min-w-24 text-center">
                         <span class="block text-[10px] font-black uppercase tracking-widest text-gray-400">Año</span>
@@ -123,7 +131,7 @@
                     </div>
                     <button wire:click="irAnioSiguiente" wire:loading.attr="disabled" @mouseenter="preheat('siguiente')" @focus="preheat('siguiente')" class="planning-action rounded-xl bg-gray-50 px-3 py-2 text-sm font-black text-gray-500 hover:bg-gray-100 motion-reduce:transition-none disabled:opacity-50">
                         <span wire:loading.remove wire:target="irAnioSiguiente">Siguiente</span>
-                        <span wire:loading wire:target="irAnioSiguiente">...</span>
+                        <span wire:loading wire:target="irAnioSiguiente">Cargando año siguiente</span>
                     </button>
 
                     <div class="mx-1 hidden h-8 w-px bg-gray-100 sm:block"></div>

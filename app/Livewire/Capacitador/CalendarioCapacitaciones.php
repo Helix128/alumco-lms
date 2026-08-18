@@ -3,14 +3,18 @@
 namespace App\Livewire\Capacitador;
 
 use App\Actions\Calendario\CopyYearPlanningAction;
+use App\Exceptions\EditHistoryConflict;
 use App\Models\PlanificacionCurso;
 use App\Models\Sede;
 use App\Services\Calendario\CalendarCacheKeyService;
 use App\Services\Calendario\CalendarGridBuilder;
 use App\Services\Calendario\CalendarPlanningRepository;
 use App\Services\Cursos\CoursePlanningNotifier;
+use App\Services\History\EditHistoryService;
 use Carbon\Carbon;
+use Closure;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\Renderless;
 use Livewire\Component;
@@ -348,13 +352,13 @@ class CalendarioCapacitaciones extends Component
             'sedeIdPlan' => 'nullable|integer|exists:sedes,id',
         ]);
 
-        $planificacion = PlanificacionCurso::create([
+        $planificacion = $this->mutateCalendar('Programar capacitación', fn () => PlanificacionCurso::create([
             'curso_id' => $this->cursoId,
             'sede_id' => $this->sedeIdPlan,
             'fecha_inicio' => $this->fechaInicioPlan,
             'fecha_fin' => $this->fechaFinPlan,
             'notas' => null,
-        ]);
+        ]));
         app(CoursePlanningNotifier::class)->notifyScheduled($planificacion);
 
         $this->invalidateCalendarCaches();
@@ -389,13 +393,13 @@ class CalendarioCapacitaciones extends Component
             'sedeIdPlan' => 'nullable|integer|exists:sedes,id',
         ]);
 
-        $planificacion = PlanificacionCurso::create([
+        $planificacion = $this->mutateCalendar('Programar capacitación', fn () => PlanificacionCurso::create([
             'curso_id' => $cursoId,
             'sede_id' => $sedeId ? (int) $sedeId : null,
             'fecha_inicio' => $semanaDestino['inicio'],
             'fecha_fin' => $semanaDestino['fin'],
             'notas' => null,
-        ]);
+        ]));
         app(CoursePlanningNotifier::class)->notifyScheduled($planificacion);
 
         $this->invalidateCalendarCaches();
@@ -525,13 +529,13 @@ class CalendarioCapacitaciones extends Component
             'sedeIdPlan' => 'nullable|integer|exists:sedes,id',
         ]);
 
-        $planificacion = PlanificacionCurso::create([
+        $planificacion = $this->mutateCalendar('Programar capacitación', fn () => PlanificacionCurso::create([
             'curso_id' => $this->cursoId,
             'sede_id' => $this->sedeIdPlan,
             'fecha_inicio' => $this->quickAddFecha,
             'fecha_fin' => $this->quickAddFecha,
             'notas' => null,
-        ]);
+        ]));
         app(CoursePlanningNotifier::class)->notifyScheduled($planificacion);
 
         $this->invalidateCalendarCaches();
@@ -577,18 +581,23 @@ class CalendarioCapacitaciones extends Component
             'notas' => $this->notas ?: null,
         ];
 
-        if ($this->editandoId) {
-            $planificacion = PlanificacionCurso::findOrFail($this->editandoId);
-            $datesChanged = $planificacion->fecha_inicio->toDateString() !== $datos['fecha_inicio']
-                || $planificacion->fecha_fin->toDateString() !== $datos['fecha_fin'];
-            $planificacion->update($datos);
-            if ($datesChanged) {
-                app(CoursePlanningNotifier::class)->notifyUpdated($planificacion->refresh());
-            }
-        } else {
-            $planificacion = PlanificacionCurso::create($datos);
-            app(CoursePlanningNotifier::class)->notifyScheduled($planificacion);
-        }
+        $this->mutateCalendar(
+            $this->editandoId ? 'Editar planificación' : 'Programar capacitación',
+            function () use ($datos): void {
+                if ($this->editandoId) {
+                    $planificacion = PlanificacionCurso::findOrFail($this->editandoId);
+                    $datesChanged = $planificacion->fecha_inicio->toDateString() !== $datos['fecha_inicio']
+                        || $planificacion->fecha_fin->toDateString() !== $datos['fecha_fin'];
+                    $planificacion->update($datos);
+                    if ($datesChanged) {
+                        app(CoursePlanningNotifier::class)->notifyUpdated($planificacion->refresh());
+                    }
+                } else {
+                    $planificacion = PlanificacionCurso::create($datos);
+                    app(CoursePlanningNotifier::class)->notifyScheduled($planificacion);
+                }
+            },
+        );
 
         $this->invalidateCalendarCaches();
         $this->cerrarModal();
@@ -603,7 +612,10 @@ class CalendarioCapacitaciones extends Component
             abort_unless($this->modoPlaneacion, 403);
         }
 
-        PlanificacionCurso::whereKey($id)->delete();
+        $this->mutateCalendar(
+            'Eliminar planificación',
+            fn () => PlanificacionCurso::whereKey($id)->delete(),
+        );
         $this->invalidateCalendarCaches();
         $this->cargarDatos();
     }
@@ -652,13 +664,15 @@ class CalendarioCapacitaciones extends Component
 
         $plan = PlanificacionCurso::findOrFail($id);
 
-        if ($borde === 'inicio') {
-            $nuevaFechaInicio = $fechaObjetivo->copy()->min($plan->fecha_fin->copy());
-            $plan->update(['fecha_inicio' => $nuevaFechaInicio->toDateString()]);
-        } else {
-            $nuevaFechaFin = $fechaObjetivo->copy()->max($plan->fecha_inicio->copy());
-            $plan->update(['fecha_fin' => $nuevaFechaFin->toDateString()]);
-        }
+        $this->mutateCalendar('Ajustar duración de planificación', function () use ($borde, $fechaObjetivo, $plan): void {
+            if ($borde === 'inicio') {
+                $nuevaFechaInicio = $fechaObjetivo->copy()->min($plan->fecha_fin->copy());
+                $plan->update(['fecha_inicio' => $nuevaFechaInicio->toDateString()]);
+            } else {
+                $nuevaFechaFin = $fechaObjetivo->copy()->max($plan->fecha_inicio->copy());
+                $plan->update(['fecha_fin' => $nuevaFechaFin->toDateString()]);
+            }
+        });
 
         $this->invalidateCalendarCaches();
         $this->cargarDatos();
@@ -680,10 +694,10 @@ class CalendarioCapacitaciones extends Component
             $nuevoDiaInicio = max(1, $nuevoDiaFin - $duracionDias);
         }
 
-        $plan->update([
+        $this->mutateCalendar('Mover planificación', fn () => $plan->update([
             'fecha_inicio' => Carbon::createFromDate($this->anioActual, $this->mesActual, $nuevoDiaInicio)->toDateString(),
             'fecha_fin' => Carbon::createFromDate($this->anioActual, $this->mesActual, $nuevoDiaFin)->toDateString(),
-        ]);
+        ]));
 
         $this->invalidateCalendarCaches();
         $this->cargarDatos();
@@ -739,7 +753,7 @@ class CalendarioCapacitaciones extends Component
             $updates['sede_id'] = $nuevaSedeId;
         }
 
-        $plan->update($updates);
+        $this->mutateCalendar('Mover planificación', fn () => $plan->update($updates));
 
         $this->invalidateCalendarCaches();
         $this->cargarDatos();
@@ -759,15 +773,15 @@ class CalendarioCapacitaciones extends Component
         $semanas = $this->semanasDelAnio;
         $plan = PlanificacionCurso::findOrFail($id);
 
-        if ($borde === 'inicio') {
-            $semActualFin = $this->semanaParaFecha($plan->fecha_fin) ?? $total;
-            $semana = min($semana, $semActualFin);
-            $plan->update(['fecha_inicio' => $semanas[$semana - 1]['inicio']]);
-        } else {
-            $semActualIni = $this->semanaParaFecha($plan->fecha_inicio) ?? 1;
-            $semana = max($semana, $semActualIni);
-            $plan->update(['fecha_fin' => $semanas[$semana - 1]['fin']]);
-        }
+        $this->mutateCalendar('Ajustar duración de planificación', function () use ($borde, $plan, $semanas, $semana, $total): void {
+            if ($borde === 'inicio') {
+                $targetWeek = min($semana, $this->semanaParaFecha($plan->fecha_fin) ?? $total);
+                $plan->update(['fecha_inicio' => $semanas[$targetWeek - 1]['inicio']]);
+            } else {
+                $targetWeek = max($semana, $this->semanaParaFecha($plan->fecha_inicio) ?? 1);
+                $plan->update(['fecha_fin' => $semanas[$targetWeek - 1]['fin']]);
+            }
+        });
 
         $this->invalidateCalendarCaches();
         $this->cargarDatos();
@@ -804,7 +818,7 @@ class CalendarioCapacitaciones extends Component
             $updates['sede_id'] = $nuevaSedeId;
         }
 
-        $plan->update($updates);
+        $this->mutateCalendar('Mover planificación', fn () => $plan->update($updates));
         $this->invalidateCalendarCaches();
         $this->cargarDatos();
     }
@@ -820,15 +834,15 @@ class CalendarioCapacitaciones extends Component
         $mes = max(1, min($mes, 12));
         $plan = PlanificacionCurso::findOrFail($id);
 
-        if ($borde === 'inicio') {
-            $mesFinActual = $plan->fecha_fin->month;
-            $mes = min($mes, $mesFinActual);
-            $plan->update(['fecha_inicio' => Carbon::create($this->anioActual, $mes, 1)->toDateString()]);
-        } else {
-            $mesIniActual = $plan->fecha_inicio->month;
-            $mes = max($mes, $mesIniActual);
-            $plan->update(['fecha_fin' => Carbon::create($this->anioActual, $mes, 1)->endOfMonth()->toDateString()]);
-        }
+        $this->mutateCalendar('Ajustar duración de planificación', function () use ($borde, $mes, $plan): void {
+            if ($borde === 'inicio') {
+                $targetMonth = min($mes, $plan->fecha_fin->month);
+                $plan->update(['fecha_inicio' => Carbon::create($this->anioActual, $targetMonth, 1)->toDateString()]);
+            } else {
+                $targetMonth = max($mes, $plan->fecha_inicio->month);
+                $plan->update(['fecha_fin' => Carbon::create($this->anioActual, $targetMonth, 1)->endOfMonth()->toDateString()]);
+            }
+        });
 
         $this->invalidateCalendarCaches();
         $this->cargarDatos();
@@ -1111,7 +1125,10 @@ class CalendarioCapacitaciones extends Component
         }
 
         try {
-            $result = $this->copyYearPlanningAction->execute($this->anioOrigen, $this->anioDestino, $modo);
+            $result = $this->mutateCalendar(
+                'Copiar planificación anual',
+                fn () => $this->copyYearPlanningAction->execute($this->anioOrigen, $this->anioDestino, $modo),
+            );
         } catch (\InvalidArgumentException $e) {
             $this->addError('anioDestino', $e->getMessage());
 
@@ -1148,6 +1165,59 @@ class CalendarioCapacitaciones extends Component
     private function anioTienePlanificaciones(int $anio): bool
     {
         return $this->calendarPlanningRepository->yearHasPlanificaciones($anio);
+    }
+
+    /** @return array{can_undo: bool, can_redo: bool, undo_label: ?string, redo_label: ?string} */
+    #[Computed]
+    public function historyState(): array
+    {
+        return app(EditHistoryService::class)->availability(
+            Auth::user(),
+            EditHistoryService::Calendar,
+            EditHistoryService::GlobalScope,
+        );
+    }
+
+    public function deshacer(): void
+    {
+        $this->travelHistory(false);
+    }
+
+    public function rehacer(): void
+    {
+        $this->travelHistory(true);
+    }
+
+    private function travelHistory(bool $redo): void
+    {
+        abort_unless(Auth::user()->hasAdminAccess(), 403);
+
+        try {
+            $step = $redo
+                ? app(EditHistoryService::class)->redo(Auth::user(), EditHistoryService::Calendar, EditHistoryService::GlobalScope)
+                : app(EditHistoryService::class)->undo(Auth::user(), EditHistoryService::Calendar, EditHistoryService::GlobalScope);
+            $this->invalidateCalendarCaches();
+            $this->cargarDatos();
+            $this->cargarCursosDisponibles();
+            unset($this->historyState);
+            $this->dispatch('alumco-alert', title: $redo ? 'Cambio rehecho' : 'Cambio deshecho', message: $step->label.'.', type: 'success');
+        } catch (EditHistoryConflict $exception) {
+            $this->dispatch('alumco-alert', title: 'No se pudo aplicar', message: $exception->getMessage(), type: 'error');
+        }
+    }
+
+    private function mutateCalendar(string $label, Closure $change): mixed
+    {
+        $result = app(EditHistoryService::class)->captureChange(
+            Auth::user(),
+            EditHistoryService::Calendar,
+            EditHistoryService::GlobalScope,
+            $label,
+            $change,
+        );
+        unset($this->historyState);
+
+        return $result;
     }
 
     /* ────────────────────────────────────────────────────────────────────── */

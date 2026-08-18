@@ -90,7 +90,7 @@
         <div class="space-y-6">
             {{-- Account Information Section - Compact --}}
             <section class="worker-card overflow-hidden border-none shadow-lg shadow-Alumco-blue/5">
-                <div class="border-b border-slate-50 bg-slate-50/20 px-6 py-4">
+                <div class="border-b border-slate-50 px-6 py-4 bg-slate-50/20">
                     <div class="flex items-center gap-2">
                         <div class="h-2 w-2 rounded-full bg-Alumco-green"></div>
                         <h3 class="font-display text-[18px] font-black text-Alumco-blue uppercase tracking-tight">Información de Identidad</h3>

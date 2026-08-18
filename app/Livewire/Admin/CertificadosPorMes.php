@@ -60,9 +60,13 @@ class CertificadosPorMes extends Component
             'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic',
         ];
 
+        $monthExpression = DB::getDriverName() === 'sqlite'
+            ? "CAST(strftime('%m', fecha_emision) AS INTEGER)"
+            : 'MONTH(fecha_emision)';
+
         $data = DB::table('certificados')
             ->whereYear('fecha_emision', $this->currentYear)
-            ->selectRaw('MONTH(fecha_emision) as mes, COUNT(*) as total')
+            ->selectRaw("{$monthExpression} as mes, COUNT(*) as total")
             ->groupBy('mes')
             ->orderBy('mes')
             ->pluck('total', 'mes');
